@@ -1,0 +1,11 @@
+@font-face {
+  font-family: 'Noto Sans JP';
+  src: url('./fonts/NotoSansJP-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+}
