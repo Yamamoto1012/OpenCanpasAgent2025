@@ -1,2 +1,2 @@
 # OpenCanpasAgent2025
-# OpenCanpasAgent2025
+金沢工業大学の春のオープンキャンパス2025の情報工学科ブースで展示予定
