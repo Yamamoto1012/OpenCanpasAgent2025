@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@pixiv/three-vrm": "^3.3.6",
+    "@radix-ui/react-slot": "^1.1.2",
     "@react-three/drei": "^10.0.4",
     "@react-three/fiber": "^9.1.0",
     "@tailwindcss/vite": "^4.0.14",

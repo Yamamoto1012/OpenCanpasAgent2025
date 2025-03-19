@@ -8,6 +8,9 @@ dependencies:
   '@pixiv/three-vrm':
     specifier: ^3.3.6
     version: 3.3.6(three@0.174.0)
+  '@radix-ui/react-slot':
+    specifier: ^1.1.2
+    version: 1.1.2(@types/react@19.0.11)(react@19.0.0)
   '@react-three/drei':
     specifier: ^10.0.4
     version: 10.0.4(@react-three/fiber@9.1.0)(@types/react@19.0.11)(@types/three@0.174.0)(react-dom@19.0.0)(react@19.0.0)(three@0.174.0)
@@ -776,6 +779,33 @@ packages:
 
   /@pixiv/types-vrmc-vrm-1.0@3.3.6:
     resolution: {integrity: sha512-9au2C8wGvS1fWxjPXAMpikYUZIZlGfYOa9ekeajNVDeFLj5jKXmTBNd9Ufx5Ai4+LRBUdfewlFl1cY7mgcQjWg==}
+    dev: false
+
+  /@radix-ui/react-compose-refs@1.1.1(@types/react@19.0.11)(react@19.0.0):
+    resolution: {integrity: sha512-Y9VzoRDSJtgFMUCoiZBDVo084VQ5hfpXxVE+NgkdNsjiDBByiImMZKKhxMwCbdHvhlENG6a833CbFkOQvTricw==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+    dependencies:
+      '@types/react': 19.0.11
+      react: 19.0.0
+    dev: false
+
+  /@radix-ui/react-slot@1.1.2(@types/react@19.0.11)(react@19.0.0):
+    resolution: {integrity: sha512-YAKxaiGsSQJ38VzKH86/BPRC4rh+b1Jpa+JneA5LRE7skmLPNAyeG8kPJj/oo4STLvlrs8vkf/iYyc3A5stYCQ==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+    dependencies:
+      '@radix-ui/react-compose-refs': 1.1.1(@types/react@19.0.11)(react@19.0.0)
+      '@types/react': 19.0.11
+      react: 19.0.0
     dev: false
 
   /@react-three/drei@10.0.4(@react-three/fiber@9.1.0)(@types/react@19.0.11)(@types/three@0.174.0)(react-dom@19.0.0)(react@19.0.0)(three@0.174.0):
