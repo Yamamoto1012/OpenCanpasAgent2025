@@ -2,10 +2,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Send } from "lucide-react"
 
-export default function ChatInterface() {
+export default function ChatInterfaceView() {
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 bg-[#c3e6d8]/50 border-t border-[#9f9579]/20">
+      <div className="p-4 bg-[#c3e6d8]/50 border-t border-[#9f9579]/20 rounded-2xl">
         <form className="flex gap-2">
           <Input
             placeholder="大学について質問してください..."
