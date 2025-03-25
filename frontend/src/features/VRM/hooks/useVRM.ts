@@ -1,51 +1,75 @@
-import { useState, useEffect } from 'react'
-import { VRM, VRMUtils, VRMLoaderPlugin } from '@pixiv/three-vrm'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { Scene, Group } from 'three'
+import { useState, useEffect } from "react";
+import * as THREE from "three";
+import { Scene, Group } from "three";
+import { VRM, VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from "@pixiv/three-vrm-animation";
 
-/**
- * 指定 URL の VRM モデルを読み込み、VRM インスタンスとそのシーンを返すカスタムフック
- *
- * @param url - VRM モデルの URL
- * @returns { vrm: VRM | null, scene: Scene | Group | null }
- */
-export const useVRM = (url: string) => {
-  const [vrm, setVRM] = useState<VRM | null>(null)
-  const [scene, setScene] = useState<Scene | Group | null>(null)
+type UseVRMReturn = {
+  vrm: VRM | null;
+  scene: Scene | Group | null;
+  mixer: THREE.AnimationMixer | null;
+}
+
+export const useVRM = (vrmUrl: string, vrmaUrl?: string): UseVRMReturn => {
+  const [vrm, setVRM] = useState<VRM | null>(null);
+  const [scene, setScene] = useState<Scene | Group | null>(null);
+  const [mixer, setMixer] = useState<THREE.AnimationMixer | null>(null);
 
   useEffect(() => {
-    let isMounted = true
-    const loader = new GLTFLoader()
-    // VRM 用のプラグインを登録
-    loader.register((parser) => new VRMLoaderPlugin(parser))
-    // 非同期で VRM モデルを読み込む
-    loader.loadAsync(
-      url,
-      // 進捗状況をログ出力
-      (xhr) => {
-        console.log(`ロード進捗: ${((xhr.loaded / xhr.total) * 100).toFixed(2)}%`)
-      }
-    )
-      .then((gltf) => {
-        if (!isMounted) return
-        // 読み込み完了時の処理
-        const loadedVRM = gltf.userData.vrm as VRM
-        console.log('ロード完了')
-        // 不要なジョイントの除去
-        VRMUtils.removeUnnecessaryJoints(loadedVRM.scene)
-        // VRM の向き調整（rotateVRM0 は VRM の回転を初期化するための処理）
-        VRMUtils.rotateVRM0(loadedVRM)
-        // 状態を更新（不変性を保ちながら更新）
-        setVRM(loadedVRM)
-        setScene(loadedVRM.scene)
-      })
-      .catch((error) => {
-        console.error('読み込みエラー発生', error)
-      })
-    return () => {
-      isMounted = false
-    }
-  }, [url])
+    // GLTFLoader のインスタンス生成
+    const loader = new GLTFLoader();
 
-  return { vrm, scene }
-}
+    // VRM および VRMA の読み込みを可能にするプラグインの登録
+    loader.register((parser) => new VRMLoaderPlugin(parser));
+    loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
+
+    // VRMファイルの読み込み
+    loader.load(
+      vrmUrl,
+      (gltf) => {
+        const loadedVRM: VRM = gltf.userData.vrm;
+        if (!loadedVRM) {
+          console.warn("VRMが読み込めませんでした");
+          return;
+        }
+
+        // モデルの向きを調整
+        VRMUtils.rotateVRM0(loadedVRM);
+        setVRM(loadedVRM);
+        setScene(loadedVRM.scene);
+
+        // VRMAファイルが指定されていない場合はここで処理終了
+        if (!vrmaUrl) return;
+
+        // VRMAファイルの読み込み処理
+        loader.load(
+          vrmaUrl,
+          (vrmaGltf) => {
+            const vrmAnimations = vrmaGltf.userData.vrmAnimations;
+            if (!vrmAnimations || vrmAnimations.length === 0) {
+              console.warn("VRMAファイル内にアニメーションが見つかりませんでした");
+              return;
+            }
+
+            // AnimationMixer を初期化し、最初のアニメーションクリップを再生
+            const newMixer = new THREE.AnimationMixer(loadedVRM.scene);
+            const clip = createVRMAnimationClip(vrmAnimations[0], loadedVRM);
+            newMixer.clipAction(clip).play();
+            setMixer(newMixer);
+          },
+          undefined,
+          (error) => {
+            console.error("VRMAファイル読み込みエラー:", error);
+          }
+        );
+      },
+      undefined,
+      (error) => {
+        console.error("VRMファイル読み込みエラー:", error);
+      }
+    );
+  }, [vrmUrl, vrmaUrl]);
+
+  return { vrm, scene, mixer };
+};

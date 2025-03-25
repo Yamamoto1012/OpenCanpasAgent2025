@@ -1,32 +1,29 @@
-import { useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
-import { Clock } from 'three'
-import { useVRM } from '../hooks/useVRM'
+import { useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import { Clock } from "three";
+import { useVRM } from "../hooks/useVRM";
 
-type Props = {
-  url: string
-}
+type VRMRenderProps = {
+  vrmUrl: string;
+  vrmaUrl?: string;
+};
 
-/**
- * VRMRender コンポーネント
- * 指定された URL の VRM モデルを読み込み、シーンオブジェクトとしてレンダリングする。
- * モデルのアニメーション更新は useFrame 内で行う。
- *
- * @param url - VRM モデルの URL
- * @returns JSX.Element
- */
-export default function VRMRender({ url }: Props) {
-  const { vrm, scene } = useVRM(url)
-  // コンポーネントのライフサイクル全体で一定の Clock インスタンスを作成
-  const clock = useMemo(() => new Clock(true), [])
+export default function VRMRender({ vrmUrl, vrmaUrl }: VRMRenderProps) {
+  // useVRM カスタムフックでVRMデータを取得
+  const { vrm, scene, mixer } = useVRM(vrmUrl, vrmaUrl);
 
-  // 毎フレーム、VRM モデルの更新を行う
+  // コンポーネントのライフサイクル全体で一定の Clock インスタンスを生成
+  const clock = useMemo(() => new Clock(true), []);
+
+  // 毎フレーム、VRMモデルとアニメーションミキサーを更新
   useFrame(() => {
-    vrm?.update(clock.getDelta())
-  })
+    const delta = clock.getDelta();
+    vrm?.update(delta);
+    mixer?.update(delta);
+  });
 
-  // シーンが未ロードの場合は早期リターン
-  if (!scene) return null
+  // シーンが未ロードの場合は何もレンダリングしない
+  if (!scene) return null;
 
-  return <primitive object={scene} dispose={null} />
+  return <primitive object={scene} dispose={null} />;
 }
