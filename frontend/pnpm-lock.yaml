@@ -8,6 +8,9 @@ dependencies:
   '@pixiv/three-vrm':
     specifier: ^3.3.6
     version: 3.3.6(three@0.174.0)
+  '@pixiv/three-vrm-animation':
+    specifier: ^3.3.6
+    version: 3.3.6(three@0.174.0)
   '@radix-ui/react-slot':
     specifier: ^1.1.2
     version: 1.1.2(@types/react@19.0.11)(react@19.0.0)
@@ -680,6 +683,17 @@ packages:
       fastq: 1.19.1
     dev: true
 
+  /@pixiv/three-vrm-animation@3.3.6(three@0.174.0):
+    resolution: {integrity: sha512-1s0c5/hbYEYBkCchzDYJ7o7KRZOSXw4G8t07ihELL5vbj6Orc5d3X3nGLV9W78TpoE8n5EoJgJyFOy2az7G2/w==}
+    peerDependencies:
+      three: '>=0.137'
+    dependencies:
+      '@pixiv/three-vrm-core': 3.3.6(three@0.174.0)
+      '@pixiv/types-vrmc-vrm-1.0': 3.3.6
+      '@pixiv/types-vrmc-vrm-animation-1.0': 3.3.6
+      three: 0.174.0
+    dev: false
+
   /@pixiv/three-vrm-core@3.3.6(three@0.174.0):
     resolution: {integrity: sha512-8k8F6miMLHH/GMdPUE59vdIthgOYwHyakCgYBzyfUvJbHq7NDjxb2O/7NA4ATa+KlwEg8x4/cuLM2cM6wFjLUw==}
     peerDependencies:
@@ -777,8 +791,18 @@ packages:
     resolution: {integrity: sha512-hM8L+NWXwT2Yg1GuIr62U+X01VhiQK1wMaNBX81toUKYjd1uXPokDTBaksvd+4K5Sl/BtGMNlW/barL3mJ6sBg==}
     dev: false
 
+  /@pixiv/types-vrmc-vrm-1.0@2.0.3:
+    resolution: {integrity: sha512-RMP34Bk1qLFQv/CRB1Zqvn2qMFfWQfP2Hms5QrrfoBsW9XroZdEe0zPLNbGmUPYh4F7VtBb+B7+RCuymRtpehA==}
+    dev: false
+
   /@pixiv/types-vrmc-vrm-1.0@3.3.6:
     resolution: {integrity: sha512-9au2C8wGvS1fWxjPXAMpikYUZIZlGfYOa9ekeajNVDeFLj5jKXmTBNd9Ufx5Ai4+LRBUdfewlFl1cY7mgcQjWg==}
+    dev: false
+
+  /@pixiv/types-vrmc-vrm-animation-1.0@3.3.6:
+    resolution: {integrity: sha512-xjz/88JtZsHLkIwOHA8RaQa84zcmpn7FLabsrregSlpImfskQBoKc7hk+glLKuZ4s9buLPrQTr3EVE8mlnNWkQ==}
+    dependencies:
+      '@pixiv/types-vrmc-vrm-1.0': 2.0.3
     dev: false
 
   /@radix-ui/react-compose-refs@1.1.1(@types/react@19.0.11)(react@19.0.0):
