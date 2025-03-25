@@ -1,11 +1,11 @@
 import { Canvas } from "@react-three/fiber";
 import "./App.css";
 import VRMWrapper from "./features/VRM/VRMWrapper/VRMWrapper";
-import ChatInterface from "./features/ChatInterface/ChatInterface";
+import { ChatInterface } from "./features/ChatInterface/ChatInterfaceContainer";
 
 function App() {
   return (
-    <div className="w-[100vw] h-[90vh]">
+    <div className="w-[100vw] h-[90vh] p-4">
       <Canvas
         flat
         camera={{
