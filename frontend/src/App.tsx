@@ -3,14 +3,14 @@ import "./App.css";
 import VRMWrapper from "./features/VRM/VRMWrapper/VRMWrapper";
 import { ChatInterface } from "./features/ChatInterface/ChatInterface";
 import { useState } from "react";
-import { Info, Volume2 } from "lucide-react";
+import { Info, Volume2, VolumeX } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
 import { CategoryNavigator } from "./features/CategorySelection/CategoryNavigator";
 
-
 function App() {
 	const [showInfo, setShowInfo] = useState(false);
+	const [isMuted, setIsMuted] = useState(false);
 
 	return (
 		<div className="relative w-screen h-screen overflow-hidden">
@@ -43,8 +43,8 @@ function App() {
 			</div>
 			<div className="absolute bottom-2/12 right-2 p-4 z-10">
 				<IconButton
-					icon={Volume2}
-					onClick={() => console.log("音声ボタン押下")}
+					icon={isMuted ? VolumeX : Volume2}
+					onClick={() => setIsMuted(!isMuted)}
 				/>
 			</div>
 			{showInfo && <InfoPanel onClose={() => setShowInfo(false)} />}
