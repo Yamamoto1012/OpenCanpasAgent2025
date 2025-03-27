@@ -1,6 +1,14 @@
 import type { VRM } from "@pixiv/three-vrm";
 import { useEffect, useRef } from "react";
 
+type ExpressionPreset =
+	| "neutral"
+	| "happy"
+	| "sad"
+	| "angry"
+	| "surprised"
+	| "relaxed";
+
 /**
  * VRMモデルに自然な表情や動きを追加するためのフック
  */
@@ -18,6 +26,65 @@ export const useVRMExpression = (vrm: VRM | null) => {
 	const breathPhaseRef = useRef<number>(0);
 	// 最初のデバッグ出力フラグ
 	const debugLoggedRef = useRef<boolean>(false);
+
+	// 現在の表情プリセットと強度
+	const currentExpressionRef = useRef<{
+		preset: ExpressionPreset;
+		weight: number;
+	}>({
+		preset: "neutral",
+		weight: 0,
+	});
+
+	/**
+	 * 表情プリセットを設定する
+	 * @param preset 表情プリセット名
+	 * @param weight 強度（0.0～1.0）
+	 */
+	const setExpression = (preset: ExpressionPreset, weight = 0.7) => {
+		if (!vrm) return;
+
+		// 笑顔を設定する前に一旦すべての表情をリセット
+		// biome-ignore lint/complexity/noForEach: <explanation>
+		["neutral", "happy", "sad", "angry", "surprised", "relaxed"].forEach(
+			(exp) => {
+				safeSetExpression(exp, 0);
+			},
+		);
+
+		// 指定された表情を設定
+		safeSetExpression(preset, weight);
+
+		// 表情状態を更新
+		currentExpressionRef.current = { preset, weight };
+
+		// デバッグ出力
+		console.log(`表情を設定: ${preset}, 強度: ${weight}`);
+	};
+
+	/**
+	 * モーションに合わせた表情を設定する
+	 * @param motionName モーションファイル名（パスを含む）
+	 */
+	const setExpressionForMotion = (motionName: string) => {
+		// モーション名から適切な表情を選択
+		if (motionName.includes("VRMA_01") || motionName.includes("Walking")) {
+			// 通常の動き - 軽い笑顔
+			setExpression("happy", 0.2);
+		} else if (motionName.includes("StandingIdle")) {
+			// 静止状態 - リラックス
+			setExpression("relaxed", 0.3);
+		} else if (motionName.includes("Talking")) {
+			// 会話状態 - より明るい笑顔
+			setExpression("happy", 0.8);
+		} else if (motionName.includes("Surprised")) {
+			// 驚き
+			setExpression("surprised", 0.8);
+		} else {
+			// デフォルト - 軽い笑顔
+			setExpression("happy", 0.3);
+		}
+	};
 
 	/**
 	 * ランダムな瞬きの間隔を取得（2〜6秒）
@@ -338,5 +405,10 @@ export const useVRMExpression = (vrm: VRM | null) => {
 		};
 	}, []);
 
-	return { update };
+	return {
+		update,
+		setExpression,
+		setExpressionForMotion,
+		currentExpression: currentExpressionRef.current,
+	};
 };

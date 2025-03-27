@@ -45,6 +45,13 @@ export default function VRMWrapper({ categoryDepth = 0 }: VRMWrapperProps) {
 				setMotionFile(newMotion);
 			}
 
+			// 表情も一緒に変更（少し遅延させて滑らかな遷移に）
+			setTimeout(() => {
+				if (vrmRenderRef.current?.setExpressionForMotion) {
+					vrmRenderRef.current.setExpressionForMotion(newMotion);
+				}
+			}, 200);
+
 			// 処理済みのカテゴリ深度を記録
 			prevDepthRef.current = categoryDepth;
 		}

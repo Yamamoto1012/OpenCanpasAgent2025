@@ -31,7 +31,20 @@ const VRMRender = forwardRef(
 		const expressions = useVRMExpression(vrm);
 
 		// refを通じて親コンポーネントにcrossFadeAnimation関数を公開
-		useImperativeHandle(ref, () => ({ crossFadeAnimation }));
+		useImperativeHandle(ref, () => ({
+			crossFadeAnimation,
+			setExpression: expressions.setExpression,
+			setExpressionForMotion: expressions.setExpressionForMotion,
+		}));
+
+		// 初期モーション読み込み時に表情も設定
+		// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+		useEffect(() => {
+			if (vrm && vrmaUrl) {
+				// モデルとモーションの両方がロードされたら表情を設定
+				expressions.setExpressionForMotion(vrmaUrl);
+			}
+		}, [vrm, vrmaUrl]);
 
 		// 視線のターゲットとなるオブジェクト
 		const lookAtTarget = useMemo(() => {
