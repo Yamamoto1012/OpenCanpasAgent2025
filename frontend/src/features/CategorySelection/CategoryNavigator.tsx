@@ -9,7 +9,7 @@ import { CategoryGrid } from "./CategoryGrid";
 import { useEffect, useState } from "react";
 
 type CategoryNavigatorProps = {
-	onCategoryDepthChange?: (depth: number) => void;
+	onCategoryDepthChange?: (depth: number, category?: Category) => void;
 };
 
 export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
@@ -44,6 +44,9 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 		) {
 			// メインカテゴリー→サブカテゴリーへ
 			setSelectedPath([category.id]);
+			if (onCategoryDepthChange) {
+				onCategoryDepthChange(1, category);
+			}
 		} else if (
 			selectedPath.length === 1 &&
 			category.id &&
@@ -51,12 +54,15 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 		) {
 			// サブカテゴリー→サブサブカテゴリーへ
 			setSelectedPath([...selectedPath, category.id]);
+			if (onCategoryDepthChange) {
+				onCategoryDepthChange(2, category);
+			}
 		} else {
 			console.log("最終選択:", category);
 
 			// 最終選択時にも選択されたことを伝える
 			if (selectedPath.length === 2 && onCategoryDepthChange) {
-				onCategoryDepthChange(3); // 最終選択を特別な深さとして通知
+				onCategoryDepthChange(3, category); // 選択したカテゴリ情報も渡す
 			}
 		}
 	};
@@ -79,6 +85,8 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 		if (selectedPath.length === 1) {
 			return (
 				<div className="flex items-center text-xl">
+					<span className="font-semibold text-gray-500">カテゴリーを選択</span>
+					<ChevronRight className="mx-1 h-5 w-5 text-gray-500" />
 					<span className="font-semibold">
 						{mainCategory?.title || "カテゴリー"}
 					</span>
@@ -93,6 +101,8 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 			);
 			return (
 				<div className="flex items-center text-xl">
+					<span className="font-semibold text-gray-500">カテゴリーを選択</span>
+					<ChevronRight className="mx-1 h-5 w-5 text-gray-500" />
 					<span className="font-semibold">
 						{mainCategory?.title || "カテゴリー"}
 					</span>
