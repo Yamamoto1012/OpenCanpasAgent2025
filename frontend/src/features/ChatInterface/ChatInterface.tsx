@@ -29,6 +29,7 @@ export const ChatInterface: React.FC = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		scrollToBottom();
 	}, [messages]);
