@@ -7,6 +7,7 @@ import { ChatSelectButtons } from "./components/ChatSelectButtons";
 import { ChatInputArea } from "./components/ChatInputArea";
 import { ChatMessages } from "./components/ChatMessages";
 
+
 export type ChatInterfaceViewProps = {
 	messages: Message[];
 	inputValue: string;
