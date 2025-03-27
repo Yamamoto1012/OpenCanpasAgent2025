@@ -6,9 +6,15 @@ import { IconButton } from "../IconButton/IconButton";
 import { mainCategories, subCategories, subSubCategories } from "./constants";
 import type { Category } from "./CategoryCard";
 import { CategoryGrid } from "./CategoryGrid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export const CategoryNavigator: React.FC = () => {
+type CategoryNavigatorProps = {
+	onCategoryDepthChange?: (depth: number) => void;
+};
+
+export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
+	onCategoryDepthChange,
+}) => {
 	const [selectedPath, setSelectedPath] = useState<string[]>([]);
 
 	// 現在表示するカテゴリーを決定
@@ -20,6 +26,13 @@ export const CategoryNavigator: React.FC = () => {
 	} else if (selectedPath.length === 2) {
 		displayedCategories = subSubCategories[selectedPath[1]] || [];
 	}
+
+	// 親コンポーネントに現在のカテゴリー深さを通知
+	useEffect(() => {
+		if (onCategoryDepthChange) {
+			onCategoryDepthChange(selectedPath.length);
+		}
+	}, [selectedPath, onCategoryDepthChange]);
 
 	// カテゴリークリック時の処理
 	const handleCategoryClick = (category: Category) => {
@@ -40,6 +53,11 @@ export const CategoryNavigator: React.FC = () => {
 			setSelectedPath([...selectedPath, category.id]);
 		} else {
 			console.log("最終選択:", category);
+
+			// 最終選択時にも選択されたことを伝える
+			if (selectedPath.length === 2 && onCategoryDepthChange) {
+				onCategoryDepthChange(3); // 最終選択を特別な深さとして通知
+			}
 		}
 	};
 
