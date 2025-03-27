@@ -33,7 +33,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({ categories, onCatego
     <AnimatePresence mode="wait">
       <motion.div
         key="category-grid"
-        className="grid grid-cols-2 sm:grid-cols-2 gap-3"
+        className="grid grid-cols-2 sm:grid-cols-3 gap-3"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
