@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { Clock, Object3D } from "three";
 import { useVRM } from "../hooks/useVRM";
 import * as THREE from "three";
+import { useVRMExpression } from "../hooks/useVRMExpression";
 
 type VRMRenderProps = {
 	vrmUrl: string; // VRMモデルのURL
@@ -25,6 +26,9 @@ const VRMRender = forwardRef(
 	) => {
 		// VRMモデルとアニメーションの読み込み
 		const { vrm, scene, mixer, crossFadeAnimation } = useVRM(vrmUrl, vrmaUrl);
+
+		// 瞬きと呼吸アニメーション
+		const expressions = useVRMExpression(vrm);
 
 		// refを通じて親コンポーネントにcrossFadeAnimation関数を公開
 		useImperativeHandle(ref, () => ({ crossFadeAnimation }));
@@ -109,6 +113,9 @@ const VRMRender = forwardRef(
 					position[2] + 1,
 				);
 			}
+
+			// 瞬きと呼吸アニメーションの更新
+			expressions.update(delta);
 
 			// VRMモデルとアニメーションの更新
 			vrm?.update(delta);
