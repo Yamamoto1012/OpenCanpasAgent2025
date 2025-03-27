@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import type React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { Message } from "../ChatInterface";
 
@@ -23,6 +23,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
 						style={{ backgroundColor: "#f0f0f0" }}
 					>
 						<AvatarFallback className="bg-gray-200 text-gray-600">
+							{/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								viewBox="0 0 24 24"

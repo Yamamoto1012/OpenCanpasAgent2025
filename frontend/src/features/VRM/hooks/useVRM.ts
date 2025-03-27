@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import * as THREE from "three";
-import { Scene, Group } from "three";
-import { VRM, VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
+import type { Scene, Group } from "three";
+import { type VRM, VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
 	VRMAnimationLoaderPlugin,
