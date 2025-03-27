@@ -5,8 +5,9 @@ import { ChatInterface } from "./features/ChatInterface/ChatInterface";
 import { useState } from "react";
 import { Info, Volume2 } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
-import { CategoryButton } from "./features/CategoryButton/CategoryButton";
 import { IconButton } from "./features/IconButton/IconButton";
+import { CategoryNavigator } from "./features/CategorySelection/CategoryNavigator";
+
 
 function App() {
 	const [showInfo, setShowInfo] = useState(false);
@@ -32,7 +33,7 @@ function App() {
 			</div>
 
 			<div className="absolute top-1/11 right-2">
-				<CategoryButton />
+				<CategoryNavigator />
 			</div>
 			<div className="absolute top-1/11 left-2 p-4 z-10">
 				<ChatInterface />
