@@ -24,6 +24,7 @@
     "@types/three": "^0.174.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.6.2",
     "jotai": "^2.12.2",
     "lucide-react": "^0.482.0",
     "react": "^19.0.0",
