@@ -1,73 +1,126 @@
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Clock, Object3D } from "three";
 import { useVRM } from "../hooks/useVRM";
+import * as THREE from "three";
 
 type VRMRenderProps = {
-	vrmUrl: string;
-	vrmaUrl?: string;
-	position?: [number, number, number];
-	rotation?: [number, number, number];
-	lookAtCamera?: boolean;
+	vrmUrl: string; // VRMモデルのURL
+	vrmaUrl?: string; // アニメーションファイルのURL（省略可）
+	position?: [number, number, number]; // 3D空間での位置
+	rotation?: [number, number, number]; // 回転（オイラー角）
+	lookAtCamera?: boolean; // カメラを見るかどうか
 };
 
-export default function VRMRender({
-	vrmUrl,
-	vrmaUrl,
-	position = [0, 0, 0],
-	rotation = [0, 0, 0],
-	lookAtCamera = false,
-}: VRMRenderProps) {
-	// useVRM カスタムフックでVRMデータを取得
-	const { vrm, scene, mixer } = useVRM(vrmUrl, vrmaUrl);
+const VRMRender = forwardRef(
+	(
+		{
+			vrmUrl,
+			vrmaUrl,
+			position = [0, 0, 0],
+			rotation = [0, 0, 0],
+			lookAtCamera = false,
+		}: VRMRenderProps,
+		ref,
+	) => {
+		// VRMモデルとアニメーションの読み込み
+		const { vrm, scene, mixer, crossFadeAnimation } = useVRM(vrmUrl, vrmaUrl);
 
-	// 視線のターゲット
-	const lookAtTarget = useMemo(() => {
-		const target = new Object3D();
-		target.position.set(0, 1.4, 1); // カメラと同じ位置
-		return target;
-	}, []);
+		// refを通じて親コンポーネントにcrossFadeAnimation関数を公開
+		useImperativeHandle(ref, () => ({ crossFadeAnimation }));
 
-	// コンポーネントのライフサイクル全体で一定の Clock インスタンスを生成
-	const clock = useMemo(() => new Clock(true), []);
+		// 視線のターゲットとなるオブジェクト
+		const lookAtTarget = useMemo(() => {
+			const target = new Object3D();
+			target.position.set(0, 1.4, 1); // デフォルトはカメラ位置（正面）
+			return target;
+		}, []);
 
-	// positionとrotationが変更されたときにシーンの位置と回転を更新
-	useEffect(() => {
-		if (scene) {
-			scene.position.set(position[0], position[1], position[2]);
-			scene.rotation.set(rotation[0], rotation[1], rotation[2]);
-		}
-	}, [scene, position, rotation]);
+		// 時間計測用のクロック
+		const clock = useMemo(() => new Clock(true), []);
 
-	// VRMのルックアット機能を設定
-	useEffect(() => {
-		// biome-ignore lint/complexity/useOptionalChain: <explanation>
-		if (vrm && vrm.lookAt) {
-			// ルックアット機能の有効化
-			vrm.lookAt.target = lookAtTarget;
-		}
-	}, [vrm, lookAtTarget]);
+		/**
+		 * 位置と回転の滑らかな補間
+		 * モデルの移動をアニメーション化し、唐突な移動を防止
+		 */
+		useEffect(() => {
+			if (!scene) return;
+			// 開始位置と目標位置
+			const startPos = scene.position.clone();
+			const startRot = scene.rotation.clone();
+			const targetPos = { x: position[0], y: position[1], z: position[2] };
+			const targetRot = { x: rotation[0], y: rotation[1], z: rotation[2] };
 
-	// 毎フレーム、VRMモデルとアニメーションミキサーを更新
-	useFrame(() => {
-		const delta = clock.getDelta();
+			// アニメーション制御変数
+			let progress = 0;
+			const duration = 0.05; // 短い時間でスムーズに移動（50ミリ秒）
 
-		// カメラ目線の制御（lookAtCameraがtrueのときのみ適用）
-		if (!lookAtCamera && vrm && vrm.lookAt) {
-			// lookAtCameraがfalseの場合は目線を前方に戻す
-			lookAtTarget.position.set(
-				position[0],
-				position[1] + 1.4,
-				position[2] + 1,
-			);
-		}
+			// 位置と回転を更新する関数
+			const update = () => {
+				if (progress >= duration) return;
 
-		vrm?.update(delta);
-		mixer?.update(delta);
-	});
+				progress += clock.getDelta();
+				const t = Math.min(progress / duration, 1);
 
-	// シーンが未ロードの場合は何もレンダリングしない
-	if (!scene) return null;
+				// 位置の線形補間（Vector3.lerpVectors使用）
+				scene.position.lerpVectors(
+					startPos,
+					new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z),
+					t,
+				);
 
-	return <primitive object={scene} dispose={null} />;
-}
+				// 回転の線形補間
+				scene.rotation.x = startRot.x + (targetRot.x - startRot.x) * t;
+				scene.rotation.y = startRot.y + (targetRot.y - startRot.y) * t;
+				scene.rotation.z = startRot.z + (targetRot.z - startRot.z) * t;
+
+				// アニメーションが終わるまで再帰呼び出し
+				if (t < 1) requestAnimationFrame(update);
+			};
+
+			// アニメーション開始
+			update();
+		}, [scene, position, rotation, clock]);
+
+		/**
+		 * VRMのルックアット機能の設定
+		 * モデルの視線制御を行う
+		 */
+		useEffect(() => {
+			// biome-ignore lint/complexity/useOptionalChain: <explanation>
+			if (vrm && vrm.lookAt) {
+				vrm.lookAt.target = lookAtTarget;
+			}
+		}, [vrm, lookAtTarget]);
+
+		/**
+		 * フレームごとの更新処理
+		 * アニメーションの更新や視線の制御を行う
+		 */
+		useFrame(() => {
+			const delta = clock.getDelta();
+
+			// カメラ目線の制御
+			if (!lookAtCamera && vrm && vrm.lookAt) {
+				// lookAtCameraがfalseの場合、モデルの前方を見る
+				lookAtTarget.position.set(
+					position[0],
+					position[1] + 1.4,
+					position[2] + 1,
+				);
+			}
+
+			// VRMモデルとアニメーションの更新
+			vrm?.update(delta);
+			mixer?.update(delta);
+		});
+
+		// シーンが未ロードの場合は何も表示しない
+		if (!scene) return null;
+
+		// シーンをThree.jsのプリミティブとして描画
+		return <primitive object={scene} dispose={null} />;
+	},
+);
+
+export default VRMRender;

@@ -1,8 +1,8 @@
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import "./App.css";
 import VRMWrapper from "./features/VRM/VRMWrapper/VRMWrapper";
 import { ChatInterface } from "./features/ChatInterface/ChatInterface";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Info, Volume2, VolumeX } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
@@ -10,6 +10,57 @@ import { CategoryNavigator } from "./features/CategorySelection/CategoryNavigato
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ActionPrompt } from "./features/ActionPromt/ActionPromt";
+
+// function easeOutCubic(x: number): number {
+// 	// biome-ignore lint/style/useExponentiationOperator: <explanation>
+// 	return 1 - Math.pow(1 - x, 3);
+// }
+
+// // カメラ操作用のコンポーネント
+// function CameraController({ categoryDepth }: { categoryDepth: number }) {
+// 	const { camera } = useThree();
+// 	const prevDepthRef = useRef(categoryDepth);
+
+// 	useEffect(() => {
+// 		if (categoryDepth !== prevDepthRef.current) {
+// 			// カテゴリの深さに応じて目標位置を設定
+// 			const targetPos = categoryDepth >= 2 ? [0, 1.45, -0.5] : [0, 1.45, 1];
+// 			const targetRot = categoryDepth >= 2 ? [0, Math.PI / 8, 0] : [0, 0, 0];
+
+// 			// 現在位置を保存
+// 			const startPos = camera.position.clone();
+// 			const startRot = camera.rotation.clone();
+
+// 			// アニメーション
+// 			let progress = 0;
+// 			const duration = 0.8; // 0.8秒
+
+// 			const animate = () => {
+// 				progress += 0.016; // およそ60FPSで更新
+// 				const t = Math.min(progress / duration, 1);
+// 				const easeT = easeOutCubic(t);
+
+// 				// 線形補間
+// 				camera.position.x = startPos.x + (targetPos[0] - startPos.x) * easeT;
+// 				camera.position.y = startPos.y + (targetPos[1] - startPos.y) * easeT;
+// 				camera.position.z = startPos.z + (targetPos[2] - startPos.z) * easeT;
+
+// 				camera.rotation.x = startRot.x + (targetRot[0] - startRot.x) * easeT;
+// 				camera.rotation.y = startRot.y + (targetRot[1] - startRot.y) * easeT;
+// 				camera.rotation.z = startRot.z + (targetRot[2] - startRot.z) * easeT;
+
+// 				if (t < 1) {
+// 					requestAnimationFrame(animate);
+// 				}
+// 			};
+
+// 			animate();
+// 			prevDepthRef.current = categoryDepth;
+// 		}
+// 	}, [categoryDepth, camera]);
+
+// 	return null;
+// }
 
 function App() {
 	const [showInfo, setShowInfo] = useState(false);
@@ -63,10 +114,10 @@ function App() {
 				<Canvas
 					flat
 					camera={{
-						fov: 45,
-						near: 0.1,
+						fov: 40,
+						near: 0.01,
 						far: 2000,
-						position: [0, 1.4, categoryDepth >= 2 ? -0.5 : 1],
+						position: [0, 1.45, categoryDepth >= 2 ? -0.5 : 1],
 						rotation: [0, categoryDepth >= 2 ? Math.PI / 8 : 0, 0],
 					}}
 				>

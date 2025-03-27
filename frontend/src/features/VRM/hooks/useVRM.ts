@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { Scene, Group } from "three";
-import { type VRM, VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
+import type { VRM } from "@pixiv/three-vrm";
+import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
 	VRMAnimationLoaderPlugin,
@@ -9,25 +10,82 @@ import {
 } from "@pixiv/three-vrm-animation";
 
 type UseVRMReturn = {
-	vrm: VRM | null;
-	scene: Scene | Group | null;
-	mixer: THREE.AnimationMixer | null;
+	vrm: VRM | null; // ロードされたVRMモデル
+	scene: Scene | Group | null; // シーングラフ
+	mixer: THREE.AnimationMixer | null; // アニメーション制御用ミキサー
+	crossFadeAnimation: (vrmaUrl: string, duration?: number) => void; // アニメーション切替関数
 };
 
-export const useVRM = (vrmUrl: string, vrmaUrl?: string): UseVRMReturn => {
+/**
+ * VRMモデルとアニメーションを管理するカスタムフック
+ * @param vrmUrl ロードするVRMモデルのURL
+ * @param initialVrmaUrl 初期アニメーションのURL
+ * @returns VRMモデル、シーン、アニメーションミキサー、クロスフェード関数を含むオブジェクト
+ */
+
+export const useVRM = (
+	vrmUrl: string,
+	initialVrmaUrl?: string,
+): UseVRMReturn => {
+	// モデルとシーンの状態
 	const [vrm, setVRM] = useState<VRM | null>(null);
 	const [scene, setScene] = useState<Scene | Group | null>(null);
 	const [mixer, setMixer] = useState<THREE.AnimationMixer | null>(null);
 
-	useEffect(() => {
-		// GLTFLoader のインスタンス生成
-		const loader = new GLTFLoader();
+	// 永続的な参照（レンダリング間で保持）
+	const currentActionRef = useRef<THREE.AnimationAction | null>(null); // 現在再生中のアニメーション
+	const loaderRef = useRef<GLTFLoader | null>(null); // GLTFローダーのインスタンス
 
-		// VRM および VRMA の読み込みを可能にするプラグインの登録
+	/**
+	 * VRMAアニメーションを読み込み、適用する関数
+	 * @param vrmaUrl ロードするアニメーションファイルのパス
+	 * @param targetVRM アニメーションを適用するVRMモデル
+	 * @param targetMixer 使用するAnimationMixer
+	 */
+	const loadAnimation = (
+		vrmaUrl: string,
+		targetVRM: VRM,
+		targetMixer: THREE.AnimationMixer,
+	) => {
+		if (!loaderRef.current) return;
+
+		// VRMAファイルの読み込み
+		loaderRef.current.load(
+			vrmaUrl,
+			(vrmaGltf) => {
+				// アニメーションデータの取得
+				const vrmAnimations = vrmaGltf.userData.vrmAnimations;
+				if (!vrmAnimations || vrmAnimations.length === 0) {
+					console.warn("VRMAファイル内にアニメーションが見つかりません");
+					return;
+				}
+
+				// VRM用アニメーションクリップの作成
+				const clip = createVRMAnimationClip(vrmAnimations[0], targetVRM);
+
+				// 現在のアニメーションをフェードアウト（存在する場合）
+				currentActionRef.current?.fadeOut(0.2);
+
+				// 新しいアニメーションを作成してフェードイン
+				const newAction = targetMixer.clipAction(clip);
+				newAction.reset().fadeIn(0.2).play();
+				currentActionRef.current = newAction;
+			},
+			undefined,
+			(error) => console.error("VRMA読み込みエラー:", error),
+		);
+	};
+
+	// VRMモデルのロードと初期設定
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	useEffect(() => {
+		// GLTFローダーの初期化とプラグイン登録
+		const loader = new GLTFLoader();
 		loader.register((parser) => new VRMLoaderPlugin(parser));
 		loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
+		loaderRef.current = loader;
 
-		// VRMファイルの読み込み
+		// VRMモデルのロード
 		loader.load(
 			vrmUrl,
 			(gltf) => {
@@ -37,44 +95,42 @@ export const useVRM = (vrmUrl: string, vrmaUrl?: string): UseVRMReturn => {
 					return;
 				}
 
-				// モデルの向きを調整
+				// VRMモデルの初期向きを調整（VRM0.0形式用）
 				VRMUtils.rotateVRM0(loadedVRM);
+
+				// 状態を更新
 				setVRM(loadedVRM);
 				setScene(loadedVRM.scene);
 
-				// VRMAファイルが指定されていない場合はここで処理終了
-				if (!vrmaUrl) return;
+				// アニメーションミキサーを初期化
+				const newMixer = new THREE.AnimationMixer(loadedVRM.scene);
+				setMixer(newMixer);
 
-				// VRMAファイルの読み込み処理
-				loader.load(
-					vrmaUrl,
-					(vrmaGltf) => {
-						const vrmAnimations = vrmaGltf.userData.vrmAnimations;
-						if (!vrmAnimations || vrmAnimations.length === 0) {
-							console.warn(
-								"VRMAファイル内にアニメーションが見つかりませんでした",
-							);
-							return;
-						}
-
-						// AnimationMixer を初期化し、最初のアニメーションクリップを再生
-						const newMixer = new THREE.AnimationMixer(loadedVRM.scene);
-						const clip = createVRMAnimationClip(vrmAnimations[0], loadedVRM);
-						newMixer.clipAction(clip).play();
-						setMixer(newMixer);
-					},
-					undefined,
-					(error) => {
-						console.error("VRMAファイル読み込みエラー:", error);
-					},
-				);
+				// 初期アニメーションがある場合は読み込み
+				if (initialVrmaUrl) {
+					loadAnimation(initialVrmaUrl, loadedVRM, newMixer);
+				}
 			},
 			undefined,
-			(error) => {
-				console.error("VRMファイル読み込みエラー:", error);
-			},
+			(error) => console.error("VRM読み込みエラー:", error),
 		);
-	}, [vrmUrl, vrmaUrl]);
 
-	return { vrm, scene, mixer };
+		// クリーンアップ関数 - アニメーションを停止
+		return () => {
+			mixer?.stopAllAction();
+		};
+	}, [vrmUrl, initialVrmaUrl]);
+
+	/**
+	 * アニメーションをクロスフェードで切り替える関数
+	 * @param vrmaUrl 新しいアニメーションファイルのパス
+	 */
+	const crossFadeAnimation = (vrmaUrl: string) => {
+		if (vrm && mixer) {
+			loadAnimation(vrmaUrl, vrm, mixer);
+		}
+	};
+
+	// フックの戻り値
+	return { vrm, scene, mixer, crossFadeAnimation };
 };
