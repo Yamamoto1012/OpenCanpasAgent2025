@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import type React from "react";
 import type { Message } from "../ChatInterface";
 import { ChatMessageItem } from "./ChatMessageItem";
 import { ChatThinkingIndicator } from "./ChatThinkingIndicator";

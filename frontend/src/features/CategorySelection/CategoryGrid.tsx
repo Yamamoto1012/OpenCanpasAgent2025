@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import type React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CategoryCard } from "./CategoryCard";
 import type { Category } from "./CategoryCard";

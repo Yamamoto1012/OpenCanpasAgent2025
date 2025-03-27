@@ -30,6 +30,7 @@ import {
 	Plane,
 	Bus,
 	Compass,
+	// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
 	Map,
 	Wallet,
 	DollarSign,

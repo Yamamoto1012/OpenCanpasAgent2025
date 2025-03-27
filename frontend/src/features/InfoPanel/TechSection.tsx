@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import type React from "react";
 import { InfoSection } from "./InfoSection";
 
 type TechCard = {
@@ -34,8 +34,8 @@ export const TechSection: React.FC = () => {
 	return (
 		<InfoSection iconType="cpu" title="使用技術" iconColor="text-green-400">
 			<div className="space-y-4">
-				{techCards.map((card, index) => (
-					<div key={index} className="bg-white/5 p-4 rounded-lg">
+				{techCards.map((card) => (
+					<div key={card.title} className="bg-white/5 p-4 rounded-lg">
 						<h4 className="font-medium mb-2">{card.title}</h4>
 						<p className="text-white/80 text-sm">{card.description}</p>
 					</div>

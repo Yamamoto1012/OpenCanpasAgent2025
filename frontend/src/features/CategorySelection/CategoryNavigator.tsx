@@ -1,12 +1,12 @@
 "use client";
-import React, { useState } from "react";
+
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { IconButton } from "../IconButton/IconButton";
 import { mainCategories, subCategories, subSubCategories } from "./constants";
-
 import type { Category } from "./CategoryCard";
 import { CategoryGrid } from "./CategoryGrid";
+import { useState } from "react";
 
 export const CategoryNavigator: React.FC = () => {
 	const [selectedPath, setSelectedPath] = useState<string[]>([]);

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import type React from "react";
 import { InfoSection } from "./InfoSection";
 
 export const UsageSection: React.FC = () => {
