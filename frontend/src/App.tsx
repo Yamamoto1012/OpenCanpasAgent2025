@@ -6,12 +6,12 @@ import { useState } from "react";
 import { Info, Volume2, VolumeX } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
-import { CategoryNavigator } from "./features/CategorySelection/CategoryNavigator";
+import { CategoryNavigator } from "./features/CategoryNagigator/CategoryNavigator";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ActionPrompt } from "./features/ActionPromt/ActionPromt";
 import { SearchResults } from "./features/SearchResult/SearchResult";
-import type { Category } from "./features/CategorySelection/CategoryCard";
+import type { Category } from "./features/CategoryNagigator/components/CategoryCard";
 
 function App() {
 	const [showInfo, setShowInfo] = useState(false);

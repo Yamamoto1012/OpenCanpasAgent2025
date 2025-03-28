@@ -1,10 +1,10 @@
 "use client";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { InfoPanelHeader } from "./InfoPanelHeader";
-import { InfoSection } from "./InfoSection";
-import { TechSection } from "./TechSection";
-import { UsageSection } from "./UsageSection";
-import { ContentSection } from "./ContentSection";
+import { InfoPanelHeader } from "./components/InfoPanelHeader";
+import { InfoSection } from "./components/InfoSection";
+import { TechSection } from "./components/TechSection";
+import { UsageSection } from "./components/UsageSection";
+import { ContentSection } from "./components/ContentSection";
 
 type InfoPanelProps = {
 	onClose: () => void;

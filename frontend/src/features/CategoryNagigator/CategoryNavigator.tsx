@@ -1,12 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowLeft, ChevronRight } from "lucide-react";
-import { IconButton } from "../IconButton/IconButton";
-import { mainCategories, subCategories, subSubCategories } from "./constants";
-import type { Category } from "./CategoryCard";
-import { CategoryGrid } from "./CategoryGrid";
 import { useEffect, useState } from "react";
+import { ChevronRight } from "lucide-react";
+import { mainCategories, subCategories, subSubCategories } from "./constants";
+import { CategoryNavigatorView } from "./CategroyNavigatiorView";
+import type { Category } from "./components/CategoryCard";
 
 type CategoryNavigatorProps = {
 	onCategoryDepthChange?: (depth: number, category?: Category) => void;
@@ -113,33 +111,17 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 				</div>
 			);
 		}
+
+		return null;
 	};
 
 	return (
-		<div className="min-w-2xl max-w-2xl mx-auto p-4">
-			<div className="flex items-center justify-between mb-4">
-				<motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-					{getBreadcrumbs()}
-				</motion.div>
-				{selectedPath.length > 0 && (
-					<motion.div
-						initial={{ opacity: 0, scale: 0.8 }}
-						animate={{ opacity: 1, scale: 1 }}
-						exit={{ opacity: 0, scale: 0.8 }}
-					>
-						<IconButton
-							icon={ArrowLeft}
-							onClick={handleBackClick}
-							className="bg-gray-200 text-gray-700 hover:bg-gray-300"
-						/>
-					</motion.div>
-				)}
-			</div>
-			{/* カテゴリーグリッド */}
-			<CategoryGrid
-				categories={displayedCategories}
-				onCategoryClick={handleCategoryClick}
-			/>
-		</div>
+		<CategoryNavigatorView
+			breadcrumbs={getBreadcrumbs()}
+			displayedCategories={displayedCategories}
+			showBackButton={selectedPath.length > 0}
+			onCategoryClick={handleCategoryClick}
+			onBackClick={handleBackClick}
+		/>
 	);
 };

@@ -54,8 +54,7 @@ import {
 	Utensils,
 	Handshake,
 } from "lucide-react";
-
-import type { Category } from "./CategoryCard";
+import type { Category } from "./components/CategoryCard";
 
 // メインカテゴリー
 export const mainCategories: Category[] = [

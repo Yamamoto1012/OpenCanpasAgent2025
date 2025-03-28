@@ -1,12 +1,8 @@
 "use client";
 import type React from "react";
 import { useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import type { Category } from "../CategorySelection/CategoryCard";
+import type { Category } from "../CategoryNagigator/components/CategoryCard";
+import { SearchResultsView } from "./SearchResultsView";
 
 type SearchResultsProps = {
 	query: string;
@@ -21,8 +17,11 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	isQuestion = false,
 	onBack,
 }) => {
+	// ロジックと状態管理を担当
 	const [inputValue, setInputValue] = useState("");
-	const inputRef = useRef<HTMLInputElement>(null);
+	const inputRef = useRef<HTMLInputElement>(
+		null,
+	) as React.RefObject<HTMLInputElement>;
 
 	// AIからの回答テキスト（実際のアプリではAPIから取得）
 	const mockResponse = isQuestion
@@ -60,6 +59,11 @@ KITでは、SX・GX・DXの3つの変革を重点的に推進しています。
 
 詳細については、各分野別の情報をご覧ください。`;
 
+	// タイトル生成
+	const title = isQuestion
+		? `「${query}」の回答`
+		: `「${category?.title || ""}」の検索結果`;
+
 	// 新しい質問を送信する処理
 	const handleSendQuestion = () => {
 		if (inputValue.trim()) {
@@ -67,6 +71,11 @@ KITでは、SX・GX・DXの3つの変革を重点的に推進しています。
 			console.log("新しい質問:", inputValue);
 			setInputValue("");
 		}
+	};
+
+	// 入力値の変更を処理
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setInputValue(e.target.value);
 	};
 
 	// キーボードイベント処理
@@ -77,103 +86,16 @@ KITでは、SX・GX・DXの3つの変革を重点的に推進しています。
 	};
 
 	return (
-		<div className="w-full max-w-2xl mx-auto">
-			{/* ヘッダー部分 */}
-			<div className="flex items-center justify-between mb-4">
-				<motion.div
-					className="flex items-center"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-				>
-					<Button
-						variant="ghost"
-						size="sm"
-						className="text-gray-500 hover:text-gray-700 p-0 mr-2"
-						onClick={onBack}
-					>
-						<ArrowLeft className="h-4 w-4 mr-1" />
-						戻る
-					</Button>
-					<h2 className="text-xl font-semibold">
-						{isQuestion
-							? `「${query}」の回答`
-							: `「${category?.title || ""}」の検索結果`}
-					</h2>
-				</motion.div>
-			</div>
-
-			{/* AIの回答表示エリア */}
-			<div className="space-y-4">
-				{/* 回答の吹き出し */}
-				<motion.div
-					className="relative"
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3 }}
-				>
-					<div className="bg-white rounded-3xl p-5 border border-blue-100 shadow-sm relative">
-						<div className="text-gray-800 whitespace-pre-line">
-							{mockResponse}
-						</div>
-						{/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-						<div className="absolute top-5 right-0 w-4 h-4 bg-white border-t border-r border-blue-100 transform rotate-45 translate-x-2"></div>
-					</div>
-				</motion.div>
-
-				{/* 詳細情報カード */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 0.2 }}
-				>
-					<Card className="p-5 border-0 shadow-sm bg-white">
-						<div className="whitespace-pre-line text-gray-700">
-							{mockDetails}
-						</div>
-					</Card>
-				</motion.div>
-			</div>
-
-			{/* 質問入力エリア */}
-			<motion.div
-				className="mt-6 flex gap-2"
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.3, delay: 0.4 }}
-			>
-				<Input
-					ref={inputRef}
-					value={inputValue}
-					onChange={(e) => setInputValue(e.target.value)}
-					placeholder="質問を入力してください"
-					className="flex-1 bg-white border-gray-200"
-					onKeyDown={handleKeyDown}
-				/>
-				<Button
-					onClick={handleSendQuestion}
-					disabled={!inputValue.trim()}
-					style={{ backgroundColor: "#9f9579", borderColor: "#9f9579" }}
-				>
-					<Send className="h-4 w-4" />
-				</Button>
-			</motion.div>
-
-			{/* 最初に戻るボタン */}
-			<motion.div
-				className="mt-6 flex justify-end"
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ duration: 0.3, delay: 0.5 }}
-			>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onBack}
-					className="text-gray-500 hover:text-gray-700 rounded-full px-4"
-				>
-					最初に戻る
-				</Button>
-			</motion.div>
-		</div>
+		<SearchResultsView
+			title={title}
+			responseText={mockResponse}
+			detailText={mockDetails}
+			inputValue={inputValue}
+			onInputChange={handleInputChange}
+			onKeyDown={handleKeyDown}
+			onSendQuestion={handleSendQuestion}
+			onBack={onBack}
+			inputRef={inputRef}
+		/>
 	);
 };
