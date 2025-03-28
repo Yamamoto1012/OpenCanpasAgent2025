@@ -10,74 +10,32 @@ import { CategoryNavigator } from "./features/CategorySelection/CategoryNavigato
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ActionPrompt } from "./features/ActionPromt/ActionPromt";
-
-// function easeOutCubic(x: number): number {
-// 	// biome-ignore lint/style/useExponentiationOperator: <explanation>
-// 	return 1 - Math.pow(1 - x, 3);
-// }
-
-// // カメラ操作用のコンポーネント
-// function CameraController({ categoryDepth }: { categoryDepth: number }) {
-// 	const { camera } = useThree();
-// 	const prevDepthRef = useRef(categoryDepth);
-
-// 	useEffect(() => {
-// 		if (categoryDepth !== prevDepthRef.current) {
-// 			// カテゴリの深さに応じて目標位置を設定
-// 			const targetPos = categoryDepth >= 2 ? [0, 1.45, -0.5] : [0, 1.45, 1];
-// 			const targetRot = categoryDepth >= 2 ? [0, Math.PI / 8, 0] : [0, 0, 0];
-
-// 			// 現在位置を保存
-// 			const startPos = camera.position.clone();
-// 			const startRot = camera.rotation.clone();
-
-// 			// アニメーション
-// 			let progress = 0;
-// 			const duration = 0.8; // 0.8秒
-
-// 			const animate = () => {
-// 				progress += 0.016; // およそ60FPSで更新
-// 				const t = Math.min(progress / duration, 1);
-// 				const easeT = easeOutCubic(t);
-
-// 				// 線形補間
-// 				camera.position.x = startPos.x + (targetPos[0] - startPos.x) * easeT;
-// 				camera.position.y = startPos.y + (targetPos[1] - startPos.y) * easeT;
-// 				camera.position.z = startPos.z + (targetPos[2] - startPos.z) * easeT;
-
-// 				camera.rotation.x = startRot.x + (targetRot[0] - startRot.x) * easeT;
-// 				camera.rotation.y = startRot.y + (targetRot[1] - startRot.y) * easeT;
-// 				camera.rotation.z = startRot.z + (targetRot[2] - startRot.z) * easeT;
-
-// 				if (t < 1) {
-// 					requestAnimationFrame(animate);
-// 				}
-// 			};
-
-// 			animate();
-// 			prevDepthRef.current = categoryDepth;
-// 		}
-// 	}, [categoryDepth, camera]);
-
-// 	return null;
-// }
+import { SearchResults } from "./features/SearchResult/SearchResult";
+import type { Category } from "./features/CategorySelection/CategoryCard";
 
 function App() {
 	const [showInfo, setShowInfo] = useState(false);
 	const [isMuted, setIsMuted] = useState(false);
 	const [categoryDepth, setCategoryDepth] = useState(0);
 	const [showChat, setShowChat] = useState(true);
-	const [selectedCategory, setSelectedCategory] = useState<{
-		title: string;
-	} | null>(null);
+	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+		null,
+	);
 	const [showActionPrompt, setShowActionPrompt] = useState(false);
 
+	// 検索結果の表示状態を管理する変数を追加
+	const [showSearchResult, setShowSearchResult] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [isQuestion, setIsQuestion] = useState(false);
+
 	// カテゴリー選択が変更されたときのハンドラー
-	const handleCategorySelect = (
-		depth: number,
-		category?: { title: string },
-	) => {
+	const handleCategorySelect = (depth: number, category?: Category) => {
 		setCategoryDepth(depth);
+
+		// 検索結果表示中なら閉じる
+		if (showSearchResult) {
+			setShowSearchResult(false);
+		}
 
 		// サブサブカテゴリーが選択されたら
 		if (depth >= 2) {
@@ -95,17 +53,37 @@ function App() {
 
 	// カテゴリで検索するボタンが押されたとき
 	const handleSearch = () => {
-		console.log(`「${selectedCategory?.title}」で検索実行`);
+		if (!selectedCategory) return;
+
+		console.log(`「${selectedCategory.title}」で検索実行`);
 		setShowActionPrompt(false);
-		// 実際の検索処理をここに実装
+		setShowChat(false);
+
+		// 検索結果を表示
+		setIsQuestion(false);
+		setSearchQuery("");
+		setShowSearchResult(true);
 	};
 
 	// 質問が入力されたとき
 	const handleAskQuestion = (question: string) => {
-		console.log(`「${selectedCategory?.title}」について質問: ${question}`);
+		if (!selectedCategory) return;
+
+		console.log(`「${selectedCategory.title}」について質問: ${question}`);
 		setShowActionPrompt(false);
+		setShowChat(false);
+
+		// 質問として検索結果を表示
+		setIsQuestion(true);
+		setSearchQuery(question);
+		setShowSearchResult(true);
+	};
+
+	// 検索結果から戻るときの処理
+	const handleBackFromSearch = () => {
+		setShowSearchResult(false);
 		setShowChat(true);
-		// チャットインターフェースにメッセージを送信する処理
+		setCategoryDepth(0); // カテゴリ選択をリセット
 	};
 
 	return (
@@ -130,7 +108,9 @@ function App() {
 
 			{/* カテゴリとActionPromptを含むコンテナ */}
 			<div className="absolute top-1/11 right-2 flex flex-col items-center">
-				<CategoryNavigator onCategoryDepthChange={handleCategorySelect} />
+				{!showSearchResult && (
+					<CategoryNavigator onCategoryDepthChange={handleCategorySelect} />
+				)}
 
 				<AnimatePresence>
 					{showActionPrompt && selectedCategory && (
@@ -152,7 +132,7 @@ function App() {
 			</div>
 
 			<AnimatePresence>
-				{showChat && (
+				{showChat && !showSearchResult && (
 					<motion.div
 						className="absolute top-1/11 left-2 p-4 z-10"
 						initial={{ opacity: 1, x: 0 }}
@@ -160,6 +140,26 @@ function App() {
 						transition={{ duration: 0.3 }}
 					>
 						<ChatInterface />
+					</motion.div>
+				)}
+			</AnimatePresence>
+
+			{/* 検索結果表示エリア */}
+			<AnimatePresence>
+				{showSearchResult && (
+					<motion.div
+						className="absolute top-1/11 left-1/2 transform -translate-x-1/2 p-4 z-20 w-full max-w-4xl"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: 20 }}
+						transition={{ duration: 0.3 }}
+					>
+						<SearchResults
+							query={searchQuery}
+							category={selectedCategory ?? undefined}
+							isQuestion={isQuestion}
+							onBack={handleBackFromSearch}
+						/>
 					</motion.div>
 				)}
 			</AnimatePresence>
