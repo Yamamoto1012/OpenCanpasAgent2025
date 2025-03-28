@@ -1,8 +1,8 @@
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import "./App.css";
 import VRMWrapper from "./features/VRM/VRMWrapper/VRMWrapper";
 import { ChatInterface } from "./features/ChatInterface/ChatInterface";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Info, Volume2, VolumeX } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
@@ -106,12 +106,43 @@ function App() {
 				</Canvas>
 			</div>
 
-			{/* カテゴリとActionPromptを含むコンテナ */}
+			{/* カテゴリ、検索結果、ActionPromptを含むコンテナ */}
 			<div className="absolute top-1/11 right-2 flex flex-col items-center">
-				{!showSearchResult && (
-					<CategoryNavigator onCategoryDepthChange={handleCategorySelect} />
-				)}
+				<div className="relative w-full min-h-[400px] flex justify-end">
+					<AnimatePresence mode="wait">
+						{showSearchResult ? (
+							<motion.div
+								key="search-results"
+								className="w-full max-w-lg translate-y-20 -translate-x-24"
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -20 }}
+								transition={{ duration: 0.3 }}
+							>
+								<SearchResults
+									query={searchQuery}
+									category={selectedCategory ?? undefined}
+									isQuestion={isQuestion}
+									onBack={handleBackFromSearch}
+								/>
+							</motion.div>
+						) : (
+							<motion.div
+								key="category-navigator"
+								initial={{ opacity: 0, y: -20 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: 20 }}
+								transition={{ duration: 0.3 }}
+							>
+								<CategoryNavigator
+									onCategoryDepthChange={handleCategorySelect}
+								/>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</div>
 
+				{/* アクションプロンプト */}
 				<AnimatePresence>
 					{showActionPrompt && selectedCategory && (
 						<motion.div
@@ -131,6 +162,7 @@ function App() {
 				</AnimatePresence>
 			</div>
 
+			{/* チャットインターフェース */}
 			<AnimatePresence>
 				{showChat && !showSearchResult && (
 					<motion.div
@@ -144,26 +176,7 @@ function App() {
 				)}
 			</AnimatePresence>
 
-			{/* 検索結果表示エリア */}
-			<AnimatePresence>
-				{showSearchResult && (
-					<motion.div
-						className="absolute top-1/11 left-1/2 transform -translate-x-1/2 p-4 z-20 w-full max-w-4xl"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: 20 }}
-						transition={{ duration: 0.3 }}
-					>
-						<SearchResults
-							query={searchQuery}
-							category={selectedCategory ?? undefined}
-							isQuestion={isQuestion}
-							onBack={handleBackFromSearch}
-						/>
-					</motion.div>
-				)}
-			</AnimatePresence>
-
+			{/* 情報・音声コントロールボタン */}
 			<div className="absolute bottom-1/12 right-2 p-4 z-10">
 				<IconButton icon={Info} onClick={() => setShowInfo(!showInfo)} />
 			</div>

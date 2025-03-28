@@ -152,7 +152,7 @@ KITでは、SX・GX・DXの3つの変革を重点的に推進しています。
 				<Button
 					onClick={handleSendQuestion}
 					disabled={!inputValue.trim()}
-					className="bg-blue-600 hover:bg-blue-700 text-white"
+					style={{ backgroundColor: "#9f9579", borderColor: "#9f9579" }}
 				>
 					<Send className="h-4 w-4" />
 				</Button>
