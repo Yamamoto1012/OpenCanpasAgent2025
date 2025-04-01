@@ -43,21 +43,9 @@ const VRMWrapper = forwardRef<any, VRMWrapperProps>(
 
 		const checkModelBlendShapes = () => {
 			if (vrmRenderRef.current?.vrm) {
-				const vrm = vrmRenderRef.current.vrm;
-				console.log("VRMモデル情報:", {
-					type: "blendShapeProxy" in vrm ? "VRM0.0" : "VRM1.0",
-					hasExpManager: !!vrm.expressionManager,
-					modelName: vrm.meta?.metaVersion || "不明",
-				});
-
 				// 全ての表情を試す
 				// biome-ignore lint/complexity/noForEach: <explanation>
 				[
-					"a",
-					"i",
-					"u",
-					"e",
-					"o",
 					"aa",
 					"ih",
 					"ou",

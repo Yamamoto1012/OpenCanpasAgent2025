@@ -11,11 +11,6 @@ type ExpressionPreset =
 	| "surprised"
 	| "relaxed";
 
-type VRM0BlendShapeProxy = {
-	setValue: (presetIndex: number, weight: number) => void;
-	getValue?: (presetIndex: number) => number;
-};
-
 /**
  * VRMモデルに自然な表情や動きを追加するためのフック
  */
@@ -112,26 +107,8 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 						safeSetExpression(exp, 0);
 					});
 
-					// VRM0.0モデル（BlendShapeProxy経由で適用）
-					if ("blendShapeProxy" in vrm) {
-						try {
-							// 明示的な型アサーション
-							const proxy =
-								vrm.blendShapeProxy as unknown as VRM0BlendShapeProxy;
-
-							if (proxy) {
-								// 音量に応じて「あ」の口の形を設定（最大5倍に増幅）
-								proxy.setValue(1, Math.min(result.volume * 5, 1.0));
-								console.log(
-									`VRM0.0リップシンク: ${Math.min(result.volume * 5, 1.0)}`,
-								);
-							}
-						} catch (e) {
-							console.error("VRM0.0リップシンクエラー", e);
-						}
-					}
 					// VRM1.0モデル
-					else if (vrm.expressionManager) {
+					if (vrm.expressionManager) {
 						try {
 							// 音量に応じて複数の口関連表情を組み合わせる
 							const volume = Math.min(result.volume * 5, 1.0);
@@ -412,33 +389,6 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 					});
 				} else {
 					console.log("利用可能な表情が見つかりません");
-				}
-			} catch (error) {
-				console.error("表情情報の取得に失敗:", error);
-			}
-		}
-		// VRM0.0 の表情
-		else if ("blendShapeProxy" in vrm) {
-			console.log("利用可能な表情一覧 (VRM0.0):");
-			try {
-				// @ts-ignore - VRM0.0 の型定義
-				const proxy = vrm.blendShapeProxy;
-				if (proxy) {
-					// VRM0.0 のブレンドシェイプ
-					const presetNames = [
-						"まばたき",
-						"あ",
-						"い",
-						"う",
-						"え",
-						"お",
-						"喜び",
-						"怒り",
-						"悲しみ",
-					];
-					presetNames.forEach((name, index) => {
-						console.log(`- ${index}: ${name}`);
-					});
 				}
 			} catch (error) {
 				console.error("表情情報の取得に失敗:", error);

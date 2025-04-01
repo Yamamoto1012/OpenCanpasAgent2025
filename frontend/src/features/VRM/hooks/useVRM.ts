@@ -95,9 +95,6 @@ export const useVRM = (
 					return;
 				}
 
-				// VRMモデルの初期向きを調整（VRM0.0形式用）
-				VRMUtils.rotateVRM0(loadedVRM);
-
 				// 状態を更新
 				setVRM(loadedVRM);
 				setScene(loadedVRM.scene);
