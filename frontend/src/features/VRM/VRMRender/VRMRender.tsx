@@ -11,6 +11,7 @@ type VRMRenderProps = {
 	position?: [number, number, number]; // 3D空間での位置
 	rotation?: [number, number, number]; // 回転（オイラー角）
 	lookAtCamera?: boolean; // カメラを見るかどうか
+	isMuted: boolean; // 音声ミュートの状態
 };
 
 const VRMRender = forwardRef(
@@ -21,30 +22,32 @@ const VRMRender = forwardRef(
 			position = [0, 0, 0],
 			rotation = [0, 0, 0],
 			lookAtCamera = false,
+			isMuted,
 		}: VRMRenderProps,
 		ref,
 	) => {
 		// VRMモデルとアニメーションの読み込み
 		const { vrm, scene, mixer, crossFadeAnimation } = useVRM(vrmUrl, vrmaUrl);
 
-		// 瞬きと呼吸アニメーション
-		const expressions = useVRMExpression(vrm);
+		// 瞬きと呼吸アニメーション + リップシンク
+		const expressions = useVRMExpression(vrm, isMuted);
 
 		// refを通じて親コンポーネントにcrossFadeAnimation関数を公開
 		useImperativeHandle(ref, () => ({
 			crossFadeAnimation,
 			setExpression: expressions.setExpression,
 			setExpressionForMotion: expressions.setExpressionForMotion,
+			playAudio: expressions.playAudio,
+			isAudioInitialized: expressions.isAudioInitialized,
 		}));
 
 		// 初期モーション読み込み時に表情も設定
-		// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 		useEffect(() => {
 			if (vrm && vrmaUrl) {
 				// モデルとモーションの両方がロードされたら表情を設定
 				expressions.setExpressionForMotion(vrmaUrl);
 			}
-		}, [vrm, vrmaUrl]);
+		}, [vrm, vrmaUrl, expressions]);
 
 		// 視線のターゲットとなるオブジェクト
 		const lookAtTarget = useMemo(() => {
@@ -127,7 +130,7 @@ const VRMRender = forwardRef(
 				);
 			}
 
-			// 瞬きと呼吸アニメーションの更新
+			// 瞬きと呼吸アニメーションの更新 + リップシンク
 			expressions.update(delta);
 
 			// VRMモデルとアニメーションの更新

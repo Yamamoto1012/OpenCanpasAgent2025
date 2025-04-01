@@ -1,5 +1,7 @@
 import type { VRM } from "@pixiv/three-vrm";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { LipSync } from "../LipSync/lipSync";
+import type { LipSyncAnalyzeResult } from "../LipSync/types";
 
 type ExpressionPreset =
 	| "neutral"
@@ -12,7 +14,7 @@ type ExpressionPreset =
 /**
  * VRMモデルに自然な表情や動きを追加するためのフック
  */
-export const useVRMExpression = (vrm: VRM | null) => {
+export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 	// 瞬きのタイマー参照
 	const blinkTimerRef = useRef<number | null>(null);
 	// 瞬きの状態
@@ -27,6 +29,14 @@ export const useVRMExpression = (vrm: VRM | null) => {
 	// 最初のデバッグ出力フラグ
 	const debugLoggedRef = useRef<boolean>(false);
 
+	// リップシンク関連の状態と参照
+	const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+	const lipSyncRef = useRef<LipSync | null>(null);
+	const [lipSyncResult, setLipSyncResult] = useState<LipSyncAnalyzeResult>({
+		volume: 0,
+	});
+	const frameRef = useRef<number | null>(null);
+
 	// 現在の表情プリセットと強度
 	const currentExpressionRef = useRef<{
 		preset: ExpressionPreset;
@@ -35,6 +45,76 @@ export const useVRMExpression = (vrm: VRM | null) => {
 		preset: "neutral",
 		weight: 0,
 	});
+
+	// AudioContextの初期化
+	useEffect(() => {
+		const initializeAudioContext = () => {
+			if (!audioContext) {
+				const newAudioContext = new AudioContext();
+				setAudioContext(newAudioContext);
+				lipSyncRef.current = new LipSync(newAudioContext);
+			}
+		};
+
+		// ページ内のクリックやタッチでAudioContextを初期化する
+		const handleUserInteraction = () => {
+			initializeAudioContext();
+
+			window.removeEventListener("click", handleUserInteraction);
+			window.removeEventListener("touchstart", handleUserInteraction);
+		};
+
+		window.addEventListener("click", handleUserInteraction);
+		window.addEventListener("touchstart", handleUserInteraction);
+
+		return () => {
+			window.removeEventListener("click", handleUserInteraction);
+			window.removeEventListener("touchstart", handleUserInteraction);
+			if (frameRef.current) {
+				cancelAnimationFrame(frameRef.current);
+			}
+			// AudioContextがあれば閉じる
+			if (audioContext) {
+				audioContext.close();
+			}
+		};
+	}, [audioContext]);
+
+	// アニメーションフレームでリップシンク更新
+	useEffect(() => {
+		if (!lipSyncRef.current || isMuted) {
+			// ミュート時はボリュームを0に設定
+			setLipSyncResult({ volume: 0 });
+			return;
+		}
+
+		const updateLipSync = () => {
+			if (lipSyncRef.current) {
+				const result = lipSyncRef.current.update();
+				setLipSyncResult(result);
+			}
+			frameRef.current = requestAnimationFrame(updateLipSync);
+		};
+
+		frameRef.current = requestAnimationFrame(updateLipSync);
+
+		return () => {
+			if (frameRef.current) {
+				cancelAnimationFrame(frameRef.current);
+			}
+		};
+	}, [isMuted]);
+
+	// 音声再生関数
+	const playAudio = async (url: string, onEnded?: () => void) => {
+		if (!lipSyncRef.current || isMuted) return;
+
+		try {
+			await lipSyncRef.current.playFromURL(url, onEnded);
+		} catch (error) {
+			console.error("音声再生に失敗しました", error);
+		}
+	};
 
 	/**
 	 * 表情プリセットを設定する
@@ -384,6 +464,23 @@ export const useVRMExpression = (vrm: VRM | null) => {
 	};
 
 	/**
+	 * リップシンク処理の更新
+	 */
+	const updateLipSync = () => {
+		if (!lipSyncRef.current || isMuted) {
+			// ミュート時はボリュームを0に設定
+			setLipSyncResult({ volume: 0 });
+			return;
+		}
+
+		const result = lipSyncRef.current.update();
+		setLipSyncResult(result);
+
+		// リップシンクの結果を表情に反映
+		safeSetExpression("a", result.volume); // "a"の口の形をボリュームに合わせる
+	};
+
+	/**
 	 * フレーム更新時の処理
 	 * @param deltaTime 前フレームからの経過時間（秒）
 	 */
@@ -394,6 +491,7 @@ export const useVRMExpression = (vrm: VRM | null) => {
 
 		updateBlink(deltaTime);
 		updateBreath(deltaTime);
+		updateLipSync();
 	};
 
 	// クリーンアップ処理
@@ -410,5 +508,7 @@ export const useVRMExpression = (vrm: VRM | null) => {
 		setExpression,
 		setExpressionForMotion,
 		currentExpression: currentExpressionRef.current,
+		playAudio,
+		isAudioInitialized: !!audioContext,
 	};
 };

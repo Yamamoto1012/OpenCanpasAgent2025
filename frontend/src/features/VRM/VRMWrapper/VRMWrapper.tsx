@@ -3,13 +3,17 @@ import VRMRender from "../VRMRender/VRMRender";
 
 type VRMWrapperProps = {
 	categoryDepth?: number; // 現在のカテゴリの深さ
+	isMuted: boolean; // 音声ミュートの状態
 };
 
 /**
  * VRMRenderコンポーネントをラップし、カテゴリ深度に応じた設定を提供する
  * @param categoryDepth カテゴリの深さ（0: トップ、1: メイン、2以上: 詳細）
  */
-export default function VRMWrapper({ categoryDepth = 0 }: VRMWrapperProps) {
+export default function VRMWrapper({
+	categoryDepth = 0,
+	isMuted,
+}: VRMWrapperProps) {
 	// 前回のカテゴリ深度を追跡し、変更があった場合のみ処理を行うための参照
 	const prevDepthRef = useRef<number>(categoryDepth);
 
@@ -76,6 +80,7 @@ export default function VRMWrapper({ categoryDepth = 0 }: VRMWrapperProps) {
 					([0, baseRotationY, 0] as [number, number, number]),
 		lookAtCamera: true, // カメラ目線を有効化
 		ref: vrmRenderRef, // コンポーネントの参照
+		isMuted: isMuted, // 音声ミュートの状態
 	};
 	return (
 		<Suspense>

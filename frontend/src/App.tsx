@@ -100,7 +100,7 @@ function App() {
 					}}
 				>
 					<gridHelper />
-					<VRMWrapper categoryDepth={categoryDepth} />
+					<VRMWrapper categoryDepth={categoryDepth} isMuted={isMuted} />
 					<ambientLight />
 					<directionalLight position={[5, 5, 5]} intensity={2} />
 				</Canvas>
