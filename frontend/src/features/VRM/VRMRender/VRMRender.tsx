@@ -42,12 +42,13 @@ const VRMRender = forwardRef(
 		}));
 
 		// 初期モーション読み込み時に表情も設定
+		// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 		useEffect(() => {
 			if (vrm && vrmaUrl) {
 				// モデルとモーションの両方がロードされたら表情を設定
 				expressions.setExpressionForMotion(vrmaUrl);
 			}
-		}, [vrm, vrmaUrl, expressions]);
+		}, [vrm, vrmaUrl]);
 
 		// 視線のターゲットとなるオブジェクト
 		const lookAtTarget = useMemo(() => {

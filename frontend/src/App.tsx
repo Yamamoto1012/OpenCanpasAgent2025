@@ -1,8 +1,10 @@
 import { Canvas } from "@react-three/fiber";
 import "./App.css";
-import VRMWrapper from "./features/VRM/VRMWrapper/VRMWrapper";
+import VRMWrapper, {
+	type VRMWrapperHandle,
+} from "./features/VRM/VRMWrapper/VRMWrapper";
 import { ChatInterface } from "./features/ChatInterface/ChatInterface";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Info, Volume2, VolumeX } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
@@ -22,6 +24,42 @@ function App() {
 		null,
 	);
 	const [showActionPrompt, setShowActionPrompt] = useState(false);
+	const [audioInitialized, setAudioInitialized] = useState(false);
+
+	// VRMWrapperコンポーネントへの参照を作成
+	const vrmWrapperRef = useRef<VRMWrapperHandle>(null);
+
+	// リップシンク検証用の関数
+	const handleTestLipSync = () => {
+		// AudioContextを初期化（最初のクリックで）
+		if (!audioInitialized) {
+			const audioCtx = new AudioContext();
+			console.log("AudioContext state:", audioCtx.state); // 'running', 'suspended', 'closed'のいずれか
+
+			// AudioContextの状態を確認（デバッグ用）
+			if (audioCtx.state === "running") {
+				console.log("AudioContext successfully initialized");
+			} else {
+				console.warn(
+					"AudioContext initialized but not running:",
+					audioCtx.state,
+				);
+			}
+
+			setAudioInitialized(true);
+			// 少し待ってから音声再生
+			setTimeout(() => {
+				if (vrmWrapperRef.current?.playAudio) {
+					vrmWrapperRef.current.playAudio("/audio/test.mp3");
+				}
+			}, 300);
+		} else {
+			// すでに初期化済みなら直接再生
+			if (vrmWrapperRef.current?.playAudio) {
+				vrmWrapperRef.current.playAudio("/audio/test.mp3");
+			}
+		}
+	};
 
 	// 検索結果の表示状態を管理する変数を追加
 	const [showSearchResult, setShowSearchResult] = useState(false);
@@ -100,11 +138,27 @@ function App() {
 					}}
 				>
 					<gridHelper />
-					<VRMWrapper categoryDepth={categoryDepth} isMuted={isMuted} />
+					<VRMWrapper
+						categoryDepth={categoryDepth}
+						isMuted={isMuted}
+						ref={vrmWrapperRef}
+					/>
 					<ambientLight />
 					<directionalLight position={[5, 5, 5]} intensity={2} />
 				</Canvas>
 			</div>
+
+			{process.env.NODE_ENV === "development" && (
+				<div className="absolute top-2 left-2 p-2 z-50">
+					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
+					<button
+						onClick={handleTestLipSync}
+						className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+					>
+						リップシンクテスト
+					</button>
+				</div>
+			)}
 
 			{/* カテゴリ、検索結果、ActionPromptを含むコンテナ */}
 			<div className="absolute top-1/11 right-2 flex flex-col items-center">

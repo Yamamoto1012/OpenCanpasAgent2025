@@ -11,6 +11,11 @@ type ExpressionPreset =
 	| "surprised"
 	| "relaxed";
 
+type VRM0BlendShapeProxy = {
+	setValue: (presetIndex: number, weight: number) => void;
+	getValue?: (presetIndex: number) => number;
+};
+
 /**
  * VRMモデルに自然な表情や動きを追加するためのフック
  */
@@ -83,27 +88,102 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 	// アニメーションフレームでリップシンク更新
 	useEffect(() => {
 		if (!lipSyncRef.current || isMuted) {
-			// ミュート時はボリュームを0に設定
-			setLipSyncResult({ volume: 0 });
 			return;
 		}
 
-		const updateLipSync = () => {
-			if (lipSyncRef.current) {
-				const result = lipSyncRef.current.update();
-				setLipSyncResult(result);
+		// リップシンク更新用フレーム処理関数
+		const updateLipSyncFrame = () => {
+			if (!lipSyncRef.current || isMuted) {
+				return;
 			}
-			frameRef.current = requestAnimationFrame(updateLipSync);
+
+			const result = lipSyncRef.current.update();
+			setLipSyncResult(result);
+
+			// デバッグ出力 - 音量が検出されているかを確認
+			if (result.volume > 0.01) {
+				console.log(`リップシンク音量: ${result.volume.toFixed(2)}`);
+
+				// VRMモデルのタイプを確認してリップシンクを適用
+				if (vrm) {
+					// 表情をすべてリセット（口以外）
+					// biome-ignore lint/complexity/noForEach: <explanation>
+					["sad", "angry", "surprised"].forEach((exp) => {
+						safeSetExpression(exp, 0);
+					});
+
+					// VRM0.0モデル（BlendShapeProxy経由で適用）
+					if ("blendShapeProxy" in vrm) {
+						try {
+							// 明示的な型アサーション
+							const proxy =
+								vrm.blendShapeProxy as unknown as VRM0BlendShapeProxy;
+
+							if (proxy) {
+								// 音量に応じて「あ」の口の形を設定（最大5倍に増幅）
+								proxy.setValue(1, Math.min(result.volume * 5, 1.0));
+								console.log(
+									`VRM0.0リップシンク: ${Math.min(result.volume * 5, 1.0)}`,
+								);
+							}
+						} catch (e) {
+							console.error("VRM0.0リップシンクエラー", e);
+						}
+					}
+					// VRM1.0モデル
+					else if (vrm.expressionManager) {
+						try {
+							// 音量に応じて複数の口関連表情を組み合わせる
+							const volume = Math.min(result.volume * 5, 1.0);
+
+							// 口関連の表情をすべてリセット
+							// biome-ignore lint/complexity/noForEach: <explanation>
+							["aa", "ee", "ih", "oh", "ou"].forEach((exp) => {
+								safeSetExpression(exp, 0);
+							});
+
+							// 音量レベルに応じて異なる表情の組み合わせを使用
+							if (volume > 0.7) {
+								// 大きな音量 - 大きく口を開ける「あ」の形
+								safeSetExpression("aa", volume);
+							} else if (volume > 0.4) {
+								// 中程度の音量 - 「お」と「あ」の混合
+								safeSetExpression("aa", volume * 0.7);
+								safeSetExpression("oh", volume * 0.3);
+							} else if (volume > 0.1) {
+								// 小さな音量 - 小さく「い」か「う」
+								safeSetExpression("ih", volume * 0.8);
+								safeSetExpression("ou", volume * 0.2);
+							}
+
+							if (volume > 0.1) {
+								console.log(`リップシンク: 音量=${volume.toFixed(2)}`);
+							}
+						} catch (e) {
+							console.error("リップシンクエラー:", e);
+						}
+					}
+				}
+			} else {
+				// 音量が小さい場合、口を閉じる
+				safeSetExpression("a", 0);
+				safeSetExpression("aa", 0);
+				safeSetExpression("oh", 0);
+			}
+
+			// 次のフレームで再度実行
+			frameRef.current = requestAnimationFrame(updateLipSyncFrame);
 		};
 
-		frameRef.current = requestAnimationFrame(updateLipSync);
+		// 初回実行
+		frameRef.current = requestAnimationFrame(updateLipSyncFrame);
 
 		return () => {
 			if (frameRef.current) {
 				cancelAnimationFrame(frameRef.current);
 			}
 		};
-	}, [isMuted]);
+	}, [isMuted, vrm]);
 
 	// 音声再生関数
 	const playAudio = async (url: string, onEnded?: () => void) => {
@@ -113,6 +193,8 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 			await lipSyncRef.current.playFromURL(url, onEnded);
 		} catch (error) {
 			console.error("音声再生に失敗しました", error);
+			// エラー時もコールバック実行
+			if (onEnded) onEnded();
 		}
 	};
 
@@ -151,13 +233,13 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 		if (motionName.includes("VRMA_01") || motionName.includes("Walking")) {
 			// 通常の動き - 軽い笑顔
 			setExpression("happy", 0.2);
-		} else if (motionName.includes("StandingIdle")) {
+		} else if (motionName.includes("VRMA_02")) {
 			// 静止状態 - リラックス
 			setExpression("relaxed", 0.3);
-		} else if (motionName.includes("Talking")) {
+		} else if (motionName.includes("VRMA_02")) {
 			// 会話状態 - より明るい笑顔
 			setExpression("happy", 0.8);
-		} else if (motionName.includes("Surprised")) {
+		} else if (motionName.includes("VRMA_02")) {
 			// 驚き
 			setExpression("surprised", 0.8);
 		} else {
@@ -477,7 +559,7 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 		setLipSyncResult(result);
 
 		// リップシンクの結果を表情に反映
-		safeSetExpression("a", result.volume); // "a"の口の形をボリュームに合わせる
+		safeSetExpression("aa", result.volume); // "a"の口の形をボリュームに合わせる
 	};
 
 	/**
