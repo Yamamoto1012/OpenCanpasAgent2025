@@ -1,10 +1,8 @@
 import { Canvas } from "@react-three/fiber";
 import "./App.css";
-import VRMWrapper, {
-	type VRMWrapperHandle,
-} from "./features/VRM/VRMWrapper/VRMWrapper";
+import { VRMWrapper } from "./features/VRM/VRMWrapper/VRMWrapper";
 import { ChatInterface } from "./features/ChatInterface/ChatInterface";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Info, Volume2, VolumeX } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
@@ -13,116 +11,30 @@ import { CategoryNavigator } from "./features/CategoryNagigator/CategoryNavigato
 import { motion, AnimatePresence } from "framer-motion";
 import { ActionPrompt } from "./features/ActionPromt/ActionPromt";
 import { SearchResults } from "./features/SearchResult/SearchResult";
-import type { Category } from "./features/CategoryNagigator/components/CategoryCard";
+import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
+import { useCategorySelection } from "./hooks/useCategorySelection";
 
-function App() {
+export default function App() {
 	const [showInfo, setShowInfo] = useState(false);
 	const [isMuted, setIsMuted] = useState(false);
-	const [categoryDepth, setCategoryDepth] = useState(0);
-	const [showChat, setShowChat] = useState(true);
-	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-		null,
-	);
-	const [showActionPrompt, setShowActionPrompt] = useState(false);
-	const [audioInitialized, setAudioInitialized] = useState(false);
 
-	// VRMWrapperコンポーネントへの参照を作成
-	const vrmWrapperRef = useRef<VRMWrapperHandle>(null);
+	// カスタムフックから状態とロジックを取得
+	const { audioInitialized, vrmWrapperRef, handleTestLipSync } =
+		useAudioContext();
 
-	// リップシンク検証用の関数
-	const handleTestLipSync = () => {
-		// AudioContextを初期化（最初のクリックで）
-		if (!audioInitialized) {
-			const audioCtx = new AudioContext();
-			console.log("AudioContext state:", audioCtx.state); // 'running', 'suspended', 'closed'のいずれか
-
-			// AudioContextの状態を確認（デバッグ用）
-			if (audioCtx.state === "running") {
-				console.log("AudioContext successfully initialized");
-			} else {
-				console.warn(
-					"AudioContext initialized but not running:",
-					audioCtx.state,
-				);
-			}
-
-			setAudioInitialized(true);
-			// 少し待ってから音声再生
-			setTimeout(() => {
-				if (vrmWrapperRef.current?.playAudio) {
-					vrmWrapperRef.current.playAudio("/audio/test.mp3");
-				}
-			}, 300);
-		} else {
-			// すでに初期化済みなら直接再生
-			if (vrmWrapperRef.current?.playAudio) {
-				vrmWrapperRef.current.playAudio("/audio/test.mp3");
-			}
-		}
-	};
-
-	// 検索結果の表示状態を管理する変数を追加
-	const [showSearchResult, setShowSearchResult] = useState(false);
-	const [searchQuery, setSearchQuery] = useState("");
-	const [isQuestion, setIsQuestion] = useState(false);
-
-	// カテゴリー選択が変更されたときのハンドラー
-	const handleCategorySelect = (depth: number, category?: Category) => {
-		setCategoryDepth(depth);
-
-		// 検索結果表示中なら閉じる
-		if (showSearchResult) {
-			setShowSearchResult(false);
-		}
-
-		// サブサブカテゴリーが選択されたら
-		if (depth >= 2) {
-			setShowChat(false);
-
-			if (category) {
-				setSelectedCategory(category);
-				setShowActionPrompt(true);
-			}
-		} else {
-			setShowChat(true);
-			setShowActionPrompt(false);
-		}
-	};
-
-	// カテゴリで検索するボタンが押されたとき
-	const handleSearch = () => {
-		if (!selectedCategory) return;
-
-		console.log(`「${selectedCategory.title}」で検索実行`);
-		setShowActionPrompt(false);
-		setShowChat(false);
-
-		// 検索結果を表示
-		setIsQuestion(false);
-		setSearchQuery("");
-		setShowSearchResult(true);
-	};
-
-	// 質問が入力されたとき
-	const handleAskQuestion = (question: string) => {
-		if (!selectedCategory) return;
-
-		console.log(`「${selectedCategory.title}」について質問: ${question}`);
-		setShowActionPrompt(false);
-		setShowChat(false);
-
-		// 質問として検索結果を表示
-		setIsQuestion(true);
-		setSearchQuery(question);
-		setShowSearchResult(true);
-	};
-
-	// 検索結果から戻るときの処理
-	const handleBackFromSearch = () => {
-		setShowSearchResult(false);
-		setShowChat(true);
-		setCategoryDepth(0); // カテゴリ選択をリセット
-	};
+	const {
+		categoryDepth,
+		selectedCategory,
+		showActionPrompt,
+		showChat,
+		showSearchResult,
+		searchQuery,
+		isQuestion,
+		handleCategorySelect,
+		handleSearch,
+		handleAskQuestion,
+		handleBackFromSearch,
+	} = useCategorySelection();
 
 	return (
 		<div className="relative w-screen h-screen overflow-hidden">
@@ -244,5 +156,3 @@ function App() {
 		</div>
 	);
 }
-
-export default App;

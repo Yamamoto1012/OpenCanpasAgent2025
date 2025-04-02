@@ -14,7 +14,18 @@ type VRMRenderProps = {
 	isMuted: boolean; // 音声ミュートの状態
 };
 
-const VRMRender = forwardRef(
+/**
+ * VRMモデルをレンダリングし、アニメーション・表情制御・リップシンクを管理するコンポーネント
+ * @param vrmUrl VRMモデルファイルのパス
+ * @param vrmaUrl アニメーションファイルのパス
+ * @param position 3D空間内の位置座標
+ * @param rotation モデルの回転角度
+ * @param lookAtCamera カメラを見る機能の有効/無効
+ * @param isMuted 音声ミュート状態
+ * @param ref 親コンポーネントに公開するためのref
+ */
+
+export const VRMRender = forwardRef(
 	(
 		{
 			vrmUrl,
@@ -146,5 +157,3 @@ const VRMRender = forwardRef(
 		return <primitive object={scene} dispose={null} />;
 	},
 );
-
-export default VRMRender;
