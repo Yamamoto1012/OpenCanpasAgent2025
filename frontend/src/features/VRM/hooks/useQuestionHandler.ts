@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import type { ChatInterfaceHandle } from "@/features/ChatInterface/ChatInterface";
 import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 import { generateMockResponse } from "@/features/ChatInterface/generateMockResponse";
@@ -14,6 +14,23 @@ export const useQuestionHandler = ({
 	chatInterfaceRef,
 	originalHandleAskQuestion,
 }: UseQuestionHandlerProps) => {
+	// タイムアウトIDを保存するための参照を作成
+	const motionTimeoutRef = useRef<number | null>(null);
+	const responseTimeoutRef = useRef<number | null>(null);
+
+	// クリーンアップ関数
+	useEffect(() => {
+		// コンポーネントのアンマウント時にすべてのタイムアウトをクリア
+		return () => {
+			if (motionTimeoutRef.current !== null) {
+				window.clearTimeout(motionTimeoutRef.current);
+			}
+			if (responseTimeoutRef.current !== null) {
+				window.clearTimeout(responseTimeoutRef.current);
+			}
+		};
+	}, []);
+
 	// 質問処理ハンドラー
 	const handleAskQuestion = useCallback(
 		(question: string) => {
@@ -38,8 +55,16 @@ export const useQuestionHandler = ({
 					);
 				}
 
+				// 既存のタイムアウトがあれば解除
+				if (motionTimeoutRef.current !== null) {
+					window.clearTimeout(motionTimeoutRef.current);
+				}
+				if (responseTimeoutRef.current !== null) {
+					window.clearTimeout(responseTimeoutRef.current);
+				}
+
 				// VRMの思考モーションへ移行
-				setTimeout(() => {
+				motionTimeoutRef.current = window.setTimeout(() => {
 					if (vrmWrapperRef.current?.startThinking) {
 						console.log(
 							"QuestionHandler: VRMWrapper の startThinking を呼び出します",
@@ -54,10 +79,12 @@ export const useQuestionHandler = ({
 							"QuestionHandler: VRMWrapper の機能にアクセスできません",
 						);
 					}
+					// タイムアウト完了後に参照をクリア
+					motionTimeoutRef.current = null;
 				}, 100);
 
 				// モック回答のための5秒タイマー（実際はバックエンドからのレスポンスで置き換え）
-				setTimeout(() => {
+				responseTimeoutRef.current = window.setTimeout(() => {
 					console.log("QuestionHandler: モック回答を表示します（5秒経過）");
 
 					// 思考モーションから通常モーションに戻す
@@ -75,6 +102,9 @@ export const useQuestionHandler = ({
 
 					// 検索結果表示のために元の処理を実行
 					originalHandleAskQuestion(question);
+
+					// タイムアウト完了後に参照をクリア
+					responseTimeoutRef.current = null;
 				}, 5000);
 			} catch (error) {
 				console.error("QuestionHandler: handleAskQuestion エラー:", error);
