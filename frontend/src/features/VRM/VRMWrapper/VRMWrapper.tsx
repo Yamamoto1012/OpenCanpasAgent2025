@@ -283,7 +283,7 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 				}
 			},
 
-			// startThinking関数を改善
+			// 検索中の思考
 			startThinking: () => {
 				console.log("VRMWrapper: 検索処理を開始します");
 
