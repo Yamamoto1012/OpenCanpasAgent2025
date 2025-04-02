@@ -1,6 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import "./App.css";
-import VRMWrapper, {
+import {
+	VRMWrapper,
 	type VRMWrapperHandle,
 } from "./features/VRM/VRMWrapper/VRMWrapper";
 import { ChatInterface } from "./features/ChatInterface/ChatInterface";
