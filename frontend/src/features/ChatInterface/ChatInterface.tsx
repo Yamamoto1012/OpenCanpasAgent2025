@@ -1,10 +1,10 @@
-"use client";
-import type React from "react";
 import {
-	useState,
-	useEffect,
-	useRef,
 	type ChangeEvent,
+	forwardRef,
+	useEffect,
+	useImperativeHandle,
+	useRef,
+	useState,
 	type KeyboardEvent,
 } from "react";
 import { ChatInterfaceView } from "./ChatInterfaceView";
@@ -15,7 +15,18 @@ export type Message = {
 	isUser: boolean;
 };
 
-export const ChatInterface: React.FC = () => {
+export type ChatInterfaceHandle = {
+	addMessage: (text: string, isUser?: boolean) => void;
+};
+
+export type ChatInterfaceProps = {
+	onSendQuestion?: (question: string) => void;
+};
+
+export const ChatInterface = forwardRef<
+	ChatInterfaceHandle,
+	React.PropsWithChildren<ChatInterfaceProps>
+>((props, ref) => {
 	const [messages, setMessages] = useState<Message[]>([
 		{ id: 1, text: "金沢工業大学へようこそ!!", isUser: false },
 		{ id: 2, text: "なんでも質問してください!!", isUser: false },
@@ -28,6 +39,20 @@ export const ChatInterface: React.FC = () => {
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	};
+
+	// 外部から呼び出し可能なメソッドを定義
+	useImperativeHandle(ref, () => ({
+		addMessage: (text: string, isUser = false) => {
+			setMessages((currentMessages) => [
+				...currentMessages,
+				{
+					id: currentMessages.length + 1,
+					text,
+					isUser,
+				},
+			]);
+		},
+	}));
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
@@ -50,23 +75,26 @@ export const ChatInterface: React.FC = () => {
 					isUser: true,
 				},
 			]);
+			// 親コンポーネントに質問を通知
+			if (props.onSendQuestion) {
+				props.onSendQuestion(inputValue.trim());
+			} else {
+				// 既存の自動応答ロジックはバックアップとして使用
+				setIsThinking(true);
+				setTimeout(() => {
+					setIsThinking(false);
+					setMessages((currentMessages) => [
+						...currentMessages,
+						{
+							id: currentMessages.length + 1,
+							text: "ご質問ありがとうございます。お答えします！",
+							isUser: false,
+						},
+					]);
+				}, 3000);
+			}
+
 			setInputValue("");
-
-			// AIの考え中状態を開始
-			setIsThinking(true);
-
-			// 簡易的な応答
-			setTimeout(() => {
-				setIsThinking(false);
-				setMessages((currentMessages) => [
-					...currentMessages,
-					{
-						id: currentMessages.length + 1,
-						text: "ご質問ありがとうございます。お答えします！",
-						isUser: false,
-					},
-				]);
-			}, 3000);
 		}
 	};
 
@@ -103,4 +131,4 @@ export const ChatInterface: React.FC = () => {
 			messagesEndRef={messagesEndRef}
 		/>
 	);
-};
+});

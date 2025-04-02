@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { VRMWrapperHandle } from "../VRMWrapper/VRMWrapper";
 
 /**
@@ -6,7 +6,37 @@ import type { VRMWrapperHandle } from "../VRMWrapper/VRMWrapper";
  */
 export const useAudioContext = () => {
 	const [audioInitialized, setAudioInitialized] = useState(false);
+	const audioContextRef = useRef<AudioContext | null>(null);
 	const vrmWrapperRef = useRef<VRMWrapperHandle>(null);
+
+	// AudioContextを初期化する関数
+	const initializeAudioContext = useCallback(() => {
+		if (!audioContextRef.current) {
+			console.log("AudioContext を初期化します");
+			try {
+				audioContextRef.current = new AudioContext();
+				setAudioInitialized(true);
+				console.log("AudioContext 初期化成功:", audioContextRef.current.state);
+			} catch (error) {
+				console.error("AudioContext 初期化失敗:", error);
+			}
+		}
+		return audioContextRef.current;
+	}, []);
+
+	// ユーザーインタラクション時に実行する関数
+	const handleUserInteraction = useCallback(() => {
+		initializeAudioContext();
+	}, [initializeAudioContext]);
+
+	// コンポーネントのマウント時にイベントリスナーを設定
+	useEffect(() => {
+		// ページのどこかをクリックしたときにAudioContextを初期化
+		document.addEventListener("click", handleUserInteraction, { once: true });
+		return () => {
+			document.removeEventListener("click", handleUserInteraction);
+		};
+	}, [handleUserInteraction]);
 
 	/**
 	 * AudioContextを初期化し、音声を再生する関数
@@ -67,5 +97,6 @@ export const useAudioContext = () => {
 		vrmWrapperRef,
 		handleTestLipSync,
 		playAudio,
+		initializeAudioContext,
 	};
 };
