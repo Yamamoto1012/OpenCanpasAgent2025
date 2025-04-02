@@ -13,6 +13,7 @@ export type VRMWrapperHandle = {
 	crossFadeAnimation: (vrmaUrl: string) => void;
 	setExpression?: (preset: string, weight: number) => void;
 	setExpressionForMotion?: (motionName: string) => void;
+	startThinking: () => void;
 };
 
 type VRMWrapperProps = {
@@ -279,6 +280,55 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 			setExpressionForMotion: (motionName: string) => {
 				if (!isPaused && vrmRenderRef.current?.setExpressionForMotion) {
 					vrmRenderRef.current.setExpressionForMotion(motionName);
+				}
+			},
+
+			// 検索中の思考
+			startThinking: () => {
+				console.log("VRMWrapper: 検索処理を開始します");
+
+				// Thinking モーションへ切り替え
+				setIsPaused(false);
+				crossFadeToMotion("/Motion/Thinking.vrma");
+
+				// 最後に再生したモーションを記録（回答後に戻すため）
+				lastMotionRef.current = "/Motion/Thinking.vrma";
+
+				// 「検索しますね」の音声を再生
+				const searchAudioUrl = "/audio/test.mp3";
+
+				try {
+					// 音声再生の処理
+					if (vrmRenderRef.current?.playAudio) {
+						console.log(`VRMWrapper: 音声再生開始: ${searchAudioUrl}`);
+
+						// リップシンクの開始
+						simulateLipSync();
+
+						// 実際の音声再生を少し遅らせて開始
+						setTimeout(() => {
+							try {
+								console.log("VRMWrapper: 音声再生処理を実行");
+								vrmRenderRef.current?.playAudio(
+									searchAudioUrl,
+									handleAudioAnalysis,
+									() => {
+										console.log(
+											"VRMWrapper: 音声再生完了、思考モーションを継続",
+										);
+									},
+								);
+							} catch (err) {
+								console.error("VRMWrapper: 音声再生中にエラー:", err);
+							}
+						}, 300);
+					} else {
+						console.warn(
+							"VRMWrapper: 音声再生機能が利用できないため思考モーションのみ表示",
+						);
+					}
+				} catch (error) {
+					console.error("VRMWrapper: startThinking実行中にエラー:", error);
 				}
 			},
 		}));

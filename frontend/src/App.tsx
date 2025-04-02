@@ -1,8 +1,11 @@
 import { Canvas } from "@react-three/fiber";
 import "./App.css";
 import { VRMWrapper } from "./features/VRM/VRMWrapper/VRMWrapper";
-import { ChatInterface } from "./features/ChatInterface/ChatInterface";
-import { useState } from "react";
+import {
+	ChatInterface,
+	type ChatInterfaceHandle,
+} from "./features/ChatInterface/ChatInterface";
+import { useRef, useState } from "react";
 import { Info, Volume2, VolumeX } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
@@ -13,6 +16,7 @@ import { ActionPrompt } from "./features/ActionPromt/ActionPromt";
 import { SearchResults } from "./features/SearchResult/SearchResult";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
+import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
 
 export default function App() {
 	const [showInfo, setShowInfo] = useState(false);
@@ -21,6 +25,8 @@ export default function App() {
 	// カスタムフックから状態とロジックを取得
 	const { audioInitialized, vrmWrapperRef, handleTestLipSync } =
 		useAudioContext();
+
+	const chatInterfaceRef = useRef<ChatInterfaceHandle>(null);
 
 	const {
 		categoryDepth,
@@ -32,9 +38,15 @@ export default function App() {
 		isQuestion,
 		handleCategorySelect,
 		handleSearch,
-		handleAskQuestion,
+		handleAskQuestion: originalHandleAskQuestion,
 		handleBackFromSearch,
 	} = useCategorySelection();
+
+	const { handleAskQuestion } = useQuestionHandler({
+		vrmWrapperRef,
+		chatInterfaceRef,
+		originalHandleAskQuestion,
+	});
 
 	return (
 		<div className="relative w-screen h-screen overflow-hidden">
@@ -137,7 +149,10 @@ export default function App() {
 						exit={{ opacity: 0, x: -100 }}
 						transition={{ duration: 0.3 }}
 					>
-						<ChatInterface />
+						<ChatInterface
+							ref={chatInterfaceRef}
+							onSendQuestion={handleAskQuestion}
+						/>
 					</motion.div>
 				)}
 			</AnimatePresence>
