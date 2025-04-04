@@ -85,13 +85,25 @@ export const ChatInterface = forwardRef<
 			console.log("録音を開始しました");
 
 			// TODO: 実際の音声認識APIと連携する場合はここで処理
-			// 今回はモックとして5秒後に録音停止とテキスト反映
-			setTimeout(() => {
-				stopRecording("金沢工業大学についての情報を教えてください");
+			// モックとして5秒後に録音停止とテキスト反映
+			const mockTimeout = setTimeout(() => {
+				const randomQuestions = [
+					"金沢工業大学の学部について教えてください",
+					"キャンパスの施設について知りたいです",
+					"学食のおすすめメニューは何ですか？",
+					"金沢工業大学の就職率はどのくらいですか？",
+					"プロジェクト活動について教えてください",
+				];
+				const randomIndex = Math.floor(Math.random() * randomQuestions.length);
+				stopRecording(randomQuestions[randomIndex]);
 			}, 5000);
+
+			// クリーンアップ関数
+			return () => clearTimeout(mockTimeout);
 		} catch (error) {
 			console.error("マイクの使用許可が得られませんでした:", error);
 			alert("マイクへのアクセスを許可してください。");
+			setIsRecording(false);
 		}
 	};
 

@@ -2,6 +2,8 @@
 import { Mic, MicOff, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
+import { RecordingIndicator } from "@/features/RecordingIndicator/RecordingIndicator";
 
 export type ChatInputAreaProps = {
 	inputValue: string;
@@ -24,12 +26,18 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 }) => {
 	return (
 		<div style={{ backgroundColor: "#b3cfad" }} className="px-3 py-2">
-			<div className="flex items-center gap-2">
+			{/* 録音中の波形表示 */}
+			{isRecording && <VoiceWaveform isRecording={isRecording} />}
+
+			{/* 入力エリア */}
+			<div className="flex items-center gap-2 mt-2">
 				<Input
 					value={inputValue}
 					onChange={onInputChange}
 					onKeyDown={onKeyDown}
-					placeholder="質問を入力..."
+					placeholder={
+						isRecording ? "音声を認識しています..." : "質問を入力..."
+					}
 					disabled={isThinking || isRecording}
 					className={isRecording ? "bg-red-50 border-0" : "bg-white border-0"}
 				/>
@@ -64,10 +72,10 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 				</Button>
 			</div>
 
-			{/* 録音中インジケーター */}
+			{/* 録音時間インジケーター */}
 			{isRecording && (
-				<div className="mt-2 text-xs text-center text-red-500 animate-pulse">
-					音声を録音しています... マイクボタンをクリックして停止
+				<div className="mt-2 flex justify-center">
+					<RecordingIndicator isRecording={isRecording} />
 				</div>
 			)}
 		</div>
