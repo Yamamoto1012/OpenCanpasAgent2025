@@ -35,6 +35,7 @@ export const ChatInterface = forwardRef<
 	const [isThinking, setIsThinking] = useState(false);
 	const [isRecording, setIsRecording] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const mockTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	// メッセージ更新時にスクロールするための処理
 	const scrollToBottom = () => {
@@ -84,6 +85,11 @@ export const ChatInterface = forwardRef<
 			setIsRecording(true);
 			console.log("録音を開始しました");
 
+			// 前回のタイマーが残っていたらクリア
+			if (mockTimeoutRef.current) {
+				clearTimeout(mockTimeoutRef.current);
+			}
+
 			// TODO: 実際の音声認識APIと連携する場合はここで処理
 			// モックとして5秒後に録音停止とテキスト反映
 			const mockTimeout = setTimeout(() => {
@@ -109,6 +115,11 @@ export const ChatInterface = forwardRef<
 
 	// 録音停止
 	const stopRecording = (recognizedText?: string) => {
+		// タイマーをクリア
+		if (mockTimeoutRef.current) {
+			clearTimeout(mockTimeoutRef.current);
+			mockTimeoutRef.current = null;
+		}
 		setIsRecording(false);
 		console.log("録音を停止しました");
 
@@ -117,6 +128,15 @@ export const ChatInterface = forwardRef<
 			setInputValue(recognizedText);
 		}
 	};
+
+	// コンポーネントのアンマウント時にタイマーをクリア
+	useEffect(() => {
+		return () => {
+			if (mockTimeoutRef.current) {
+				clearTimeout(mockTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	// メッセージ送信処理（空白のみは送信しない）
 	const handleSend = () => {
