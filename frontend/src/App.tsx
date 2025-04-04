@@ -72,20 +72,32 @@ export default function App() {
 				</Canvas>
 			</div>
 
-			{process.env.NODE_ENV === "development" && (
-				<div className="absolute top-2 left-2 p-2 z-50">
-					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
-					<button
-						onClick={handleTestLipSync}
-						className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-					>
-						リップシンクテスト
-					</button>
-				</div>
-			)}
+			{/* ロゴ */}
+			<div className="absolute top-2 left-4 p-2 z-50 hover:scale-95 duration-200">
+				<motion.a
+					href="https://old-aizawa-hp.vercel.app/"
+					target="_blank"
+					rel="noopener noreferrer"
+					whileHover={{
+						scale: 1.05,
+						y: -5,
+						transition: { duration: 0.3 },
+					}}
+					initial={{ opacity: 0, y: -10 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.5 }}
+				>
+					<img
+						src="/Logo.png"
+						aria-label="Logo"
+						className="w-24"
+						alt="OpenCanapasAgent Logo"
+					/>
+				</motion.a>
+			</div>
 
 			{/* カテゴリ、検索結果、ActionPromptを含むコンテナ */}
-			<div className="absolute top-1/11 right-2 flex flex-col items-center">
+			<div className="absolute top-1/7 right-2 flex flex-col items-center">
 				<div className="relative w-full min-h-[400px] flex justify-end">
 					<AnimatePresence mode="wait">
 						{showSearchResult ? (
@@ -144,7 +156,7 @@ export default function App() {
 			<AnimatePresence>
 				{showChat && !showSearchResult && (
 					<motion.div
-						className="absolute top-1/11 left-2 p-4 z-10"
+						className="absolute top-1/7 left-4 p-4 z-10"
 						initial={{ opacity: 1, x: 0 }}
 						exit={{ opacity: 0, x: -100 }}
 						transition={{ duration: 0.3 }}
