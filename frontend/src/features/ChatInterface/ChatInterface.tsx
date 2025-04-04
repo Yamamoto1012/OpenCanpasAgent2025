@@ -8,6 +8,7 @@ import {
 	type KeyboardEvent,
 } from "react";
 import { ChatInterfaceView } from "./ChatInterfaceView";
+import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 
 export type Message = {
 	id: number;
@@ -33,9 +34,26 @@ export const ChatInterface = forwardRef<
 	]);
 	const [inputValue, setInputValue] = useState("");
 	const [isThinking, setIsThinking] = useState(false);
-	const [isRecording, setIsRecording] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
-	const mockTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	// 金沢工業大学に関するランダムな質問テキスト生成関数
+	const getRandomText = () => {
+		const randomQuestions = [
+			"金沢工業大学の学部について教えてください",
+			"キャンパスの施設について知りたいです",
+			"学食のおすすめメニューは何ですか？",
+			"金沢工業大学の就職率はどのくらいですか？",
+			"プロジェクト活動について教えてください",
+		];
+		const randomIndex = Math.floor(Math.random() * randomQuestions.length);
+		return randomQuestions[randomIndex];
+	};
+
+	// 録音カスタムフックの使用
+	const { isRecording, toggleRecording } = useVoiceRecording({
+		onRecognizedText: (text) => setInputValue(text),
+		getRandomText,
+	});
 
 	// メッセージ更新時にスクロールするための処理
 	const scrollToBottom = () => {
@@ -65,78 +83,6 @@ export const ChatInterface = forwardRef<
 	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setInputValue(e.target.value);
 	};
-
-	// マイク録音の開始/停止を切り替える
-	const toggleRecording = () => {
-		if (isRecording) {
-			// 録音停止処理
-			stopRecording();
-		} else {
-			// 録音開始処理
-			startRecording();
-		}
-	};
-
-	// 録音開始
-	const startRecording = async () => {
-		try {
-			// マイクへのアクセス許可を取得
-			await navigator.mediaDevices.getUserMedia({ audio: true });
-			setIsRecording(true);
-			console.log("録音を開始しました");
-
-			// 前回のタイマーが残っていたらクリア
-			if (mockTimeoutRef.current) {
-				clearTimeout(mockTimeoutRef.current);
-			}
-
-			// TODO: 実際の音声認識APIと連携する場合はここで処理
-			// モックとして5秒後に録音停止とテキスト反映
-			const mockTimeout = setTimeout(() => {
-				const randomQuestions = [
-					"金沢工業大学の学部について教えてください",
-					"キャンパスの施設について知りたいです",
-					"学食のおすすめメニューは何ですか？",
-					"金沢工業大学の就職率はどのくらいですか？",
-					"プロジェクト活動について教えてください",
-				];
-				const randomIndex = Math.floor(Math.random() * randomQuestions.length);
-				stopRecording(randomQuestions[randomIndex]);
-			}, 5000);
-
-			// クリーンアップ関数
-			return () => clearTimeout(mockTimeout);
-		} catch (error) {
-			console.error("マイクの使用許可が得られませんでした:", error);
-			alert("マイクへのアクセスを許可してください。");
-			setIsRecording(false);
-		}
-	};
-
-	// 録音停止
-	const stopRecording = (recognizedText?: string) => {
-		// タイマーをクリア
-		if (mockTimeoutRef.current) {
-			clearTimeout(mockTimeoutRef.current);
-			mockTimeoutRef.current = null;
-		}
-		setIsRecording(false);
-		console.log("録音を停止しました");
-
-		// 認識テキストがある場合は入力欄に反映
-		if (recognizedText) {
-			setInputValue(recognizedText);
-		}
-	};
-
-	// コンポーネントのアンマウント時にタイマーをクリア
-	useEffect(() => {
-		return () => {
-			if (mockTimeoutRef.current) {
-				clearTimeout(mockTimeoutRef.current);
-			}
-		};
-	}, []);
 
 	// メッセージ送信処理（空白のみは送信しない）
 	const handleSend = () => {
