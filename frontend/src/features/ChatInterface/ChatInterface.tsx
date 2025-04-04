@@ -33,6 +33,7 @@ export const ChatInterface = forwardRef<
 	]);
 	const [inputValue, setInputValue] = useState("");
 	const [isThinking, setIsThinking] = useState(false);
+	const [isRecording, setIsRecording] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	// メッセージ更新時にスクロールするための処理
@@ -62,6 +63,47 @@ export const ChatInterface = forwardRef<
 	// 入力欄からの値更新
 	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setInputValue(e.target.value);
+	};
+
+	// マイク録音の開始/停止を切り替える
+	const toggleRecording = () => {
+		if (isRecording) {
+			// 録音停止処理
+			stopRecording();
+		} else {
+			// 録音開始処理
+			startRecording();
+		}
+	};
+
+	// 録音開始
+	const startRecording = async () => {
+		try {
+			// マイクへのアクセス許可を取得
+			await navigator.mediaDevices.getUserMedia({ audio: true });
+			setIsRecording(true);
+			console.log("録音を開始しました");
+
+			// TODO: 実際の音声認識APIと連携する場合はここで処理
+			// 今回はモックとして5秒後に録音停止とテキスト反映
+			setTimeout(() => {
+				stopRecording("金沢工業大学についての情報を教えてください");
+			}, 5000);
+		} catch (error) {
+			console.error("マイクの使用許可が得られませんでした:", error);
+			alert("マイクへのアクセスを許可してください。");
+		}
+	};
+
+	// 録音停止
+	const stopRecording = (recognizedText?: string) => {
+		setIsRecording(false);
+		console.log("録音を停止しました");
+
+		// 認識テキストがある場合は入力欄に反映
+		if (recognizedText) {
+			setInputValue(recognizedText);
+		}
 	};
 
 	// メッセージ送信処理（空白のみは送信しない）
@@ -123,11 +165,13 @@ export const ChatInterface = forwardRef<
 			messages={messages}
 			inputValue={inputValue}
 			isThinking={isThinking}
+			isRecording={isRecording}
 			onInputChange={handleInputChange}
 			onKeyDown={handleKeyDown}
 			onSend={handleSend}
 			onSelect={handleSelect}
 			onReset={handleReset}
+			onToggleRecording={toggleRecording}
 			messagesEndRef={messagesEndRef}
 		/>
 	);

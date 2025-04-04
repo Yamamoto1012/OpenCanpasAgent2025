@@ -11,11 +11,13 @@ export type ChatInterfaceViewProps = {
 	messages: Message[];
 	inputValue: string;
 	isThinking: boolean;
+	isRecording: boolean;
 	onInputChange: React.ChangeEventHandler<HTMLInputElement>;
 	onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
 	onSend: () => void;
 	onSelect: (value: string) => void;
 	onReset: () => void;
+	onToggleRecording: () => void;
 	messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
 
@@ -23,11 +25,13 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 	messages,
 	inputValue,
 	isThinking,
+	isRecording,
 	onInputChange,
 	onKeyDown,
 	onSend,
 	onSelect,
 	onReset,
+	onToggleRecording,
 	messagesEndRef,
 }) => {
 	return (
@@ -42,9 +46,11 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 			<ChatInputArea
 				inputValue={inputValue}
 				isThinking={isThinking}
+				isRecording={isRecording}
 				onInputChange={onInputChange}
 				onKeyDown={onKeyDown}
 				onSend={onSend}
+				onToggleRecording={onToggleRecording}
 			/>
 		</div>
 	);
