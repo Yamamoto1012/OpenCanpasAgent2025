@@ -18,7 +18,7 @@ export const ActionPrompt: React.FC<ActionPromptProps> = ({
 	const [showQuestionInput, setShowQuestionInput] = useState(false);
 	const [question, setQuestion] = useState("");
 
-	// カテゴリに関するランダムなテキスト生成関数
+	// カテゴリに関するランダムなテキスト生成
 	const getRandomText = () => {
 		const randomQuestions = [
 			`${categoryTitle}について教えてください`,
