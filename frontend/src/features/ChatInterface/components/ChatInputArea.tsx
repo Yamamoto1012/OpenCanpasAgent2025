@@ -35,7 +35,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 			<Button
 				onClick={onSend}
 				size="icon"
-				className="text-white rounded-md"
+				className="text-white rounded-md hover:scale-95 duration-150"
 				style={{ backgroundColor: "#9f9579", borderColor: "#9f9579" }}
 				disabled={isThinking || !inputValue.trim()}
 			>
