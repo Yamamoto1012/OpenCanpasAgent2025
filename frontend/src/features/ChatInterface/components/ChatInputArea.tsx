@@ -30,7 +30,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 			{isRecording && <VoiceWaveform isRecording={isRecording} />}
 
 			{/* 入力エリア */}
-			<div className="flex items-center gap-2 mt-2">
+			<div className="flex items-center gap-2">
 				<Input
 					value={inputValue}
 					onChange={onInputChange}

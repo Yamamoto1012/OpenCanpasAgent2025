@@ -55,7 +55,7 @@ export const useVoiceWaveform = (
 				// 波形の描画を開始
 				startVisualization();
 			} catch (error) {
-				console.error("Error accessing microphone:", error);
+				console.error("マイクへのアクセスエラー:", error);
 			}
 		};
 
