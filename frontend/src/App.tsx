@@ -21,6 +21,7 @@ import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
 export default function App() {
 	const [showInfo, setShowInfo] = useState(false);
 	const [isMuted, setIsMuted] = useState(false);
+	const [isDirectChatQuestion, setIsDirectChatQuestion] = useState(false);
 
 	// カスタムフックから状態とロジックを取得
 	const { audioInitialized, vrmWrapperRef, handleTestLipSync } =
@@ -41,6 +42,13 @@ export default function App() {
 		handleAskQuestion: originalHandleAskQuestion,
 		handleBackFromSearch,
 	} = useCategorySelection();
+
+	// チャットインターフェースからの質問処理
+	const handleChatInterfaceQuestion = (question: string) => {
+		// チャットからの直接質問としてフラグを設定
+		setIsDirectChatQuestion(true);
+		handleAskQuestion(question);
+	};
 
 	const { handleAskQuestion } = useQuestionHandler({
 		vrmWrapperRef,
@@ -100,7 +108,7 @@ export default function App() {
 			<div className="absolute top-1/7 right-2 flex flex-col items-center">
 				<div className="relative w-full min-h-[400px] flex justify-end">
 					<AnimatePresence mode="wait">
-						{showSearchResult ? (
+						{showSearchResult && !isDirectChatQuestion ? (
 							<motion.div
 								key="search-results"
 								className="w-full max-w-lg -translate-x-24"
@@ -154,7 +162,7 @@ export default function App() {
 
 			{/* チャットインターフェース */}
 			<AnimatePresence>
-				{showChat && !showSearchResult && (
+				{showChat && (
 					<motion.div
 						className="absolute top-1/7 left-4 p-4 z-10"
 						initial={{ opacity: 1, x: 0 }}
@@ -163,7 +171,7 @@ export default function App() {
 					>
 						<ChatInterface
 							ref={chatInterfaceRef}
-							onSendQuestion={handleAskQuestion}
+							onSendQuestion={handleChatInterfaceQuestion}
 						/>
 					</motion.div>
 				)}
