@@ -105,7 +105,6 @@ export const useQuestionHandler = ({
 				}, 5000);
 			} catch (error) {
 				console.error("QuestionHandler: handleAskQuestion エラー:", error);
-
 			}
 		},
 		[vrmWrapperRef, chatInterfaceRef, originalHandleAskQuestion],

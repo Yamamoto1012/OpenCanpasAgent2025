@@ -6,7 +6,7 @@ import {
 	type ChatInterfaceHandle,
 } from "./features/ChatInterface/ChatInterface";
 import { useRef, useState } from "react";
-import { Info, Volume2, VolumeX } from "lucide-react";
+import { Info, Mic2, Volume2, VolumeX, X } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
 import { CategoryNavigator } from "./features/CategoryNagigator/CategoryNavigator";
@@ -17,11 +17,13 @@ import { SearchResults } from "./features/SearchResult/SearchResult";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
+import { VoiceChat } from "./features/VoiceChat/VoiceChat";
 
 export default function App() {
 	const [showInfo, setShowInfo] = useState(false);
 	const [isMuted, setIsMuted] = useState(false);
 	const [isDirectChatQuestion, setIsDirectChatQuestion] = useState(false);
+	const [showVoiceChat, setShowVoiceChat] = useState(false);
 
 	// カスタムフックから状態とロジックを取得
 	const { audioInitialized, vrmWrapperRef, handleTestLipSync } =
@@ -48,6 +50,14 @@ export default function App() {
 		// チャットからの直接質問としてフラグを設定
 		setIsDirectChatQuestion(true);
 		handleAskQuestion(question);
+		setIsDirectChatQuestion(false);
+	};
+
+	// 音声チャットからの質問処理
+	const handleVoiceChatQuestion = (question: string) => {
+		setIsDirectChatQuestion(true);
+		handleAskQuestion(question);
+		setShowVoiceChat(false);
 		setIsDirectChatQuestion(false);
 	};
 
@@ -178,7 +188,39 @@ export default function App() {
 				)}
 			</AnimatePresence>
 
-			{/* 情報・音声コントロールボタン */}
+			{/* 音声チャットダイアログ */}
+			<AnimatePresence>
+				{showVoiceChat && (
+					<motion.div
+						className="absolute inset-0 flex items-end justify-center bg-transparent z-50"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 0.3 }}
+					>
+						<motion.div
+							className="rounded-xl p-6 mx-4"
+							initial={{ scale: 0.9, y: 20 }}
+							animate={{ scale: 1, y: 0 }}
+							exit={{ scale: 0.9, y: 20 }}
+							transition={{ type: "spring", damping: 25, stiffness: 300 }}
+						>
+							<div className="flex justify-end mb-2">
+								{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
+								<button
+									onClick={() => setShowVoiceChat(false)}
+									className="p-1 rounded-full hover:bg-neutral-800"
+								>
+									<X className="h-5 w-5 text-neutral-400" />
+								</button>
+							</div>
+							<VoiceChat onSendQuestion={handleVoiceChatQuestion} />
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
+			{/* 情報・音声コントロール・音声チャット */}
 			<div className="absolute bottom-1/12 right-2 p-4 z-10">
 				<IconButton icon={Info} onClick={() => setShowInfo(!showInfo)} />
 			</div>
@@ -187,6 +229,9 @@ export default function App() {
 					icon={isMuted ? VolumeX : Volume2}
 					onClick={() => setIsMuted(!isMuted)}
 				/>
+			</div>
+			<div className="absolute bottom-3/12 right-2 p-4 z-10">
+				<IconButton icon={Mic2} onClick={() => setShowVoiceChat(true)} />
 			</div>
 			{showInfo && <InfoPanel onClose={() => setShowInfo(false)} />}
 		</div>
