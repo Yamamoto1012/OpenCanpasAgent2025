@@ -252,8 +252,8 @@ export default function App() {
 								</button>
 							</div>
 							<VoiceChat
-								onSendQuestion={handleVoiceChatQuestion}
 								onClose={() => setShowVoiceChat(false)}
+								vrmWrapperRef={vrmWrapperRef}
 							/>
 						</motion.div>
 					</motion.div>

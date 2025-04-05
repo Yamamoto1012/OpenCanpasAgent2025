@@ -32,6 +32,7 @@ export const useQuestionHandler = ({
 	}, []);
 
 	// 質問処理ハンドラー
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	const handleAskQuestion = useCallback(
 		(question: string) => {
 			console.log(
