@@ -45,6 +45,26 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	// VRMの思考状態を参照
 	const vrmIsThinking = useRef<boolean>(false);
 
+	// コンポーネントがマウントされたら、モーションをStandingIdleに設定する
+	useEffect(() => {
+		// 音声チャット表示時に最初からStandingIdleモーションに変更
+		if (vrmWrapperRef.current?.crossFadeAnimation) {
+			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+		}
+
+		return () => {
+			// タイマーをクリア
+			if (responseTimerRef.current) {
+				clearTimeout(responseTimerRef.current);
+			}
+
+			// VRMの思考モードを必ず終了
+			if (vrmWrapperRef.current?.isThinking && vrmIsThinking.current) {
+				vrmIsThinking.current = false;
+			}
+		};
+	}, [vrmWrapperRef]);
+
 	// 音声処理が完了した時の処理
 	useEffect(() => {
 		if (!isListening && transcript) {
@@ -62,10 +82,12 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			const processingTimer = setTimeout(() => {
 				setProcessingState("thinking");
 
-				// VRMの思考モーションを開始
-				if (vrmWrapperRef.current?.startThinking) {
-					vrmWrapperRef.current.startThinking();
+				// 思考状態に遷移するが、モーションはStandingIdleのままにする
+				if (vrmWrapperRef.current) {
 					vrmIsThinking.current = true;
+
+					// StandingIdleモーションを維持
+					vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 				}
 
 				// AIの返答を生成（実際はAPIを呼び出す）
@@ -78,6 +100,11 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 		} else if (isListening) {
 			// 録音中の状態
 			setProcessingState("recording");
+
+			// 録音中も必ずStandingIdleモーションを維持
+			if (vrmWrapperRef.current?.crossFadeAnimation) {
+				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+			}
 		}
 	}, [isListening, transcript, vrmWrapperRef]);
 
@@ -104,10 +131,14 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 				},
 			]);
 
-			// 思考モード終了
-			if (vrmWrapperRef.current?.stopThinking && vrmIsThinking.current) {
-				vrmWrapperRef.current.stopThinking();
+			// 思考状態を終了するが、モーションは変更しない
+			if (vrmIsThinking.current) {
 				vrmIsThinking.current = false;
+
+				// StandingIdleモーションを維持
+				if (vrmWrapperRef.current?.crossFadeAnimation) {
+					vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+				}
 			}
 
 			// 応答状態に変更
@@ -119,34 +150,24 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			// 応答完了後、ユーザー入力待ち状態に
 			responseTimerRef.current = setTimeout(() => {
 				setProcessingState("waiting");
+
+				// 待機状態でもStandingIdleモーションを維持
+				if (vrmWrapperRef.current?.crossFadeAnimation) {
+					vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+				}
 			}, 5000); // 音声再生想定時間
 		} catch (error) {
 			console.error("AI応答生成エラー:", error);
 			setProcessingState("waiting");
 
-			// エラー発生時も思考モード終了
-			if (vrmWrapperRef.current?.stopThinking && vrmIsThinking.current) {
-				vrmWrapperRef.current.stopThinking();
-				vrmIsThinking.current = false;
+			// エラー発生時もStandingIdleモーションを維持
+			if (vrmWrapperRef.current?.crossFadeAnimation) {
+				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 			}
+
+			vrmIsThinking.current = false;
 		}
 	};
-
-	// コンポーネントのクリーンアップ
-	useEffect(() => {
-		return () => {
-			// タイマーをクリア
-			if (responseTimerRef.current) {
-				clearTimeout(responseTimerRef.current);
-			}
-
-			// VRMの思考モードを必ず終了
-			if (vrmWrapperRef.current?.stopThinking && vrmIsThinking.current) {
-				vrmWrapperRef.current.stopThinking();
-				vrmIsThinking.current = false;
-			}
-		};
-	}, [vrmWrapperRef]);
 
 	// 音声認識の開始ハンドラー
 	const handleStartListening = () => {
@@ -164,6 +185,11 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	// 音声認識の停止ハンドラー
 	const handleStopListening = () => {
 		stopListening();
+
+		// 停止時もStandingIdleモーションを維持
+		if (vrmWrapperRef.current?.crossFadeAnimation) {
+			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+		}
 	};
 
 	return (

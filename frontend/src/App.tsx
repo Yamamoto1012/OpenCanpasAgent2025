@@ -78,6 +78,32 @@ export default function App() {
 		originalHandleAskQuestion,
 	});
 
+	// 音声チャットを開く処理
+	const handleOpenVoiceChat = () => {
+		setShowVoiceChat(true);
+
+		// 音声チャット表示前のモーションを記録
+		if (vrmWrapperRef.current?.getLastMotion) {
+			const currentMotion = vrmWrapperRef.current.getLastMotion();
+			console.log("現在のモーション保存:", currentMotion);
+		}
+
+		// 音声チャット表示時にStandingIdleモーションに切り替え
+		if (vrmWrapperRef.current?.crossFadeAnimation) {
+			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+		}
+	};
+
+	// 音声チャットを閉じる処理
+	const handleCloseVoiceChat = () => {
+		setShowVoiceChat(false);
+
+		// 音声チャットを閉じる時に元のモーションに戻す
+		if (vrmWrapperRef.current?.restoreLastMotion) {
+			vrmWrapperRef.current.restoreLastMotion();
+		}
+	};
+
 	// 音声チャットの状態を監視し、VRMのモーションを制御
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
@@ -86,6 +112,11 @@ export default function App() {
 			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 		}
 	}, [showVoiceChat]);
+
+	// コンポーネントのマウント時に初期設定を行う
+	useEffect(() => {
+		return () => {};
+	}, []);
 
 	return (
 		<div className="relative w-screen h-screen overflow-hidden">
@@ -228,7 +259,7 @@ export default function App() {
 						/>
 					</div>
 					<div className="absolute bottom-3/12 right-2 p-4 z-10">
-						<IconButton icon={Mic2} onClick={() => setShowVoiceChat(true)} />
+						<IconButton icon={Mic2} onClick={handleOpenVoiceChat} />
 					</div>
 					{showInfo && <InfoPanel onClose={() => setShowInfo(false)} />}
 				</>
@@ -254,14 +285,14 @@ export default function App() {
 							<div className="flex justify-end mb-2">
 								{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
 								<button
-									onClick={() => setShowVoiceChat(false)}
+									onClick={handleCloseVoiceChat}
 									className="p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
 								>
 									<X className="h-5 w-5 text-white" />
 								</button>
 							</div>
 							<VoiceChat
-								onClose={() => setShowVoiceChat(false)}
+								onClose={handleCloseVoiceChat}
 								vrmWrapperRef={vrmWrapperRef}
 							/>
 						</motion.div>

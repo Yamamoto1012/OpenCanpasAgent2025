@@ -16,6 +16,8 @@ export type VRMWrapperHandle = {
 	startThinking: () => void;
 	stopThinking: () => void; // 思考終了メソッドを追加
 	isThinking: boolean; // 思考中状態を公開
+	getLastMotion: () => string; // 現在のモーションを取得
+	restoreLastMotion: () => void; // モーションを元に戻す
 };
 
 type VRMWrapperProps = {
@@ -358,6 +360,16 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 
 			// 思考中状態を公開
 			isThinking,
+
+			// 現在のモーションを取得
+			getLastMotion: () => {
+				return lastMotionRef.current;
+			},
+
+			// モーションを元に戻す
+			restoreLastMotion: () => {
+				crossFadeToMotion(lastMotionRef.current);
+			},
 		}));
 
 		/**
