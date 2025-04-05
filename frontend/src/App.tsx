@@ -199,7 +199,7 @@ export default function App() {
 						transition={{ duration: 0.3 }}
 					>
 						<motion.div
-							className="rounded-xl p-6 mx-4"
+							className="rounded-xl p-6 mx-4 h-screen"
 							initial={{ scale: 0.9, y: 20 }}
 							animate={{ scale: 1, y: 0 }}
 							exit={{ scale: 0.9, y: 20 }}

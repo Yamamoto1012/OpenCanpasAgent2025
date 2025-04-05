@@ -31,21 +31,17 @@ export const VoiceChatView = ({
 	onStopListening,
 }: VoiceChatViewProps) => {
 	const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
-	const dataArrayRef = useRef<Uint8Array | null>(null);
 
-	const vibrationX = isListening ? (Math.random() - 0.5) * audioLevel * 15 : 0;
-	const vibrationY = isListening ? (Math.random() - 0.5) * audioLevel * 15 : 0;
-
+	// Canvas波形のアニメーション
 	useEffect(() => {
-		if (!isListening || !waveformCanvasRef.current || !dataArrayRef.current)
-			return;
+		if (!isListening || !waveformCanvasRef.current) return;
 
 		const drawWaveform = () => {
 			const canvas = waveformCanvasRef.current;
 			if (!canvas) return;
 
 			const ctx = canvas.getContext("2d");
-			if (!ctx || !dataArrayRef.current) return;
+			if (!ctx) return;
 
 			const width = canvas.width;
 			const height = canvas.height;
@@ -55,6 +51,7 @@ export const VoiceChatView = ({
 			ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
 			ctx.beginPath();
 
+			// 簡易的な波形生成
 			const sliceWidth = width / 50;
 			let x = 0;
 
@@ -80,151 +77,105 @@ export const VoiceChatView = ({
 	}, [isListening, audioLevel]);
 
 	return (
-		<div className="flex flex-col items-center justify-center gap-8 p-4 ">
-			<div className="relative flex items-center justify-center h-[350px] w-[350px]">
+		<div className="flex flex-col items-center justify-between w-full h-full py-4 px-4 relative">
+			{/* 録音インジケーター - 点滅する赤い丸 */}
+			{isListening && (
+				<motion.div
+					className="absolute top-4 right-4 h-3 w-3 rounded-full bg-red-500"
+					animate={{
+						opacity: [0.5, 1, 0.5],
+						scale: [0.8, 1.2, 0.8],
+					}}
+					transition={{
+						repeat: Number.POSITIVE_INFINITY,
+						duration: 1.5,
+						ease: "easeInOut",
+					}}
+				/>
+			)}
+
+			{/* 中央部分 - テキスト表示と波形表示 */}
+			<div className="flex-1 flex flex-col items-center justify-end w-full max-w-md mx-auto my-4">
+				{/* 波形の可視化 */}
 				{isListening && (
-					<>
-						<motion.div
-							className="absolute rounded-full bg-[#b3cfad]/10"
-							initial={{ width: 250, height: 250, opacity: 0.3 }}
-							animate={{
-								width: 350,
-								height: 350,
-								opacity: 0,
-							}}
-							transition={{
-								repeat: Number.POSITIVE_INFINITY,
-								duration: 2,
-								ease: "easeOut",
-							}}
+					<div className="w-full max-w-[280px]">
+						<canvas
+							ref={waveformCanvasRef}
+							width={280}
+							height={80}
+							className="w-full bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg opacity-80"
 						/>
-						<motion.div
-							className="absolute rounded-full bg-[#9f9579]/20"
-							initial={{ width: 250, height: 250, opacity: 0.5 }}
-							animate={{
-								width: 320,
-								height: 320,
-								opacity: 0,
-							}}
-							transition={{
-								repeat: Number.POSITIVE_INFINITY,
-								duration: 2,
-								delay: 0.5,
-								ease: "easeOut",
-							}}
-						/>
-					</>
+					</div>
 				)}
 
+				{/* テキスト表示エリア */}
 				<motion.div
-					className="relative flex items-center justify-center"
+					className="text-center max-w-[90%] px-4 py-3"
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
-					transition={{ duration: 0.5 }}
+					transition={{ delay: 0.3 }}
 				>
-					<motion.div
-						className="bg-gradient-to-br from-[#9f9579] to-[#d9ca77] rounded-full flex items-center justify-center overflow-hidden"
-						initial={{ width: 300, height: 300 }}
-						animate={{
-							width: circleSize,
-							height: circleSize,
-							x: vibrationX,
-							y: vibrationY,
-							opacity: isListening ? 1 : 0.9,
-						}}
-						transition={{
-							type: "spring",
-							stiffness: 300,
-							damping: 15,
-						}}
-					>
-						{isListening && (
-							<canvas
-								ref={waveformCanvasRef}
-								width={200}
-								height={100}
-								className="absolute opacity-40"
-							/>
-						)}
-					</motion.div>
-
-					{(isListening || isProcessing) && (
-						<motion.div
-							className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[#282c34] text-xl font-medium max-w-[80%] text-center z-10"
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ delay: 0.3 }}
-						>
-							{isProcessing ? (
-								<div className="flex flex-col items-center gap-2">
-									<Loader2 className="h-6 w-6 animate-spin" />
-									<span className="text-sm text-[#282c34]">処理中...</span>
-								</div>
-							) : (
-								transcript || "話しかけてください..."
-							)}
-						</motion.div>
-					)}
-
-					{isListening && (
-						<motion.div
-							className="absolute top-[15%] right-[15%] h-3 w-3 rounded-full bg-red-500"
-							animate={{
-								opacity: [0.5, 1, 0.5],
-								scale: [0.8, 1.2, 0.8],
-							}}
-							transition={{
-								repeat: Number.POSITIVE_INFINITY,
-								duration: 1.5,
-								ease: "easeInOut",
-							}}
-						/>
+					{isProcessing ? (
+						<div className="flex flex-col items-center gap-2">
+							<Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+							<span className="text-sm text-gray-400">処理中...</span>
+						</div>
+					) : isListening ? (
+						<p className="text-md font-medium">
+							{transcript || "話しかけてください..."}
+						</p>
+					) : (
+						<p className="text-gray-500">
+							マイクボタンをクリックして、話しかけてください
+						</p>
 					)}
 				</motion.div>
 			</div>
 
-			<div className="text-center text-[#585f6b] flex items-center gap-2">
-				{isListening
-					? "音声を認識しています"
-					: "マイクボタンをクリックして話しかけてください"}
-				<Dialog>
-					<DialogTrigger asChild>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="rounded-full h-6 w-6 text-[#9f9579] hover:text-[#d9ca77]"
-						>
-							<Info className="h-4 w-4" />
-						</Button>
-					</DialogTrigger>
-					<DialogContent className="sm:max-w-md">
-						<DialogHeader>
-							<DialogTitle>音声チャットについて</DialogTitle>
-							<DialogDescription>
-								このインターフェースでは、マイクボタンをクリックして音声入力を開始できます。
-								音声は自動的にテキストに変換され、中央の円内に表示されます。
-								キャンセルするには、Xボタンをクリックしてください。
-							</DialogDescription>
-						</DialogHeader>
-					</DialogContent>
-				</Dialog>
-			</div>
+			{/* 下部エリア - 説明とボタン */}
+			<div className="mt-auto flex flex-col items-center gap-6 w-full pb-6">
+				<div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+					<span>{isListening ? "音声を認識しています" : ""}</span>
+					<Dialog>
+						<DialogTrigger asChild>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="rounded-full h-6 w-6"
+							>
+								<Info className="h-4 w-4" />
+							</Button>
+						</DialogTrigger>
+						<DialogContent className="sm:max-w-md">
+							<DialogHeader>
+								<DialogTitle>音声チャットについて</DialogTitle>
+								<DialogDescription>
+									このインターフェースでは、マイクボタンをクリックして音声入力を開始できます。
+									音声は自動的にテキストに変換されます。
+									キャンセルするには、Xボタンをクリックしてください。
+								</DialogDescription>
+							</DialogHeader>
+						</DialogContent>
+					</Dialog>
+				</div>
 
-			<div className="flex gap-4">
-				<Button
-					onClick={onStartListening}
-					disabled={isListening}
-					className="bg-[#9f9579] hover:bg-[#b3cfad] text-white rounded-full h-14 w-14 flex items-center justify-center"
-				>
-					<Mic className="h-6 w-6" />
-				</Button>
-				<Button
-					onClick={onStopListening}
-					disabled={!isListening}
-					className="bg-[#d9ca77] hover:bg-[#c3e6d8] text-[#282c34] rounded-full h-14 w-14 flex items-center justify-center"
-				>
-					<X className="h-6 w-6" />
-				</Button>
+				<div className="flex gap-4">
+					<Button
+						onClick={onStartListening}
+						disabled={isListening}
+						className="bg-purple-600 hover:bg-purple-700 text-white rounded-full h-14 w-14 flex items-center justify-center"
+					>
+						<Mic className="h-6 w-6" />
+					</Button>
+
+					<Button
+						onClick={onStopListening}
+						disabled={!isListening}
+						className="bg-gray-800 hover:bg-gray-700 text-white rounded-full h-14 w-14 flex items-center justify-center"
+					>
+						<X className="h-6 w-6" />
+					</Button>
+				</div>
 			</div>
 		</div>
 	);
