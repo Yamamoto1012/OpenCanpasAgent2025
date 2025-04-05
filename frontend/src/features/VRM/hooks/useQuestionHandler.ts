@@ -32,6 +32,7 @@ export const useQuestionHandler = ({
 	}, []);
 
 	// 質問処理ハンドラー
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	const handleAskQuestion = useCallback(
 		(question: string) => {
 			console.log(
@@ -105,7 +106,6 @@ export const useQuestionHandler = ({
 				}, 5000);
 			} catch (error) {
 				console.error("QuestionHandler: handleAskQuestion エラー:", error);
-
 			}
 		},
 		[vrmWrapperRef, chatInterfaceRef, originalHandleAskQuestion],

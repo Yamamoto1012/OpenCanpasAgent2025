@@ -14,11 +14,16 @@ export type VRMWrapperHandle = {
 	setExpression?: (preset: string, weight: number) => void;
 	setExpressionForMotion?: (motionName: string) => void;
 	startThinking: () => void;
+	stopThinking: () => void; // 思考終了メソッドを追加
+	isThinking: boolean; // 思考中状態を公開
+	getLastMotion: () => string; // 現在のモーションを取得
+	restoreLastMotion: () => void; // モーションを元に戻す
 };
 
 type VRMWrapperProps = {
 	categoryDepth?: number; // 現在のカテゴリの深さ
 	isMuted: boolean; // 音声ミュートの状態
+	onThinkingStateChange?: (isThinking: boolean) => void; // 思考状態変更コールバック
 };
 
 // リップシンク関連の型定義
@@ -36,9 +41,11 @@ type ExpressionPattern = {
  * @param categoryDepth カテゴリの深さ（0: トップ、1: メイン、2以上: 詳細）
  */
 export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
-	({ categoryDepth = 0, isMuted }, ref) => {
+	({ categoryDepth = 0, isMuted, onThinkingStateChange }, ref) => {
 		// アニメーション一時停止用の状態
 		const [isPaused, setIsPaused] = useState(false);
+		// 思考中状態の管理
+		const [isThinking, setIsThinking] = useState(false);
 
 		// 前回のカテゴリ深度を追跡し、変更があった場合のみ処理を行うための参照
 		const prevDepthRef = useRef<number>(categoryDepth);
@@ -258,6 +265,13 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 			return depth >= 2 ? [0, Math.PI / 12, 0] : [0, 0, 0];
 		}
 
+		// 思考状態が変化したときに親コンポーネントに通知
+		useEffect(() => {
+			if (onThinkingStateChange) {
+				onThinkingStateChange(isThinking);
+			}
+		}, [isThinking, onThinkingStateChange]);
+
 		// 親コンポーネントに公開するメソッド
 		useImperativeHandle(ref, () => ({
 			crossFadeAnimation: (vrmaUrl: string) => {
@@ -286,6 +300,7 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 			// 検索中の思考
 			startThinking: () => {
 				console.log("VRMWrapper: 検索処理を開始します");
+				setIsThinking(true); // 思考中状態をON
 
 				// Thinking モーションへ切り替え
 				setIsPaused(false);
@@ -331,12 +346,35 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 					console.error("VRMWrapper: startThinking実行中にエラー:", error);
 				}
 			},
+
+			// 思考の終了処理を追加
+			stopThinking: () => {
+				console.log("VRMWrapper: 思考処理を終了します");
+				setIsThinking(false); // 思考中状態をOFF
+
+				// カテゴリ深度に応じたモーションに戻す
+				const defaultMotion = getDefaultMotionForDepth(categoryDepth);
+				crossFadeToMotion(defaultMotion);
+				lastMotionRef.current = defaultMotion;
+			},
+
+			// 思考中状態を公開
+			isThinking,
+
+			// 現在のモーションを取得
+			getLastMotion: () => {
+				return lastMotionRef.current;
+			},
+
+			// モーションを元に戻す
+			restoreLastMotion: () => {
+				crossFadeToMotion(lastMotionRef.current);
+			},
 		}));
 
 		/**
 		 * カテゴリ深度変更時の処理
 		 */
-
 		// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 		useEffect(() => {
 			// カテゴリ深度が変わった場合のみ処理
