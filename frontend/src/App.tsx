@@ -192,7 +192,7 @@ export default function App() {
 			<AnimatePresence>
 				{showVoiceChat && (
 					<motion.div
-						className="absolute inset-0 flex items-end justify-center bg-transparent z-50"
+						className="absolute inset-0 flex items-end justify-center bg-transparent z-5"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}

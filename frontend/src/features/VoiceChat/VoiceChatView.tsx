@@ -163,7 +163,7 @@ export const VoiceChatView = ({
 					<Button
 						onClick={onStartListening}
 						disabled={isListening}
-						className="bg-purple-600 hover:bg-purple-700 text-white rounded-full h-14 w-14 flex items-center justify-center"
+						className="bg-[#b3cfad] hover:bg-[#c3e6d8] text-white rounded-full h-14 w-14 flex items-center justify-center"
 					>
 						<Mic className="h-6 w-6" />
 					</Button>
