@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Mic, Info, Loader2, StopCircle } from "lucide-react";
+import { Mic, Info, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -21,8 +21,6 @@ export type VoiceChatViewProps = {
 	isListening: boolean;
 	transcript: string;
 	aiResponse: string;
-	circleSize: number;
-	audioLevel: number;
 	processingState: ProcessingState;
 	chatHistory: ChatMessage[];
 	onStartListening: () => void;
@@ -33,14 +31,11 @@ export type VoiceChatViewProps = {
 export const VoiceChatView = ({
 	isListening,
 	transcript,
-	aiResponse,
-	audioLevel,
 	processingState,
 	chatHistory,
 	onStartListening,
 	onStopListening,
 }: VoiceChatViewProps) => {
-	const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
 	const chatContainerRef = useRef<HTMLDivElement>(null);
 
 	// チャット履歴が更新されたらスクロールを一番下に
@@ -51,50 +46,6 @@ export const VoiceChatView = ({
 				chatContainerRef.current.scrollHeight;
 		}
 	}, [chatHistory]);
-
-	// Canvas波形のアニメーション
-	useEffect(() => {
-		if (!isListening || !waveformCanvasRef.current) return;
-
-		const drawWaveform = () => {
-			const canvas = waveformCanvasRef.current;
-			if (!canvas) return;
-
-			const ctx = canvas.getContext("2d");
-			if (!ctx) return;
-
-			const width = canvas.width;
-			const height = canvas.height;
-
-			ctx.clearRect(0, 0, width, height);
-			ctx.lineWidth = 2;
-			ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-			ctx.beginPath();
-
-			// 簡易的な波形生成
-			const sliceWidth = width / 50;
-			let x = 0;
-
-			for (let i = 0; i < 50; i++) {
-				const v = 0.5 + Math.random() * audioLevel * 0.5;
-				const y = v * height;
-
-				if (i === 0) {
-					ctx.moveTo(x, y);
-				} else {
-					ctx.lineTo(x, y);
-				}
-
-				x += sliceWidth;
-			}
-
-			ctx.lineTo(width, height / 2);
-			ctx.stroke();
-		};
-
-		const animationId = setInterval(drawWaveform, 50);
-		return () => clearInterval(animationId);
-	}, [isListening, audioLevel]);
 
 	// 処理状態に応じたメッセージを取得
 	const getStatusMessage = () => {
@@ -107,99 +58,52 @@ export const VoiceChatView = ({
 				return "回答を考えています...";
 			case "responding":
 				return "応答中...";
-			case "waiting":
-				return "マイクをクリックして続けてください";
 			default:
-				return "マイクボタンをクリックして話しかけてください";
+				return "マイクをクリックして続けてください";
 		}
 	};
 
 	// 会話表示の切り替え
 	const renderChat = () => {
-		// 会話履歴がある場合は最新メッセージのみを表示
-		if (chatHistory.length > 0) {
-			const latestUserMessage = [...chatHistory]
-				.reverse()
-				.find((message) => message.role === "user");
+		const latestUserMessage = chatHistory
+			.filter((message) => message.role === "user")
+			.slice(-1)[0];
 
-			const latestAIMessage = [...chatHistory]
-				.reverse()
-				.find((message) => message.role === "assistant");
-
-			return (
-				<div className="flex flex-col w-full h-full justify-between">
-					{/* AIの返答 */}
-					{latestAIMessage && (
-						<div className="w-full max-w-md mx-auto pt-4 pb-2">
-							<div className="bg-[#b3cfad] text-gray-100 px-4 py-2 rounded-lg">
-								{latestAIMessage.content}
-							</div>
-						</div>
-					)}
-
-					{/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-					<div className="flex-1"></div>
-
-					{/* ユーザーの入力 */}
-					{latestUserMessage && (
-						<div className="w-full max-w-md mx-auto pb-4">
-							<div className="bg-gray-700 text-white px-4 py-2 rounded-lg">
-								{latestUserMessage.content}
-							</div>
-						</div>
-					)}
-
-					{/* 現在入力中のテキスト */}
-					{isListening && transcript && (
-						<div className="w-full max-w-md mx-auto pb-2">
-							<div className="bg-gray-700 text-white px-4 py-2 rounded-lg opacity-70">
-								{transcript}
-							</div>
-						</div>
-					)}
-				</div>
-			);
-		}
+		const latestAIMessage = chatHistory
+			.filter((message) => message.role === "assistant")
+			.slice(-1)[0];
 
 		return (
-			<div className="flex-1 flex flex-col items-center justify-center">
-				{/* 波形の可視化 */}
-				{isListening && (
-					<div className="w-full max-w-[280px]">
-						<canvas
-							ref={waveformCanvasRef}
-							width={280}
-							height={80}
-							className="w-full bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg opacity-80"
-						/>
+			<div className="flex flex-col w-full h-full justify-between">
+				{/* AIの返答は画面上部(3Dモデルの上)に表示 */}
+				{latestAIMessage && (
+					<div className="w-full max-w-md mx-auto pt-4 pb-2">
+						<div className="bg-[#b3cfad] text-gray-100 px-4 py-2 rounded-lg">
+							{latestAIMessage.content}
+						</div>
 					</div>
 				)}
 
-				{/* テキスト表示エリア */}
-				<motion.div
-					className="text-center px-10 pt-3"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ delay: 0.3 }}
-				>
-					{processingState === "processing" ||
-					processingState === "thinking" ? (
-						<div className="flex flex-col items-center gap-2">
-							<Loader2 className="h-6 w-6 animate-spin text-purple-500" />
-							<span className="text-sm text-gray-400">
-								{getStatusMessage()}
-							</span>
+				{/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
+				<div className="flex-1"></div>
+
+				{/* ユーザーの入力は画面下部(マイクボタンの上)に表示 */}
+				{latestUserMessage && (
+					<div className="w-full max-w-md mx-auto pb-4">
+						<div className="bg-gray-700 text-white px-4 py-2 rounded-lg">
+							{latestUserMessage.content}
 						</div>
-					) : isListening ? (
-						<p className="text-md font-medium text-gray-500">
-							{transcript || "話しかけてください..."}
-						</p>
-					) : (
-						<div className="flex flex-col items-center w-full">
-							<p className="text-gray-500">{getStatusMessage()}</p>
+					</div>
+				)}
+
+				{/* 現在入力中のテキスト */}
+				{isListening && transcript && (
+					<div className="w-full max-w-md mx-auto pb-2">
+						<div className="bg-gray-700/70 text-white px-4 py-2 rounded-lg opacity-70">
+							{transcript}
 						</div>
-					)}
-				</motion.div>
+					</div>
+				)}
 			</div>
 		);
 	};

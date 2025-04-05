@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatView } from "./VoiceChatView";
 import { useVoiceChat } from "./useVoiceChat";
 import { useAudioContext } from "../VRM/hooks/useAudioContext";
@@ -18,15 +19,13 @@ type ChatMessage = {
 	role: "user" | "assistant";
 	content: string;
 };
-
 type VoiceChatProps = {
 	onClose?: () => void;
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	vrmWrapperRef: React.RefObject<any>; // VRMWrapperの参照
+	vrmWrapperRef: React.RefObject<VRMWrapperHandle>;
 };
 
 export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
-	const { isListening, transcript, startListening, stopListening, audioLevel } =
+	const { isListening, transcript, startListening, stopListening } =
 		useVoiceChat();
 	const { playAudio } = useAudioContext();
 
@@ -149,9 +148,6 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 		};
 	}, [vrmWrapperRef]);
 
-	// 音量に基づいて円のサイズを計算
-	const circleSize = 250 + audioLevel * 80;
-
 	// 音声認識の開始ハンドラー
 	const handleStartListening = () => {
 		setProcessingState("recording");
@@ -169,8 +165,6 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			isListening={isListening}
 			transcript={transcript}
 			aiResponse={aiResponse}
-			circleSize={circleSize}
-			audioLevel={audioLevel}
 			processingState={processingState}
 			chatHistory={chatHistory}
 			onStartListening={handleStartListening}
