@@ -18,12 +18,14 @@ import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
 import { VoiceChat } from "./features/VoiceChat/VoiceChat";
+import { ThinkingIndicator } from "./features/ThinkingIndicator/ThinkingIndicator";
 
 export default function App() {
 	const [showInfo, setShowInfo] = useState(false);
 	const [isMuted, setIsMuted] = useState(false);
 	const [isDirectChatQuestion, setIsDirectChatQuestion] = useState(false);
 	const [showVoiceChat, setShowVoiceChat] = useState(false);
+	const [isThinking, setIsThinking] = useState(false);
 
 	// カスタムフックから状態とロジックを取得
 	const { audioInitialized, vrmWrapperRef, handleTestLipSync } =
@@ -94,11 +96,17 @@ export default function App() {
 						categoryDepth={categoryDepth}
 						isMuted={isMuted}
 						ref={vrmWrapperRef}
+						onThinkingStateChange={setIsThinking}
 					/>
 					<ambientLight />
 					<directionalLight position={[5, 5, 5]} intensity={2} />
 				</Canvas>
 			</div>
+
+			{/* 思考中インジケーター */}
+			<AnimatePresence>
+				{isThinking && <ThinkingIndicator visible={true} />}
+			</AnimatePresence>
 
 			{/* ロゴ */}
 			<div className="absolute top-2 left-4 p-2 z-50 hover:scale-95 duration-200">
