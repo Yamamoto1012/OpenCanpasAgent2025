@@ -48,6 +48,7 @@ export default function App() {
 		// チャットからの直接質問としてフラグを設定
 		setIsDirectChatQuestion(true);
 		handleAskQuestion(question);
+		setIsDirectChatQuestion(false);
 	};
 
 	const { handleAskQuestion } = useQuestionHandler({
