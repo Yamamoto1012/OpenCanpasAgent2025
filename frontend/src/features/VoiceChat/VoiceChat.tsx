@@ -21,7 +21,7 @@ type ChatMessage = {
 };
 type VoiceChatProps = {
 	onClose?: () => void;
-	vrmWrapperRef: React.RefObject<VRMWrapperHandle>;
+	vrmWrapperRef: React.RefObject<VRMWrapperHandle | null>;
 };
 
 export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
@@ -152,6 +152,12 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	const handleStartListening = () => {
 		setProcessingState("recording");
 		setAIResponse("");
+
+		// VRMのモーションをStandingIdleに変更
+		if (vrmWrapperRef.current?.crossFadeAnimation) {
+			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+		}
+
 		startListening();
 	};
 

@@ -5,7 +5,7 @@ import {
 	ChatInterface,
 	type ChatInterfaceHandle,
 } from "./features/ChatInterface/ChatInterface";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Info, Mic2, Volume2, VolumeX, X } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
@@ -78,6 +78,15 @@ export default function App() {
 		originalHandleAskQuestion,
 	});
 
+	// 音声チャットの状態を監視し、VRMのモーションを制御
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	useEffect(() => {
+		if (showVoiceChat && vrmWrapperRef.current?.crossFadeAnimation) {
+			console.log("VoiceChatダイアログ表示: モーションを切り替えます");
+			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+		}
+	}, [showVoiceChat]);
+
 	return (
 		<div className="relative w-screen h-screen overflow-hidden">
 			<div className="absolute inset-0">
@@ -87,7 +96,7 @@ export default function App() {
 						fov: 40,
 						near: 0.01,
 						far: 2000,
-						position: [0, 1.45, categoryDepth >= 2 ? -0.5 : 1],
+						position: [0.04, 1.45, categoryDepth >= 2 ? -0.5 : 1],
 						rotation: [0, categoryDepth >= 2 ? Math.PI / 8 : 0, 0],
 					}}
 				>
