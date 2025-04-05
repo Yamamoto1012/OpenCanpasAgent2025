@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Mic, X, Info, Loader2 } from "lucide-react";
+import { Mic, Info, Loader2, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useEffect, useRef } from "react";
 
-type VoiceChatViewProps = {
+export type VoiceChatViewProps = {
 	isListening: boolean;
 	transcript: string;
 	circleSize: number;
@@ -24,7 +24,6 @@ type VoiceChatViewProps = {
 export const VoiceChatView = ({
 	isListening,
 	transcript,
-	circleSize,
 	audioLevel,
 	isProcessing,
 	onStartListening,
@@ -172,9 +171,9 @@ export const VoiceChatView = ({
 					<Button
 						onClick={onStopListening}
 						disabled={!isListening}
-						className="bg-gray-800 hover:bg-gray-700 text-white rounded-full h-14 w-14 flex items-center justify-center"
+						className="bg-gray-800 hover:bg-gray-700 text-white rounded-full h-14 w-14 flex items-center justify-center font-bold"
 					>
-						<X className="h-6 w-6" />
+						<StopCircle className="h-6 w-6" />
 					</Button>
 				</div>
 			</div>

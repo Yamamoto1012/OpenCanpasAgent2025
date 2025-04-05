@@ -56,9 +56,18 @@ export default function App() {
 	// 音声チャットからの質問処理
 	const handleVoiceChatQuestion = (question: string) => {
 		setIsDirectChatQuestion(true);
+
+		// 質問を処理する前にVRMモデルを思考モードに切り替え
+		if (vrmWrapperRef.current?.startThinking) {
+			vrmWrapperRef.current.startThinking();
+		}
+
 		handleAskQuestion(question);
-		setShowVoiceChat(false);
-		setIsDirectChatQuestion(false);
+		// 音声モーダルはすぐには非表示にせず、一定時間後に閉じる
+		setTimeout(() => {
+			setShowVoiceChat(false);
+			setIsDirectChatQuestion(false);
+		}, 1500);
 	};
 
 	const { handleAskQuestion } = useQuestionHandler({
