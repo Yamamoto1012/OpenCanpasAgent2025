@@ -5,6 +5,7 @@ import { ArrowLeft, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export type SearchResultsViewProps = {
 	title: string;
@@ -53,6 +54,20 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 
 			{/* AIの回答表示エリア */}
 			<div className="space-y-4">
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.3, delay: 0.2 }}
+				>
+					<Card className="p-5 border-0 shadow-sm bg-white">
+						<ScrollArea className="h-[300px]">
+							<div className="whitespace-pre-line text-gray-700">
+								{detailText}
+							</div>
+						</ScrollArea>
+					</Card>
+				</motion.div>
+
 				{/* 回答の吹き出し */}
 				<motion.div
 					className="relative"
@@ -67,19 +82,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 						{/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
 						<div className="absolute top-5 right-0 w-4 h-4 bg-white border-t border-r border-blue-100 transform rotate-45 translate-x-2"></div>
 					</div>
-				</motion.div>
-
-				{/* 詳細情報カード */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 0.2 }}
-				>
-					<Card className="p-5 border-0 shadow-sm bg-white">
-						<div className="whitespace-pre-line text-gray-700">
-							{detailText}
-						</div>
-					</Card>
 				</motion.div>
 			</div>
 

@@ -103,7 +103,7 @@ export default function App() {
 						{showSearchResult ? (
 							<motion.div
 								key="search-results"
-								className="w-full max-w-lg translate-y-20 -translate-x-24"
+								className="w-full max-w-lg -translate-x-24"
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: -20 }}
