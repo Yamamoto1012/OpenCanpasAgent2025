@@ -100,16 +100,12 @@ export const useQuestionHandler = ({
 						chatInterfaceRef.current.addMessage(mockResponse, false);
 					}
 
-					// 検索結果表示のために元の処理を実行
-					originalHandleAskQuestion(question);
-
 					// タイムアウト完了後に参照をクリア
 					responseTimeoutRef.current = null;
 				}, 5000);
 			} catch (error) {
 				console.error("QuestionHandler: handleAskQuestion エラー:", error);
-				// エラー発生時も元の処理は実行
-				originalHandleAskQuestion(question);
+
 			}
 		},
 		[vrmWrapperRef, chatInterfaceRef, originalHandleAskQuestion],
