@@ -115,91 +115,111 @@ export default function App() {
 				</motion.a>
 			</div>
 
-			{/* カテゴリ、検索結果、ActionPromptを含むコンテナ */}
-			<div className="absolute top-1/7 right-2 flex flex-col items-center">
-				<div className="relative w-full min-h-[400px] flex justify-end">
-					<AnimatePresence mode="wait">
-						{showSearchResult && !isDirectChatQuestion ? (
+			{/* VoiceChatが表示されていない時のみ他のUIを表示 */}
+			{!showVoiceChat && (
+				<>
+					{/* カテゴリ、検索結果、ActionPromptを含むコンテナ */}
+					<div className="absolute top-1/7 right-2 flex flex-col items-center">
+						<div className="relative w-full min-h-[400px] flex justify-end">
+							<AnimatePresence mode="wait">
+								{showSearchResult && !isDirectChatQuestion ? (
+									<motion.div
+										key="search-results"
+										className="w-full max-w-lg -translate-x-24"
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										exit={{ opacity: 0, y: -20 }}
+										transition={{ duration: 0.3 }}
+									>
+										<SearchResults
+											query={searchQuery}
+											category={selectedCategory ?? undefined}
+											isQuestion={isQuestion}
+											onBack={handleBackFromSearch}
+										/>
+									</motion.div>
+								) : (
+									<motion.div
+										key="category-navigator"
+										initial={{ opacity: 0, y: -20 }}
+										animate={{ opacity: 1, y: 0 }}
+										exit={{ opacity: 0, y: 20 }}
+										transition={{ duration: 0.3 }}
+									>
+										<CategoryNavigator
+											onCategoryDepthChange={handleCategorySelect}
+										/>
+									</motion.div>
+								)}
+							</AnimatePresence>
+						</div>
+
+						{/* アクションプロンプト */}
+						<AnimatePresence>
+							{showActionPrompt && selectedCategory && (
+								<motion.div
+									className="mt-4 w-full flex items-center justify-center"
+									initial={{ opacity: 0, y: -20 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -20 }}
+									transition={{ duration: 0.3 }}
+								>
+									<ActionPrompt
+										categoryTitle={selectedCategory.title}
+										onSearch={handleSearch}
+										onAskQuestion={handleAskQuestion}
+									/>
+								</motion.div>
+							)}
+						</AnimatePresence>
+					</div>
+
+					{/* チャットインターフェース */}
+					<AnimatePresence>
+						{showChat && (
 							<motion.div
-								key="search-results"
-								className="w-full max-w-lg -translate-x-24"
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -20 }}
+								className="absolute top-1/7 left-4 p-4 z-10"
+								initial={{ opacity: 1, x: 0 }}
+								exit={{ opacity: 0, x: -100 }}
 								transition={{ duration: 0.3 }}
 							>
-								<SearchResults
-									query={searchQuery}
-									category={selectedCategory ?? undefined}
-									isQuestion={isQuestion}
-									onBack={handleBackFromSearch}
-								/>
-							</motion.div>
-						) : (
-							<motion.div
-								key="category-navigator"
-								initial={{ opacity: 0, y: -20 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: 20 }}
-								transition={{ duration: 0.3 }}
-							>
-								<CategoryNavigator
-									onCategoryDepthChange={handleCategorySelect}
+								<ChatInterface
+									ref={chatInterfaceRef}
+									onSendQuestion={handleChatInterfaceQuestion}
 								/>
 							</motion.div>
 						)}
 					</AnimatePresence>
-				</div>
 
-				{/* アクションプロンプト */}
-				<AnimatePresence>
-					{showActionPrompt && selectedCategory && (
-						<motion.div
-							className="mt-4 w-full flex items-center justify-center"
-							initial={{ opacity: 0, y: -20 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -20 }}
-							transition={{ duration: 0.3 }}
-						>
-							<ActionPrompt
-								categoryTitle={selectedCategory.title}
-								onSearch={handleSearch}
-								onAskQuestion={handleAskQuestion}
-							/>
-						</motion.div>
-					)}
-				</AnimatePresence>
-			</div>
-
-			{/* チャットインターフェース */}
-			<AnimatePresence>
-				{showChat && (
-					<motion.div
-						className="absolute top-1/7 left-4 p-4 z-10"
-						initial={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: -100 }}
-						transition={{ duration: 0.3 }}
-					>
-						<ChatInterface
-							ref={chatInterfaceRef}
-							onSendQuestion={handleChatInterfaceQuestion}
+					{/* 情報・音声コントロール・音声チャットボタン */}
+					<div className="absolute bottom-1/12 right-2 p-4 z-10">
+						<IconButton icon={Info} onClick={() => setShowInfo(!showInfo)} />
+					</div>
+					<div className="absolute bottom-2/12 right-2 p-4 z-10">
+						<IconButton
+							icon={isMuted ? VolumeX : Volume2}
+							onClick={() => setIsMuted(!isMuted)}
 						/>
-					</motion.div>
-				)}
-			</AnimatePresence>
+					</div>
+					<div className="absolute bottom-3/12 right-2 p-4 z-10">
+						<IconButton icon={Mic2} onClick={() => setShowVoiceChat(true)} />
+					</div>
+					{showInfo && <InfoPanel onClose={() => setShowInfo(false)} />}
+				</>
+			)}
 
 			{/* 音声チャットダイアログ */}
 			<AnimatePresence>
 				{showVoiceChat && (
 					<motion.div
-						className="absolute inset-0 flex items-end justify-center bg-transparent z-5"
+						className="absolute inset-0 flex items-center justify-center bg-transparent z-50"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						transition={{ duration: 0.3 }}
 					>
 						<motion.div
-							className="rounded-xl p-6 mx-4 h-screen"
+							className="rounded-xl p-6 mx-4 h-full w-full max-w-2xl"
 							initial={{ scale: 0.9, y: 20 }}
 							animate={{ scale: 1, y: 0 }}
 							exit={{ scale: 0.9, y: 20 }}
@@ -209,31 +229,19 @@ export default function App() {
 								{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
 								<button
 									onClick={() => setShowVoiceChat(false)}
-									className="p-1 rounded-full hover:bg-neutral-800"
+									className="p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
 								>
-									<X className="h-5 w-5 text-neutral-400" />
+									<X className="h-5 w-5 text-white" />
 								</button>
 							</div>
-							<VoiceChat onSendQuestion={handleVoiceChatQuestion} />
+							<VoiceChat
+								onSendQuestion={handleVoiceChatQuestion}
+								onClose={() => setShowVoiceChat(false)}
+							/>
 						</motion.div>
 					</motion.div>
 				)}
 			</AnimatePresence>
-
-			{/* 情報・音声コントロール・音声チャット */}
-			<div className="absolute bottom-1/12 right-2 p-4 z-10">
-				<IconButton icon={Info} onClick={() => setShowInfo(!showInfo)} />
-			</div>
-			<div className="absolute bottom-2/12 right-2 p-4 z-10">
-				<IconButton
-					icon={isMuted ? VolumeX : Volume2}
-					onClick={() => setIsMuted(!isMuted)}
-				/>
-			</div>
-			<div className="absolute bottom-3/12 right-2 p-4 z-10">
-				<IconButton icon={Mic2} onClick={() => setShowVoiceChat(true)} />
-			</div>
-			{showInfo && <InfoPanel onClose={() => setShowInfo(false)} />}
 		</div>
 	);
 }

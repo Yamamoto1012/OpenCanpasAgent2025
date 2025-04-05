@@ -77,7 +77,7 @@ export const VoiceChatView = ({
 	}, [isListening, audioLevel]);
 
 	return (
-		<div className="flex flex-col items-center justify-between w-full h-full py-4 px-4 relative">
+		<div className="flex flex-col items-center justify-between w-full h-full py-8 px-6 relative rounded-2xl">
 			{/* 録音インジケーター - 点滅する赤い丸 */}
 			{isListening && (
 				<motion.div
@@ -121,11 +121,11 @@ export const VoiceChatView = ({
 							<span className="text-sm text-gray-400">処理中...</span>
 						</div>
 					) : isListening ? (
-						<p className="text-md font-medium">
+						<p className="text-md font-medium text-gray-500">
 							{transcript || "話しかけてください..."}
 						</p>
 					) : (
-						<div className="flex flex-col items-center w-96">
+						<div className="flex flex-col items-center w-full">
 							<p className="text-gray-500">マイクボタンをクリックして、</p>
 							<p className="text-gray-500">話しかけてください</p>
 						</div>
@@ -135,14 +135,14 @@ export const VoiceChatView = ({
 
 			{/* 下部エリア - 説明とボタン */}
 			<div className="mt-auto flex flex-col items-center gap-6 w-full pb-6">
-				<div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+				<div className="flex items-center justify-center gap-2 text-sm text-gray-300">
 					<span>{isListening ? "音声を認識しています" : ""}</span>
 					<Dialog>
 						<DialogTrigger asChild>
 							<Button
 								variant="ghost"
 								size="icon"
-								className="rounded-full h-6 w-6"
+								className="rounded-full h-6 w-6 text-gray-300 hover:text-white"
 							>
 								<Info className="h-4 w-4" />
 							</Button>
