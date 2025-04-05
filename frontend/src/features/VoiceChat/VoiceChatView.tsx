@@ -110,7 +110,7 @@ export const VoiceChatView = ({
 
 				{/* テキスト表示エリア */}
 				<motion.div
-					className="text-center max-w-[90%] px-4 py-3"
+					className="text-center px-10 pt-3"
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					transition={{ delay: 0.3 }}
@@ -125,9 +125,10 @@ export const VoiceChatView = ({
 							{transcript || "話しかけてください..."}
 						</p>
 					) : (
-						<p className="text-gray-500">
-							マイクボタンをクリックして、話しかけてください
-						</p>
+						<div className="flex flex-col items-center w-96">
+							<p className="text-gray-500">マイクボタンをクリックして、</p>
+							<p className="text-gray-500">話しかけてください</p>
+						</div>
 					)}
 				</motion.div>
 			</div>
