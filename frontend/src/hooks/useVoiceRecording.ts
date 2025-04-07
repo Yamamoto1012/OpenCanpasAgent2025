@@ -1,4 +1,13 @@
-import { useRef, useState, useEffect } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useEffect } from "react";
+import {
+	isRecordingAtom,
+	recordingTimerAtom,
+	updateRecordingTimerAtom,
+	recordingIntervalAtom,
+	toggleRecordingAtom,
+	randomTextGeneratorAtom,
+} from "@/store/recordingAtoms";
 
 type UseVoiceRecordingProps = {
 	onRecognizedText: (text: string) => void;
@@ -12,77 +21,45 @@ type UseVoiceRecordingProps = {
 export const useVoiceRecording = ({
 	onRecognizedText,
 	getRandomText,
-	recordingDuration = 5000,
 }: UseVoiceRecordingProps) => {
-	const [isRecording, setIsRecording] = useState(false);
-	const mockTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const [isRecording] = useAtom(isRecordingAtom);
+	const [recordingTimer] = useAtom(recordingTimerAtom);
+	const intervalMs = useAtomValue(recordingIntervalAtom);
+	const toggleRecording = useSetAtom(toggleRecordingAtom);
+	const updateRecordingTimer = useSetAtom(updateRecordingTimerAtom);
+	const setRandomTextGenerator = useSetAtom(randomTextGeneratorAtom);
 
-	// 音声録音の開始/停止を切り替える
-	const toggleRecording = () => {
-		if (isRecording) {
-			// 録音停止処理
-			stopRecording();
-		} else {
-			// 録音開始処理
-			startRecording();
-		}
-	};
-
-	// 録音開始
-	const startRecording = async () => {
-		try {
-			// マイクへのアクセス許可を取得
-			await navigator.mediaDevices.getUserMedia({ audio: true });
-			setIsRecording(true);
-			console.log("録音を開始しました");
-
-			// 前回のタイマーが残っていたらクリア
-			if (mockTimeoutRef.current) {
-				clearTimeout(mockTimeoutRef.current);
-			}
-
-			// TODO: 実際の音声認識APIと連携する場合はここで処理
-			// モックとして設定時間後に録音停止とテキスト反映
-			mockTimeoutRef.current = setTimeout(() => {
-				const randomText = getRandomText();
-				stopRecording(randomText);
-			}, recordingDuration);
-		} catch (error) {
-			console.error("マイクの使用許可が得られませんでした:", error);
-			alert("マイクへのアクセスを許可してください。");
-			setIsRecording(false);
-		}
-	};
-
-	// 録音停止
-	const stopRecording = (recognizedText?: string) => {
-		// タイマーをクリア
-		if (mockTimeoutRef.current) {
-			clearTimeout(mockTimeoutRef.current);
-			mockTimeoutRef.current = null;
-		}
-		setIsRecording(false);
-		console.log("録音を停止しました");
-
-		// 認識テキストがある場合は処理
-		if (recognizedText) {
-			onRecognizedText(recognizedText);
-		}
-	};
-
-	// コンポーネントのアンマウント時にタイマーをクリア
+	// ランダムテキスト生成関数を設定
 	useEffect(() => {
+		setRandomTextGenerator(getRandomText);
+	}, [getRandomText, setRandomTextGenerator]);
+
+	// 録音中はタイマーを更新
+	useEffect(() => {
+		let intervalId: NodeJS.Timeout | null = null;
+
+		if (isRecording) {
+			// 定期的にタイマーを更新
+			intervalId = setInterval(() => {
+				updateRecordingTimer();
+			}, intervalMs);
+		}
+
 		return () => {
-			if (mockTimeoutRef.current) {
-				clearTimeout(mockTimeoutRef.current);
+			if (intervalId) {
+				clearInterval(intervalId);
 			}
 		};
-	}, []);
+	}, [isRecording, intervalMs, updateRecordingTimer]);
+
+	// 録音の開始/停止を切り替える
+	const handleToggleRecording = () => {
+		toggleRecording(onRecognizedText);
+	};
 
 	return {
 		isRecording,
-		toggleRecording,
-		startRecording,
-		stopRecording,
+		recordingTimer,
+		toggleRecording: handleToggleRecording,
 	};
 };

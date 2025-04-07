@@ -35,17 +35,9 @@ export const useQuestionHandler = ({
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	const handleAskQuestion = useCallback(
 		(question: string) => {
-			console.log(
-				"QuestionHandler: handleAskQuestion が呼び出されました",
-				question,
-			);
-
 			try {
 				// まずChatInterfaceにメッセージを追加（信頼性重視）
 				if (chatInterfaceRef.current) {
-					console.log(
-						"QuestionHandler: ChatInterface の addMessage を呼び出します",
-					);
 					chatInterfaceRef.current.addMessage(
 						"検索しますね！少々お待ちください。",
 						false,
@@ -67,9 +59,6 @@ export const useQuestionHandler = ({
 				// VRMの思考モーションへ移行
 				motionTimeoutRef.current = window.setTimeout(() => {
 					if (vrmWrapperRef.current?.startThinking) {
-						console.log(
-							"QuestionHandler: VRMWrapper の startThinking を呼び出します",
-						);
 						vrmWrapperRef.current.startThinking();
 					} else if (vrmWrapperRef.current?.crossFadeAnimation) {
 						// フォールバック：直接モーション変更を試みる
@@ -84,21 +73,39 @@ export const useQuestionHandler = ({
 					motionTimeoutRef.current = null;
 				}, 100);
 
+				originalHandleAskQuestion(question);
+
 				// モック回答のための5秒タイマー（実際はバックエンドからのレスポンスで置き換え）
 				responseTimeoutRef.current = window.setTimeout(() => {
-					console.log("QuestionHandler: モック回答を表示します（5秒経過）");
+					try {
+						// 思考モーションから通常モーションに戻す
+						if (vrmWrapperRef.current?.crossFadeAnimation) {
+							vrmWrapperRef.current.crossFadeAnimation(
+								"/Motion/StandingIdle.vrma",
+							);
+						}
 
-					// 思考モーションから通常モーションに戻す
-					if (vrmWrapperRef.current?.crossFadeAnimation) {
-						vrmWrapperRef.current.crossFadeAnimation(
-							"/Motion/StandingIdle.vrma",
+						// モック回答をChatInterfaceに追加
+						if (chatInterfaceRef.current) {
+							const mockResponse = generateMockResponse(question);
+							chatInterfaceRef.current.addMessage(mockResponse, false);
+						}
+
+						// 思考状態を明示的に終了
+						if (vrmWrapperRef.current?.stopThinking) {
+							vrmWrapperRef.current.stopThinking();
+						} else {
+							console.warn("QuestionHandler: stopThinking関数が利用できません");
+						}
+					} catch (responseError) {
+						console.error(
+							"QuestionHandler: 回答生成中にエラー:",
+							responseError,
 						);
-					}
-
-					// モック回答をChatInterfaceに追加
-					if (chatInterfaceRef.current) {
-						const mockResponse = generateMockResponse(question);
-						chatInterfaceRef.current.addMessage(mockResponse, false);
+						// エラー発生時も必ず思考状態を解除
+						if (vrmWrapperRef.current?.stopThinking) {
+							vrmWrapperRef.current.stopThinking();
+						}
 					}
 
 					// タイムアウト完了後に参照をクリア
@@ -106,6 +113,10 @@ export const useQuestionHandler = ({
 				}, 5000);
 			} catch (error) {
 				console.error("QuestionHandler: handleAskQuestion エラー:", error);
+				// 主要エラー時も念のため思考状態を解除
+				if (vrmWrapperRef.current?.stopThinking) {
+					vrmWrapperRef.current.stopThinking();
+				}
 			}
 		},
 		[vrmWrapperRef, chatInterfaceRef, originalHandleAskQuestion],

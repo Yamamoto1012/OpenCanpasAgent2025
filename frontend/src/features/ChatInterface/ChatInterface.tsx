@@ -1,20 +1,26 @@
 import {
-	type ChangeEvent,
 	forwardRef,
 	useEffect,
 	useImperativeHandle,
 	useRef,
-	useState,
 	type KeyboardEvent,
+	type ChangeEvent,
 } from "react";
+import { useAtom, useSetAtom } from "jotai";
 import { ChatInterfaceView } from "./ChatInterfaceView";
-import { useVoiceRecording } from "@/hooks/useVoiceRecording";
-
-export type Message = {
-	id: number;
-	text: string;
-	isUser: boolean;
-};
+import {
+	messagesAtom,
+	inputValueAtom,
+	isThinkingAtom,
+	addMessageAtom,
+	resetChatAtom,
+	getRandomText,
+} from "@/store/chatAtoms";
+import {
+	isRecordingAtom,
+	toggleRecordingAtom,
+	randomTextGeneratorAtom,
+} from "@/store/recordingAtoms";
 
 export type ChatInterfaceHandle = {
 	addMessage: (text: string, isUser?: boolean) => void;
@@ -28,32 +34,21 @@ export const ChatInterface = forwardRef<
 	ChatInterfaceHandle,
 	React.PropsWithChildren<ChatInterfaceProps>
 >((props, ref) => {
-	const [messages, setMessages] = useState<Message[]>([
-		{ id: 1, text: "金沢工業大学へようこそ!!", isUser: false },
-		{ id: 2, text: "なんでも質問してください!!", isUser: false },
-	]);
-	const [inputValue, setInputValue] = useState("");
-	const [isThinking, setIsThinking] = useState(false);
+	const [messages, setMessages] = useAtom(messagesAtom);
+	const [inputValue, setInputValue] = useAtom(inputValueAtom);
+	const [isThinking, setIsThinking] = useAtom(isThinkingAtom);
+	const [isRecording] = useAtom(isRecordingAtom);
+	const toggleRecording = useSetAtom(toggleRecordingAtom);
+	const addMessage = useSetAtom(addMessageAtom);
+	const resetChat = useSetAtom(resetChatAtom);
+	const setRandomTextGenerator = useSetAtom(randomTextGeneratorAtom);
+
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-	// 金沢工業大学に関するランダムな質問テキスト生成関数
-	const getRandomText = () => {
-		const randomQuestions = [
-			"金沢工業大学の学部について教えてください",
-			"キャンパスの施設について知りたいです",
-			"学食のおすすめメニューは何ですか？",
-			"金沢工業大学の就職率はどのくらいですか？",
-			"プロジェクト活動について教えてください",
-		];
-		const randomIndex = Math.floor(Math.random() * randomQuestions.length);
-		return randomQuestions[randomIndex];
-	};
-
-	// 録音カスタムフックの使用
-	const { isRecording, toggleRecording } = useVoiceRecording({
-		onRecognizedText: (text) => setInputValue(text),
-		getRandomText,
-	});
+	// ランダムテキスト生成関数を設定
+	useEffect(() => {
+		setRandomTextGenerator(getRandomText);
+	}, [setRandomTextGenerator]);
 
 	// メッセージ更新時にスクロールするための処理
 	const scrollToBottom = () => {
@@ -63,17 +58,11 @@ export const ChatInterface = forwardRef<
 	// 外部から呼び出し可能なメソッドを定義
 	useImperativeHandle(ref, () => ({
 		addMessage: (text: string, isUser = false) => {
-			setMessages((currentMessages) => [
-				...currentMessages,
-				{
-					id: currentMessages.length + 1,
-					text,
-					isUser,
-				},
-			]);
+			addMessage({ text, isUser });
 		},
 	}));
 
+	// メッセージ更新時のスクロール処理
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		scrollToBottom();
@@ -84,38 +73,31 @@ export const ChatInterface = forwardRef<
 		setInputValue(e.target.value);
 	};
 
-	// メッセージ送信処理（空白のみは送信しない）
+	// メッセージ送信処理
 	const handleSend = () => {
-		if (inputValue.trim()) {
-			setMessages([
-				...messages,
-				{
-					id: messages.length + 1,
-					text: inputValue,
-					isUser: true,
-				},
-			]);
-			// 親コンポーネントに質問を通知
-			if (props.onSendQuestion) {
-				props.onSendQuestion(inputValue.trim());
-			} else {
-				// 既存の自動応答ロジックはバックアップとして使用
-				setIsThinking(true);
-				setTimeout(() => {
-					setIsThinking(false);
-					setMessages((currentMessages) => [
-						...currentMessages,
-						{
-							id: currentMessages.length + 1,
-							text: "ご質問ありがとうございます。お答えします！",
-							isUser: false,
-						},
-					]);
-				}, 3000);
-			}
+		const trimmedInput = inputValue.trim();
+		if (!trimmedInput) return;
 
-			setInputValue("");
+		// ユーザーメッセージを追加
+		addMessage({ text: trimmedInput, isUser: true });
+
+		// 親コンポーネントに質問を通知
+		if (props.onSendQuestion) {
+			props.onSendQuestion(trimmedInput);
+		} else {
+			// 既存の自動応答ロジックはバックアップとして使用
+			setIsThinking(true);
+			setTimeout(() => {
+				setIsThinking(false);
+				addMessage({
+					text: "ご質問ありがとうございます。お答えします！",
+					isUser: false,
+				});
+			}, 3000);
 		}
+
+		// 入力欄をクリア
+		setInputValue("");
 	};
 
 	// Enter キー送信
@@ -126,16 +108,23 @@ export const ChatInterface = forwardRef<
 		}
 	};
 
+	// 候補テキスト選択時の処理
 	const handleSelect = (value: string) => {
 		setInputValue((prev) => prev + value);
 	};
 
+	// チャットリセット処理
 	const handleReset = () => {
-		setMessages([
-			{ id: 1, text: "金沢工業大学へようこそ!!", isUser: false },
-			{ id: 2, text: "なんでも質問してください!!", isUser: false },
-		]);
-		setIsThinking(false);
+		resetChat();
+	};
+
+	// 音声録音のトグル
+	const handleToggleRecording = () => {
+		toggleRecording((text) => {
+			if (text) {
+				setInputValue(text);
+			}
+		});
 	};
 
 	return (
@@ -149,8 +138,10 @@ export const ChatInterface = forwardRef<
 			onSend={handleSend}
 			onSelect={handleSelect}
 			onReset={handleReset}
-			onToggleRecording={toggleRecording}
+			onToggleRecording={handleToggleRecording}
 			messagesEndRef={messagesEndRef}
 		/>
 	);
 });
+
+// MessageタイプはchatAtoms.tsに移動したため、ここではexportしない

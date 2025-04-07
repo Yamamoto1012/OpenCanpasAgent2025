@@ -1,49 +1,44 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+import { useAtom, useSetAtom } from "jotai";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatView } from "./VoiceChatView";
 import { useVoiceChat } from "./useVoiceChat";
 import { useAudioContext } from "../VRM/hooks/useAudioContext";
+import {
+	aiResponseAtom,
+	processingStateAtom,
+	chatHistoryAtom,
+	vrmIsThinkingAtom,
+	addUserMessageAtom,
+	addAiMessageAtom,
+	setProcessingStateAtom,
+	setVrmThinkingStateAtom,
+} from "@/store/voiceChatAtoms";
 
-// 思考中の状態を表す型
-export type ProcessingState =
-	| "initial" // 初期状態
-	| "recording" // ユーザー発話中
-	| "processing" // 音声認識処理中
-	| "thinking" // AI思考中
-	| "responding" // AI応答中
-	| "waiting" // ユーザー入力待ち
-	| "complete"; // 完了
-
-// 会話メッセージの型
-type ChatMessage = {
-	role: "user" | "assistant";
-	content: string;
-};
 type VoiceChatProps = {
 	onClose?: () => void;
 	vrmWrapperRef: React.RefObject<VRMWrapperHandle | null>;
 };
 
 export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
+	// カスタムフックから音声認識機能を取得
 	const { isListening, transcript, startListening, stopListening } =
 		useVoiceChat();
 	const { playAudio } = useAudioContext();
 
-	// 会話履歴（コンポーネント内で保持）
-	const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+	const [aiResponse] = useAtom(aiResponseAtom);
+	const [processingState] = useAtom(processingStateAtom);
+	const [chatHistory] = useAtom(chatHistoryAtom);
+	const [vrmIsThinking] = useAtom(vrmIsThinkingAtom);
 
-	// 現在の応答テキスト
-	const [aiResponse, setAIResponse] = useState<string>("");
-
-	// 処理状態を詳細に管理
-	const [processingState, setProcessingState] =
-		useState<ProcessingState>("initial");
+	// Atomを更新するためのセッター関数
+	const setProcessingState = useSetAtom(setProcessingStateAtom);
+	const setVrmThinkingState = useSetAtom(setVrmThinkingStateAtom);
+	const addUserMessage = useSetAtom(addUserMessageAtom);
+	const addAiMessage = useSetAtom(addAiMessageAtom);
 
 	// タイマー参照を保持
 	const responseTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-	// VRMの思考状態を参照
-	const vrmIsThinking = useRef<boolean>(false);
 
 	// コンポーネントがマウントされたら、モーションをStandingIdleに設定する
 	useEffect(() => {
@@ -59,11 +54,11 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			}
 
 			// VRMの思考モードを必ず終了
-			if (vrmWrapperRef.current?.isThinking && vrmIsThinking.current) {
-				vrmIsThinking.current = false;
+			if (vrmWrapperRef.current?.isThinking && vrmIsThinking) {
+				setVrmThinkingState(false);
 			}
 		};
-	}, [vrmWrapperRef]);
+	}, [vrmWrapperRef, vrmIsThinking, setVrmThinkingState]);
 
 	// 音声処理が完了した時の処理
 	useEffect(() => {
@@ -72,11 +67,7 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			setProcessingState("processing");
 
 			// ユーザーメッセージを保存
-			const userMessage = {
-				role: "user" as const,
-				content: transcript,
-			};
-			setChatHistory((prev) => [...prev, userMessage]);
+			addUserMessage(transcript);
 
 			// 1秒後に思考中状態に変更
 			const processingTimer = setTimeout(() => {
@@ -84,7 +75,7 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 
 				// 思考状態に遷移するが、モーションはStandingIdleのままにする
 				if (vrmWrapperRef.current) {
-					vrmIsThinking.current = true;
+					setVrmThinkingState(true);
 
 					// StandingIdleモーションを維持
 					vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
@@ -95,7 +86,6 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			}, 1000);
 
 			return () => clearTimeout(processingTimer);
-
 			// biome-ignore lint/style/noUselessElse: <explanation>
 		} else if (isListening) {
 			// 録音中の状態
@@ -106,7 +96,14 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 			}
 		}
-	}, [isListening, transcript, vrmWrapperRef]);
+	}, [
+		isListening,
+		transcript,
+		vrmWrapperRef,
+		setProcessingState,
+		setVrmThinkingState,
+		addUserMessage,
+	]);
 
 	// AIの応答を生成する関数（APIとの通信部分）
 	const generateAIResponse = async (userInput: string) => {
@@ -122,18 +119,11 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 この内容については詳しく調べる必要がありますが、一般的には以下のように考えられています...`;
 
 			// 応答を保存
-			setAIResponse(response);
-			setChatHistory((prev) => [
-				...prev,
-				{
-					role: "assistant",
-					content: response,
-				},
-			]);
+			addAiMessage(response);
 
 			// 思考状態を終了するが、モーションは変更しない
-			if (vrmIsThinking.current) {
-				vrmIsThinking.current = false;
+			if (vrmIsThinking) {
+				setVrmThinkingState(false);
 
 				// StandingIdleモーションを維持
 				if (vrmWrapperRef.current?.crossFadeAnimation) {
@@ -165,14 +155,13 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 			}
 
-			vrmIsThinking.current = false;
+			setVrmThinkingState(false);
 		}
 	};
 
 	// 音声認識の開始ハンドラー
 	const handleStartListening = () => {
 		setProcessingState("recording");
-		setAIResponse("");
 
 		// VRMのモーションをStandingIdleに変更
 		if (vrmWrapperRef.current?.crossFadeAnimation) {

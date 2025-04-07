@@ -8,7 +8,6 @@ import type {
 	VRMExpressionState,
 } from "../VRMExpression/types";
 import { safeSetExpression } from "../VRMExpression/safeSetExpression";
-import { debugExpressions } from "../VRMExpression/debugExpressions";
 
 /**
  * VRMモデルに自然な表情や動きを追加するためのフック
@@ -50,9 +49,6 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 
 		// 表情状態を更新
 		currentExpressionRef.current = { preset, weight };
-
-		// デバッグ出力
-		console.log(`表情を設定: ${preset}, 強度: ${weight}`);
 	};
 
 	/**
@@ -83,7 +79,6 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 	 */
 	const update = (deltaTime: number) => {
 		if (vrm && !debugLoggedRef.current) {
-			debugExpressions(vrm);
 			debugLoggedRef.current = true;
 		}
 

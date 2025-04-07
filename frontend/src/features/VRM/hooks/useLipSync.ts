@@ -97,10 +97,6 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 							safeSetExpression(vrm, "ih", volume * 0.8);
 							safeSetExpression(vrm, "ou", volume * 0.2);
 						}
-
-						if (volume > 0.1) {
-							console.log(`リップシンク: 音量=${volume.toFixed(2)}`);
-						}
 					} catch (e) {
 						console.error("リップシンクエラー:", e);
 					}

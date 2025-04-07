@@ -1,14 +1,17 @@
 "use client";
 import type React from "react";
-import { useState, useRef } from "react";
+import { useRef } from "react";
+import { useAtom } from "jotai";
 import type { Category } from "../CategoryNagigator/components/CategoryCard";
 import { SearchResultsView } from "./SearchResultsView";
+import { inputValueAtom } from "./store/searchResultAtoms";
 
 type SearchResultsProps = {
 	query: string;
 	category?: Category;
 	isQuestion?: boolean;
 	onBack: () => void;
+	onNewQuestion?: (question: string) => void;
 };
 
 export const SearchResults: React.FC<SearchResultsProps> = ({
@@ -16,9 +19,9 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	category,
 	isQuestion = false,
 	onBack,
+	onNewQuestion,
 }) => {
-	// ロジックと状態管理を担当
-	const [inputValue, setInputValue] = useState("");
+	const [inputValue, setInputValue] = useAtom(inputValueAtom);
 	const inputRef = useRef<HTMLInputElement>(
 		null,
 	) as React.RefObject<HTMLInputElement>;
@@ -68,7 +71,12 @@ KITでは、SX・GX・DXの3つの変革を重点的に推進しています。
 	const handleSendQuestion = () => {
 		if (inputValue.trim()) {
 			// 実際のアプリではここでAPIリクエストを行う
-			console.log("新しい質問:", inputValue);
+
+			// 親コンポーネントに新しい質問を通知
+			if (onNewQuestion) {
+				onNewQuestion(inputValue.trim());
+			}
+
 			setInputValue("");
 		}
 	};
@@ -80,9 +88,14 @@ KITでは、SX・GX・DXの3つの変革を重点的に推進しています。
 
 	// キーボードイベント処理
 	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-			handleSendQuestion();
-		}
+		// 入力中の変換確定時にはEnterを無視
+		if (e.nativeEvent.isComposing) return;
+
+		// Enter以外のキーは処理しない
+		if (e.key !== "Enter") return;
+
+		// 質問送信実行
+		handleSendQuestion();
 	};
 
 	return (

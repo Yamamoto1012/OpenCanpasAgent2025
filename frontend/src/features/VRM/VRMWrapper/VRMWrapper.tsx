@@ -125,8 +125,6 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 		 * 手動でリップシンクをシミュレーション
 		 */
 		function simulateLipSync(): void {
-			console.log("手動リップシンクシミュレーション開始");
-
 			// 会話らしい口の動きパターンを定義（母音を変えながら）
 			const pattern: ExpressionPattern[] = [
 				{ exp: "aa", val: 0.3 },
@@ -151,12 +149,10 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 				if (vrmRenderRef.current?.setExpression) {
 					// 前の表情をリセット（口関連のみ）
 					resetLipExpressions();
-
 					// 新しい表情を設定
-					console.log(`口の表情: ${exp}, 強度: ${val.toFixed(2)}`);
 					vrmRenderRef.current.setExpression(exp, val);
 				}
-			}, 180); // 少し早めに切り替え
+			}, 180);
 
 			// 3秒後にシミュレーション終了
 			setTimeout(() => {
@@ -173,7 +169,6 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 				// 閾値を低めに設定
 				const lipValue = Math.min(result.volume * 8, 1.0); // より強い増幅
 				vrmRenderRef.current.setExpression("aa", lipValue);
-				console.log(`リップシンク適用: ${lipValue.toFixed(2)}`);
 			}
 		}
 
@@ -181,7 +176,6 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 		 * 音声再生完了時の処理
 		 */
 		function handleAudioComplete(): void {
-			console.log("音声再生完了");
 			// 音声終了後、元のモーションに戻る
 			setIsPaused(false);
 			crossFadeToMotion(lastMotionRef.current);
@@ -199,16 +193,7 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 			// 完全に静止したモーションに切り替え
 			crossFadeToMotion("/Motion/StandingIdle.vrma");
 
-			// デバッグ情報
-			console.log("音声再生システム状態:", {
-				AudioContext: vrmRenderRef.current?.isAudioInitialized
-					? "初期化済"
-					: "未初期化",
-			});
-
 			if (!vrmRenderRef.current?.playAudio) return;
-
-			console.log(`音声再生開始: ${audioUrl}`);
 
 			// 表情をニュートラルにリセット
 			if (vrmRenderRef.current?.setExpression) {
@@ -299,7 +284,6 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 
 			// 検索中の思考
 			startThinking: () => {
-				console.log("VRMWrapper: 検索処理を開始します");
 				setIsThinking(true); // 思考中状態をON
 
 				// Thinking モーションへ切り替え
@@ -315,41 +299,31 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 				try {
 					// 音声再生の処理
 					if (vrmRenderRef.current?.playAudio) {
-						console.log(`VRMWrapper: 音声再生開始: ${searchAudioUrl}`);
-
 						// リップシンクの開始
 						simulateLipSync();
 
 						// 実際の音声再生を少し遅らせて開始
 						setTimeout(() => {
 							try {
-								console.log("VRMWrapper: 音声再生処理を実行");
 								vrmRenderRef.current?.playAudio(
 									searchAudioUrl,
 									handleAudioAnalysis,
 									() => {
-										console.log(
-											"VRMWrapper: 音声再生完了、思考モーションを継続",
-										);
+										// 音声再生完了後も思考モーションを継続
 									},
 								);
 							} catch (err) {
-								console.error("VRMWrapper: 音声再生中にエラー:", err);
+								// エラー時は無視して思考モーションを継続
 							}
 						}, 300);
-					} else {
-						console.warn(
-							"VRMWrapper: 音声再生機能が利用できないため思考モーションのみ表示",
-						);
 					}
 				} catch (error) {
-					console.error("VRMWrapper: startThinking実行中にエラー:", error);
+					// エラー時は無視して思考モーションを継続
 				}
 			},
 
 			// 思考の終了処理を追加
 			stopThinking: () => {
-				console.log("VRMWrapper: 思考処理を終了します");
 				setIsThinking(false); // 思考中状態をOFF
 
 				// カテゴリ深度に応じたモーションに戻す

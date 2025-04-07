@@ -1,8 +1,9 @@
 "use client";
 import type React from "react";
-import { useState } from "react";
+import { useAtom } from "jotai";
 import { ActionPromptView } from "./ActionPromtView";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
+import { showQuestionInputAtom, questionAtom } from "./store/actionPromptAtoms";
 
 type ActionPromptProps = {
 	categoryTitle: string;
@@ -10,15 +11,24 @@ type ActionPromptProps = {
 	onAskQuestion: (question: string) => void;
 };
 
+/**
+ * アクションプロンプトコンポーネント
+ * カテゴリに関する検索や質問入力を担当
+ */
 export const ActionPrompt: React.FC<ActionPromptProps> = ({
 	categoryTitle,
 	onSearch,
 	onAskQuestion,
 }) => {
-	const [showQuestionInput, setShowQuestionInput] = useState(false);
-	const [question, setQuestion] = useState("");
+	const [showQuestionInput, setShowQuestionInput] = useAtom(
+		showQuestionInputAtom,
+	);
+	const [question, setQuestion] = useAtom(questionAtom);
 
-	// カテゴリに関するランダムなテキスト生成
+	/**
+	 * カテゴリに関するランダムな質問テキストを生成
+	 * テスト用およびプレースホルダーとして使用
+	 */
 	const getRandomText = () => {
 		const randomQuestions = [
 			`${categoryTitle}について教えてください`,
@@ -37,24 +47,36 @@ export const ActionPrompt: React.FC<ActionPromptProps> = ({
 		getRandomText,
 	});
 
+	// 質問入力フォームの表示切り替え
 	const handleQuestionClick = () => {
 		setShowQuestionInput(true);
 	};
 
+	// 質問テキストの変更を処理
 	const handleQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setQuestion(e.target.value);
 	};
 
+	// 質問送信処理
 	const handleSendQuestion = () => {
-		if (question.trim()) {
-			onAskQuestion(question.trim());
+		const trimmedQuestion = question.trim();
+		if (trimmedQuestion) {
+			onAskQuestion(trimmedQuestion);
+			// 質問送信後は入力をリセットしつつフォームは表示したままにする
+			setQuestion("");
 		}
 	};
 
+	// キーボード入力処理
 	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-			handleSendQuestion();
-		}
+		// 入力中の変換確定時にはEnterを無視
+		if (e.nativeEvent.isComposing) return;
+
+		// Enter以外のキーは処理しない
+		if (e.key !== "Enter") return;
+
+		// 質問送信処理実行
+		handleSendQuestion();
 	};
 
 	return (

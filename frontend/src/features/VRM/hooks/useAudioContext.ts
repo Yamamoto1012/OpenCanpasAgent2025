@@ -12,14 +12,10 @@ export const useAudioContext = () => {
 	// AudioContextを初期化する関数
 	const initializeAudioContext = useCallback(() => {
 		if (!audioContextRef.current) {
-			console.log("AudioContext を初期化します");
 			try {
 				audioContextRef.current = new AudioContext();
 				setAudioInitialized(true);
-				console.log("AudioContext 初期化成功:", audioContextRef.current.state);
-			} catch (error) {
-				console.error("AudioContext 初期化失敗:", error);
-			}
+			} catch (error) {}
 		}
 		return audioContextRef.current;
 	}, []);
@@ -45,11 +41,9 @@ export const useAudioContext = () => {
 		// AudioContextを初期化（最初のクリックで）
 		if (!audioInitialized) {
 			const audioCtx = new AudioContext();
-			console.log("AudioContext state:", audioCtx.state);
 
 			// AudioContextの状態を確認（デバッグ用）
 			if (audioCtx.state === "running") {
-				console.log("AudioContext successfully initialized");
 			} else {
 				console.warn(
 					"AudioContext initialized but not running:",

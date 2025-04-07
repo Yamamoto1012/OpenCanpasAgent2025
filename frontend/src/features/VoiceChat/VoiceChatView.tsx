@@ -10,12 +10,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { useEffect, useRef } from "react";
-import type { ProcessingState } from "./VoiceChat";
-
-type ChatMessage = {
-	role: "user" | "assistant";
-	content: string;
-};
+import type { ProcessingState, ChatMessage } from "@/store/voiceChatAtoms";
 
 export type VoiceChatViewProps = {
 	isListening: boolean;
