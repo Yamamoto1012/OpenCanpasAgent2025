@@ -2,17 +2,40 @@ import { motion } from "framer-motion";
 
 type ThinkingIndicatorProps = {
 	visible: boolean;
+	categoryDepth?: number;
 };
 
 /**
  * VRMモデルの思考中を示す三点リードアニメーション
  */
-export const ThinkingIndicator = ({ visible }: ThinkingIndicatorProps) => {
+export const ThinkingIndicator = ({
+	visible,
+	categoryDepth = 0,
+}: ThinkingIndicatorProps) => {
 	if (!visible) return null;
+
+	// カテゴリの深さに応じて位置を調整する
+	const topPosition = categoryDepth >= 2 ? "top-1/6" : "top-1/4";
+
+	// カテゴリの深さに応じてX軸方向の位置を調整
+	let xPosition: string;
+	let xTransform: string;
+
+	if (categoryDepth >= 2) {
+		// カテゴリの深さが2以上の場合、やや左に寄せる
+		xPosition = "left-[25%]";
+		xTransform = "-translate-x-1/2"; // 中心を基準に
+	} else {
+		// カテゴリの深さが0の場合、中央に配置
+		xPosition = "left-1/2";
+		xTransform = "-translate-x-1/2";
+	}
+
+	const zIndex = "z-50";
 
 	return (
 		<motion.div
-			className="absolute top-1/4 left-1/2 transform -translate-x-1/2"
+			className={`absolute ${topPosition} ${xPosition} transform ${xTransform} ${zIndex}`}
 			initial={{ opacity: 0, y: -10 }}
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0 }}

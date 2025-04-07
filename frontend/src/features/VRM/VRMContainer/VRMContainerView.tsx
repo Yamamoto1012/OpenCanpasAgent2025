@@ -74,7 +74,9 @@ export const VRMContainerView: FC<VRMContainerViewProps> = ({
 
 			{/* 思考中インジケーター */}
 			<AnimatePresence>
-				{isThinking && <ThinkingIndicator visible={true} />}
+				{isThinking && (
+					<ThinkingIndicator visible={true} categoryDepth={categoryDepth} />
+				)}
 			</AnimatePresence>
 		</>
 	);
