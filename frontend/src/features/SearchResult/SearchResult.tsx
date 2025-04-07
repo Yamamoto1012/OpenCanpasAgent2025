@@ -9,6 +9,7 @@ type SearchResultsProps = {
 	category?: Category;
 	isQuestion?: boolean;
 	onBack: () => void;
+	onNewQuestion?: (question: string) => void;
 };
 
 export const SearchResults: React.FC<SearchResultsProps> = ({
@@ -16,6 +17,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	category,
 	isQuestion = false,
 	onBack,
+	onNewQuestion,
 }) => {
 	// ロジックと状態管理を担当
 	const [inputValue, setInputValue] = useState("");
@@ -69,6 +71,12 @@ KITでは、SX・GX・DXの3つの変革を重点的に推進しています。
 		if (inputValue.trim()) {
 			// 実際のアプリではここでAPIリクエストを行う
 			console.log("新しい質問:", inputValue);
+
+			// 親コンポーネントに新しい質問を通知
+			if (onNewQuestion) {
+				onNewQuestion(inputValue.trim());
+			}
+
 			setInputValue("");
 		}
 	};

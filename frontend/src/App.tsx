@@ -25,8 +25,7 @@ export default function App() {
 	const [isMuted, setIsMuted] = useState(false);
 	const [isDirectChatQuestion, setIsDirectChatQuestion] = useState(false);
 	const [showVoiceChat, setShowVoiceChat] = useState(false);
-	const [isThinking, setIsThinking] = useState(false);
-	// ActionPromptからの質問フラグを追加
+	const [isThinking, setIsThinking] = useState(false); // ActionPromptからの質問フラグを追加
 	const [isActionPromptQuestion, setIsActionPromptQuestion] = useState(false);
 
 	// カスタムフックから状態とロジックを取得
@@ -209,7 +208,8 @@ export default function App() {
 					<div className="absolute top-1/7 right-2 flex flex-col items-center">
 						<div className="relative w-full min-h-[400px] flex justify-end">
 							<AnimatePresence mode="wait">
-								{showSearchResult || isActionPromptQuestion ? (
+								{(showSearchResult && !isDirectChatQuestion) ||
+								isActionPromptQuestion ? (
 									<motion.div
 										key="search-results"
 										className="w-full max-w-lg -translate-x-24"
@@ -223,6 +223,7 @@ export default function App() {
 											category={selectedCategory ?? undefined}
 											isQuestion={isQuestion}
 											onBack={handleBackFromSearch}
+											onNewQuestion={handleAskQuestion}
 										/>
 									</motion.div>
 								) : (
