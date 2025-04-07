@@ -1,0 +1,41 @@
+# version: '3.8' 属性は削除
+
+services:
+  aivis:
+    image: ghcr.io/aivis-project/aivisspeech-engine:cpu-latest
+    restart: always
+    ports:
+      - "10101:10101"
+    volumes:
+      - aivis-data:/home/user/.local/share/AivisSpeech-Engine-Dev
+      - ${HOME}/.local/share/AivisSpeech-Engine/Models:/home/user/.local/share/AivisSpeech-Engine-Dev/Models
+    entrypoint: []
+    command: ["/bin/sh", "-c", "mkdir -p /home/user/.local/share/AivisSpeech-Engine-Dev/Logs && chown -R user:user /home/user/.local/share/AivisSpeech-Engine-Dev && gosu user /opt/python/bin/poetry run python ./run.py --host 0.0.0.0"]
+    environment:
+      - HOST=0.0.0.0
+      - CORS_POLICY_MODE=all
+      - LOAD_ALL_MODELS=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10101/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  fastapi:
+    build:
+      context: ./fast-api
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - AIVIS_ENGINE_URL=http://aivis:10101
+    depends_on:
+      aivis:
+        condition: service_healthy
+    volumes:
+      - ./fast-api:/app
+
+volumes:
+  aivis-data:
+    driver: local
