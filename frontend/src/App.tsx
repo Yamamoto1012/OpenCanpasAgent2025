@@ -5,7 +5,7 @@ import {
 	ChatInterface,
 	type ChatInterfaceHandle,
 } from "./features/ChatInterface/ChatInterface";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Info, Mic2, Volume2, VolumeX, X } from "lucide-react";
 import { InfoPanel } from "./features/InfoPanel/InfoPanel";
 import { IconButton } from "./features/IconButton/IconButton";
@@ -19,18 +19,30 @@ import { useCategorySelection } from "./hooks/useCategorySelection";
 import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
 import { VoiceChat } from "./features/VoiceChat/VoiceChat";
 import { ThinkingIndicator } from "./features/ThinkingIndicator/ThinkingIndicator";
+import { useAtom } from "jotai";
+import {
+	showInfoAtom,
+	isMutedAtom,
+	isDirectChatQuestionAtom,
+	showVoiceChatAtom,
+	isThinkingAtom,
+	isActionPromptQuestionAtom,
+} from "./store/appStateAtoms";
 
 export default function App() {
-	const [showInfo, setShowInfo] = useState(false);
-	const [isMuted, setIsMuted] = useState(false);
-	const [isDirectChatQuestion, setIsDirectChatQuestion] = useState(false);
-	const [showVoiceChat, setShowVoiceChat] = useState(false);
-	const [isThinking, setIsThinking] = useState(false); // ActionPromptからの質問フラグを追加
-	const [isActionPromptQuestion, setIsActionPromptQuestion] = useState(false);
+	const [showInfo, setShowInfo] = useAtom(showInfoAtom);
+	const [isMuted, setIsMuted] = useAtom(isMutedAtom);
+	const [isDirectChatQuestion, setIsDirectChatQuestion] = useAtom(
+		isDirectChatQuestionAtom,
+	);
+	const [showVoiceChat, setShowVoiceChat] = useAtom(showVoiceChatAtom);
+	const [isThinking, setIsThinking] = useAtom(isThinkingAtom);
+	const [isActionPromptQuestion, setIsActionPromptQuestion] = useAtom(
+		isActionPromptQuestionAtom,
+	);
 
 	// カスタムフックから状態とロジックを取得
-	const { audioInitialized, vrmWrapperRef, handleTestLipSync } =
-		useAudioContext();
+	const { vrmWrapperRef } = useAudioContext();
 
 	const chatInterfaceRef = useRef<ChatInterfaceHandle>(null);
 
@@ -45,8 +57,17 @@ export default function App() {
 		handleCategorySelect,
 		handleSearch,
 		handleAskQuestion: originalHandleAskQuestion,
-		handleBackFromSearch,
+		handleBackFromSearch: originalHandleBackFromSearch,
 	} = useCategorySelection();
+
+	// 検索結果から戻るときの処理を拡張
+	const handleBackFromSearch = () => {
+		// オリジナルの戻る処理を実行
+		originalHandleBackFromSearch();
+
+		// ActionPromptからの質問フラグもリセット
+		setIsActionPromptQuestion(false);
+	};
 
 	// チャットインターフェースからの質問処理
 	const handleChatInterfaceQuestion = (question: string) => {
@@ -55,24 +76,6 @@ export default function App() {
 		setIsActionPromptQuestion(false);
 		handleAskQuestion(question);
 		setIsDirectChatQuestion(false);
-	};
-
-	// 音声チャットからの質問処理
-	const handleVoiceChatQuestion = (question: string) => {
-		setIsDirectChatQuestion(true);
-		setIsActionPromptQuestion(false);
-
-		// 質問を処理する前にVRMモデルを思考モードに切り替え
-		if (vrmWrapperRef.current?.startThinking) {
-			vrmWrapperRef.current.startThinking();
-		}
-
-		handleAskQuestion(question);
-		// 音声モーダルはすぐには非表示にせず、一定時間後に閉じる
-		setTimeout(() => {
-			setShowVoiceChat(false);
-			setIsDirectChatQuestion(false);
-		}, 1500);
 	};
 
 	const wrappedHandleAskQuestion = (question: string) => {
