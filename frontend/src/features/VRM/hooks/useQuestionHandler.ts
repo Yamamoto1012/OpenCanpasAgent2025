@@ -84,21 +84,42 @@ export const useQuestionHandler = ({
 					motionTimeoutRef.current = null;
 				}, 100);
 
+				originalHandleAskQuestion(question);
+
 				// モック回答のための5秒タイマー（実際はバックエンドからのレスポンスで置き換え）
 				responseTimeoutRef.current = window.setTimeout(() => {
 					console.log("QuestionHandler: モック回答を表示します（5秒経過）");
 
-					// 思考モーションから通常モーションに戻す
-					if (vrmWrapperRef.current?.crossFadeAnimation) {
-						vrmWrapperRef.current.crossFadeAnimation(
-							"/Motion/StandingIdle.vrma",
-						);
-					}
+					try {
+						// 思考モーションから通常モーションに戻す
+						if (vrmWrapperRef.current?.crossFadeAnimation) {
+							vrmWrapperRef.current.crossFadeAnimation(
+								"/Motion/StandingIdle.vrma",
+							);
+						}
 
-					// モック回答をChatInterfaceに追加
-					if (chatInterfaceRef.current) {
-						const mockResponse = generateMockResponse(question);
-						chatInterfaceRef.current.addMessage(mockResponse, false);
+						// モック回答をChatInterfaceに追加
+						if (chatInterfaceRef.current) {
+							const mockResponse = generateMockResponse(question);
+							chatInterfaceRef.current.addMessage(mockResponse, false);
+						}
+
+						// 思考状態を明示的に終了
+						console.log("QuestionHandler: 思考状態を終了します");
+						if (vrmWrapperRef.current?.stopThinking) {
+							vrmWrapperRef.current.stopThinking();
+						} else {
+							console.warn("QuestionHandler: stopThinking関数が利用できません");
+						}
+					} catch (responseError) {
+						console.error(
+							"QuestionHandler: 回答生成中にエラー:",
+							responseError,
+						);
+						// エラー発生時も必ず思考状態を解除
+						if (vrmWrapperRef.current?.stopThinking) {
+							vrmWrapperRef.current.stopThinking();
+						}
 					}
 
 					// タイムアウト完了後に参照をクリア
@@ -106,6 +127,10 @@ export const useQuestionHandler = ({
 				}, 5000);
 			} catch (error) {
 				console.error("QuestionHandler: handleAskQuestion エラー:", error);
+				// 主要エラー時も念のため思考状態を解除
+				if (vrmWrapperRef.current?.stopThinking) {
+					vrmWrapperRef.current.stopThinking();
+				}
 			}
 		},
 		[vrmWrapperRef, chatInterfaceRef, originalHandleAskQuestion],

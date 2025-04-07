@@ -26,6 +26,8 @@ export default function App() {
 	const [isDirectChatQuestion, setIsDirectChatQuestion] = useState(false);
 	const [showVoiceChat, setShowVoiceChat] = useState(false);
 	const [isThinking, setIsThinking] = useState(false);
+	// ActionPromptからの質問フラグを追加
+	const [isActionPromptQuestion, setIsActionPromptQuestion] = useState(false);
 
 	// カスタムフックから状態とロジックを取得
 	const { audioInitialized, vrmWrapperRef, handleTestLipSync } =
@@ -51,6 +53,7 @@ export default function App() {
 	const handleChatInterfaceQuestion = (question: string) => {
 		// チャットからの直接質問としてフラグを設定
 		setIsDirectChatQuestion(true);
+		setIsActionPromptQuestion(false);
 		handleAskQuestion(question);
 		setIsDirectChatQuestion(false);
 	};
@@ -58,6 +61,7 @@ export default function App() {
 	// 音声チャットからの質問処理
 	const handleVoiceChatQuestion = (question: string) => {
 		setIsDirectChatQuestion(true);
+		setIsActionPromptQuestion(false);
 
 		// 質問を処理する前にVRMモデルを思考モードに切り替え
 		if (vrmWrapperRef.current?.startThinking) {
@@ -72,10 +76,36 @@ export default function App() {
 		}, 1500);
 	};
 
+	const wrappedHandleAskQuestion = (question: string) => {
+		console.log("App: wrappedHandleAskQuestion を実行します", question);
+
+		// ActionPromptからの質問時には必ず思考モードを開始
+		if (vrmWrapperRef.current?.startThinking) {
+			console.log("App: VRMモデルの思考モードを開始します");
+			vrmWrapperRef.current.startThinking();
+		}
+
+		// ActionPromptからの質問フラグをONに
+		setIsActionPromptQuestion(true);
+		// 直接質問フラグを設定
+		setIsDirectChatQuestion(false);
+
+		// もとの質問処理を実行
+		originalHandleAskQuestion(question);
+
+		// 確実に一定時間後にフラグをリセット
+		setTimeout(() => {
+			console.log("App: 思考状態を明示的に終了");
+			if (vrmWrapperRef.current?.stopThinking) {
+				vrmWrapperRef.current.stopThinking();
+			}
+		}, 5500); // モック応答
+	};
+
 	const { handleAskQuestion } = useQuestionHandler({
 		vrmWrapperRef,
 		chatInterfaceRef,
-		originalHandleAskQuestion,
+		originalHandleAskQuestion: wrappedHandleAskQuestion,
 	});
 
 	// 音声チャットを開く処理
@@ -179,7 +209,7 @@ export default function App() {
 					<div className="absolute top-1/7 right-2 flex flex-col items-center">
 						<div className="relative w-full min-h-[400px] flex justify-end">
 							<AnimatePresence mode="wait">
-								{showSearchResult && !isDirectChatQuestion ? (
+								{showSearchResult || isActionPromptQuestion ? (
 									<motion.div
 										key="search-results"
 										className="w-full max-w-lg -translate-x-24"
