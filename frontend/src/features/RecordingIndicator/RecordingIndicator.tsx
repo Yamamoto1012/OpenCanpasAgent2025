@@ -1,5 +1,3 @@
-"use client";
-
 import { useAtom } from "jotai";
 import { RecordingIndicatorView } from "./RecordingIndicatorView";
 import { useRecordingTimer } from "./useRecordingTimer";

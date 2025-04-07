@@ -1,4 +1,3 @@
-"use client";
 import type React from "react";
 import { useRef } from "react";
 import { useAtom } from "jotai";

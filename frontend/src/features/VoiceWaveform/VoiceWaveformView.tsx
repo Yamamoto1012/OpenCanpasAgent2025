@@ -1,5 +1,3 @@
-"use client";
-
 export interface VoiceWaveformViewProps {
 	canvasRef: React.RefObject<HTMLCanvasElement>;
 }

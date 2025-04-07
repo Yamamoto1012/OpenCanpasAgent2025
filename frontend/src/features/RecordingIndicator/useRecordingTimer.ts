@@ -1,5 +1,3 @@
-"use client";
-
 import { useAtomValue } from "jotai";
 import { recordingTimerAtom } from "@/store/recordingAtoms";
 

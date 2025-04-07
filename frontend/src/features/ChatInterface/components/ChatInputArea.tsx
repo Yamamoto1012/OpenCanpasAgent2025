@@ -1,4 +1,3 @@
-"use client";
 import { Mic, MicOff, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,7 +74,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 			{/* 録音時間インジケーター */}
 			{isRecording && (
 				<div className="mt-2 flex justify-center">
-					<RecordingIndicator isRecording={isRecording} />
+    			<RecordingIndicator />
 				</div>
 			)}
 		</div>

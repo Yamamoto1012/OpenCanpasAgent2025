@@ -1,4 +1,3 @@
-"use client";
 import type React from "react";
 import { Info, Cpu, Database, Volume2 } from "lucide-react";
 

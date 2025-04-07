@@ -1,4 +1,3 @@
-"use client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { InfoPanelHeader } from "./components/InfoPanelHeader";
 import { InfoSection } from "./components/InfoSection";

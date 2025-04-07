@@ -1,4 +1,3 @@
-"use client";
 import type React from "react";
 import { MessageCircle, Search, Send, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -115,7 +114,7 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 							{/* 録音時間インジケーター */}
 							{isRecording && (
 								<div className="mt-2 flex justify-center">
-									<RecordingIndicator isRecording={isRecording} />
+									<RecordingIndicator />
 								</div>
 							)}
 						</>

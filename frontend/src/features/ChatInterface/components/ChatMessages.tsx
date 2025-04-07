@@ -1,8 +1,7 @@
-"use client";
 import type React from "react";
-import type { Message } from "../ChatInterface";
 import { ChatMessageItem } from "./ChatMessageItem";
 import { ChatThinkingIndicator } from "./ChatThinkingIndicator";
+import type { Message } from "@/store/chatAtoms";
 
 export type ChatMessagesProps = {
 	messages: Message[];

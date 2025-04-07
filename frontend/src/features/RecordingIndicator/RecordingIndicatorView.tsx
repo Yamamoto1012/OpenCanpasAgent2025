@@ -1,5 +1,3 @@
-"use client";
-
 export interface RecordingIndicatorViewProps {
 	formattedTime: string;
 }

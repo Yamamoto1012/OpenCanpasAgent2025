@@ -1,7 +1,7 @@
-"use client";
 import type React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import type { Message } from "../ChatInterface";
+import type { Message } from "@/store/chatAtoms";
+
 
 export type ChatMessageItemProps = {
 	message: Message;

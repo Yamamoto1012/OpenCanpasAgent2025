@@ -1,4 +1,3 @@
-"use client";
 import type React from "react";
 import type { Message } from "@/store/chatAtoms";
 import { ChatHeader } from "./components/ChatHeader";
