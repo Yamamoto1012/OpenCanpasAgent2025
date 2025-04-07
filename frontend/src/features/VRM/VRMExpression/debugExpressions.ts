@@ -6,8 +6,6 @@ import type { VRM } from "@pixiv/three-vrm";
 export const debugExpressions = (vrm: VRM | null): void => {
 	if (!vrm) return;
 
-	console.log("VRMモデル読み込み完了");
-
 	// VRM1.0 の表情
 	if (vrm.expressionManager) {
 		console.log("利用可能な表情一覧 (VRM1.0):");

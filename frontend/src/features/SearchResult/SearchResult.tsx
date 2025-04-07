@@ -71,7 +71,6 @@ KITでは、SX・GX・DXの3つの変革を重点的に推進しています。
 	const handleSendQuestion = () => {
 		if (inputValue.trim()) {
 			// 実際のアプリではここでAPIリクエストを行う
-			console.log("新しい質問:", inputValue);
 
 			// 親コンポーネントに新しい質問を通知
 			if (onNewQuestion) {

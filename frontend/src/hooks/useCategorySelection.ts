@@ -52,10 +52,6 @@ export const useCategorySelection = () => {
 	// カテゴリで検索するボタンが押されたとき
 	const handleSearch = () => {
 		if (!categorySelectionState.selectedCategory) return;
-
-		console.log(
-			`「${categorySelectionState.selectedCategory.title}」で検索実行`,
-		);
 		setShowActionPrompt(false);
 		setShowChat(false);
 
@@ -69,9 +65,6 @@ export const useCategorySelection = () => {
 	const handleAskQuestion = (question: string) => {
 		if (!categorySelectionState.selectedCategory) return;
 
-		console.log(
-			`「${categorySelectionState.selectedCategory.title}」について質問: ${question}`,
-		);
 		setShowActionPrompt(false);
 		setShowChat(false);
 

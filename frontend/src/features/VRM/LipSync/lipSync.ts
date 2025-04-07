@@ -45,19 +45,9 @@ export class LipSync {
 		bufferSource.connect(this.audio.destination);
 		bufferSource.connect(this.analyser);
 
-		// デバッグログを追加
-		console.log("音声バッファー接続完了", {
-			duration: audioBuffer.duration,
-			sampleRate: audioBuffer.sampleRate,
-			numberOfChannels: audioBuffer.numberOfChannels,
-		});
-
 		// 音声のステータスを継続的にモニター
 		const monitorInterval = setInterval(() => {
 			const result = this.update();
-			if (result.volume > 0) {
-				console.log(`リアルタイム音量: ${result.volume.toFixed(3)}`);
-			}
 			if (onAnalyze) {
 				onAnalyze(result);
 			}
@@ -79,7 +69,6 @@ export class LipSync {
 		onEnded?: () => void,
 	) {
 		try {
-			console.log(`音声ファイル読み込み開始: ${url}`);
 			const res = await fetch(url);
 			if (!res.ok) {
 				throw new Error(
@@ -87,7 +76,6 @@ export class LipSync {
 				);
 			}
 			const buffer = await res.arrayBuffer();
-			console.log(`音声ファイル読み込み完了: ${buffer.byteLength}バイト`);
 			await this.playFromArrayBuffer(buffer, onAnalyze, onEnded);
 		} catch (error) {
 			console.error("音声ファイル処理エラー:", error);

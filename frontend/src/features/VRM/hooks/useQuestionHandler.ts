@@ -35,17 +35,9 @@ export const useQuestionHandler = ({
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	const handleAskQuestion = useCallback(
 		(question: string) => {
-			console.log(
-				"QuestionHandler: handleAskQuestion が呼び出されました",
-				question,
-			);
-
 			try {
 				// まずChatInterfaceにメッセージを追加（信頼性重視）
 				if (chatInterfaceRef.current) {
-					console.log(
-						"QuestionHandler: ChatInterface の addMessage を呼び出します",
-					);
 					chatInterfaceRef.current.addMessage(
 						"検索しますね！少々お待ちください。",
 						false,
@@ -67,9 +59,6 @@ export const useQuestionHandler = ({
 				// VRMの思考モーションへ移行
 				motionTimeoutRef.current = window.setTimeout(() => {
 					if (vrmWrapperRef.current?.startThinking) {
-						console.log(
-							"QuestionHandler: VRMWrapper の startThinking を呼び出します",
-						);
 						vrmWrapperRef.current.startThinking();
 					} else if (vrmWrapperRef.current?.crossFadeAnimation) {
 						// フォールバック：直接モーション変更を試みる
@@ -88,8 +77,6 @@ export const useQuestionHandler = ({
 
 				// モック回答のための5秒タイマー（実際はバックエンドからのレスポンスで置き換え）
 				responseTimeoutRef.current = window.setTimeout(() => {
-					console.log("QuestionHandler: モック回答を表示します（5秒経過）");
-
 					try {
 						// 思考モーションから通常モーションに戻す
 						if (vrmWrapperRef.current?.crossFadeAnimation) {
@@ -105,7 +92,6 @@ export const useQuestionHandler = ({
 						}
 
 						// 思考状態を明示的に終了
-						console.log("QuestionHandler: 思考状態を終了します");
 						if (vrmWrapperRef.current?.stopThinking) {
 							vrmWrapperRef.current.stopThinking();
 						} else {
