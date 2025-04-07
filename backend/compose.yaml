@@ -8,6 +8,7 @@ services:
       - "10101:10101"
     volumes:
       - aivis-data:/home/user/.local/share/AivisSpeech-Engine-Dev
+      - ${HOME}/.local/share/AivisSpeech-Engine/Models:/home/user/.local/share/AivisSpeech-Engine-Dev/Models
     entrypoint: []
     command: ["/bin/sh", "-c", "mkdir -p /home/user/.local/share/AivisSpeech-Engine-Dev/Logs && chown -R user:user /home/user/.local/share/AivisSpeech-Engine-Dev && gosu user /opt/python/bin/poetry run python ./run.py --host 0.0.0.0"]
     environment:
