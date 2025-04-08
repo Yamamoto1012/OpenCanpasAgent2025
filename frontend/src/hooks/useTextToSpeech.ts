@@ -5,7 +5,9 @@ import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
  * テキスト音声合成（TTS）を扱うためのカスタムフック
  * バックエンドのTTSエンドポイントを使用して音声を生成し再生する
  */
-export function useTextToSpeech(vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>) {
+export function useTextToSpeech(
+	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>,
+) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<Error | null>(null);
 	const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -52,7 +54,7 @@ export function useTextToSpeech(vrmWrapperRef?: React.RefObject<VRMWrapperHandle
 				// BlobからオブジェクトURLを作成
 				const audioUrl = URL.createObjectURL(audioBlob);
 
-				 // VRMWrapperがあればリップシンクで再生
+				// VRMWrapperがあればリップシンクで再生
 				if (vrmWrapperRef?.current?.playAudio) {
 					vrmWrapperRef.current.playAudio(audioUrl);
 					// リップシンク再生が完了したときにURLを破棄するためのイベントリスナー

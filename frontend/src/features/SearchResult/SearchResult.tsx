@@ -38,27 +38,24 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 		: `「${category?.title || ""}」についての情報はこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`;
 
 	// コンポーネントのマウント時にのみ音声を再生する
-	useEffect(
-		() => {
-			let hasSpoken = false;
+	useEffect(() => {
+		let hasSpoken = false;
 
-			// 画面表示後に音声を再生する
-			const timer = setTimeout(() => {
-				if (!hasSpoken) {
-					// VRMがある場合、読み上げ前に適切なアニメーションに切り替え
-					if (vrmWrapperRef?.current?.crossFadeAnimation) {
-						vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
-					}
-					speak(mockResponse);
-					hasSpoken = true;
+		// 画面表示後に音声を再生する
+		const timer = setTimeout(() => {
+			if (!hasSpoken) {
+				// VRMがある場合、読み上げ前に適切なアニメーションに切り替え
+				if (vrmWrapperRef?.current?.crossFadeAnimation) {
+					vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 				}
-			}, 500);
+				speak(mockResponse);
+				hasSpoken = true;
+			}
+		}, 500);
 
-			// クリーンアップ関数
-			return () => clearTimeout(timer);
-		},
-		[mockResponse, speak, vrmWrapperRef],
-	);
+		// クリーンアップ関数
+		return () => clearTimeout(timer);
+	}, [mockResponse, speak, vrmWrapperRef]);
 
 	// 詳細情報（実際のアプリではAPIから取得）
 	const mockDetails = isQuestion
