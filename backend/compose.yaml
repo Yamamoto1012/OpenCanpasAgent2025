@@ -1,4 +1,4 @@
-# version: '3.8' 属性は削除
+version: '3.8'
 
 services:
   aivis:
@@ -8,13 +8,7 @@ services:
       - "10101:10101"
     volumes:
       - aivis-data:/home/user/.local/share/AivisSpeech-Engine-Dev
-      - ${HOME}/.local/share/AivisSpeech-Engine/Models:/home/user/.local/share/AivisSpeech-Engine-Dev/Models
-    entrypoint: []
-    command: ["/bin/sh", "-c", "mkdir -p /home/user/.local/share/AivisSpeech-Engine-Dev/Logs && chown -R user:user /home/user/.local/share/AivisSpeech-Engine-Dev && gosu user /opt/python/bin/poetry run python ./run.py --host 0.0.0.0"]
-    environment:
-      - HOST=0.0.0.0
-      - CORS_POLICY_MODE=all
-      - LOAD_ALL_MODELS=true
+    command: --host 0.0.0.0 --cors_policy_mode all --load_all_models
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:10101/version"]
       interval: 30s
