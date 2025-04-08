@@ -95,7 +95,7 @@ export const ChatInterface = forwardRef<
 				lastSpokenMessageIdRef.current = latestMessage.id;
 			}, 100);
 		}
-	}, [messages]); // speakとstopは依存配列から除外（不要な再実行を防ぐ）
+	}, [messages]);
 
 	// 入力欄からの値更新
 	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -172,5 +172,3 @@ export const ChatInterface = forwardRef<
 		/>
 	);
 });
-
-// MessageタイプはchatAtoms.tsに移動したため、ここではexportしない
