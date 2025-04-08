@@ -5,6 +5,7 @@ import type { Category } from "../CategoryNagigator/components/CategoryCard";
 import { SearchResultsView } from "./SearchResultsView";
 import { inputValueAtom } from "./store/searchResultAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 type SearchResultsProps = {
 	query: string;
@@ -12,6 +13,7 @@ type SearchResultsProps = {
 	isQuestion?: boolean;
 	onBack: () => void;
 	onNewQuestion?: (question: string) => void;
+	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
 };
 
 export const SearchResults: React.FC<SearchResultsProps> = ({
@@ -20,6 +22,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	isQuestion = false,
 	onBack,
 	onNewQuestion,
+	vrmWrapperRef,
 }) => {
 	const [inputValue, setInputValue] = useAtom(inputValueAtom);
 	const inputRef = useRef<HTMLInputElement>(
@@ -27,7 +30,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	) as React.RefObject<HTMLInputElement>;
 
 	// 音声合成フックを使用
-	const { speak } = useTextToSpeech();
+	const { speak } = useTextToSpeech(vrmWrapperRef);
 
 	// AIからの回答テキスト
 	const mockResponse = isQuestion
@@ -42,6 +45,10 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			// 画面表示後に音声を再生する
 			const timer = setTimeout(() => {
 				if (!hasSpoken) {
+					// VRMがある場合、読み上げ前に適切なアニメーションに切り替え
+					if (vrmWrapperRef?.current?.crossFadeAnimation) {
+						vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+					}
 					speak(mockResponse);
 					hasSpoken = true;
 				}
@@ -50,9 +57,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			// クリーンアップ関数
 			return () => clearTimeout(timer);
 		},
-		[
-			/* 依存配列を空にして初回マウント時のみ実行 */
-		],
+		[mockResponse, speak, vrmWrapperRef],
 	);
 
 	// 詳細情報（実際のアプリではAPIから取得）

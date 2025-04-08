@@ -1,10 +1,11 @@
 import { useState, useCallback } from "react";
+import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 
 /**
  * テキスト音声合成（TTS）を扱うためのカスタムフック
  * バックエンドのTTSエンドポイントを使用して音声を生成し再生する
  */
-export function useTextToSpeech() {
+export function useTextToSpeech(vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<Error | null>(null);
 	const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -51,12 +52,28 @@ export function useTextToSpeech() {
 				// BlobからオブジェクトURLを作成
 				const audioUrl = URL.createObjectURL(audioBlob);
 
-				// 新しいAudio要素を作成して再生
-				const newAudio = new Audio(audioUrl);
-				setAudio(newAudio);
+				 // VRMWrapperがあればリップシンクで再生
+				if (vrmWrapperRef?.current?.playAudio) {
+					vrmWrapperRef.current.playAudio(audioUrl);
+					// リップシンク再生が完了したときにURLを破棄するためのイベントリスナー
+					const handleEnded = () => {
+						URL.revokeObjectURL(audioUrl);
+					};
+					// 時間経過後にクリーンアップ（推定再生時間後）
+					setTimeout(handleEnded, text.length * 200);
+				} else {
+					// 通常の音声再生（VRMがない場合）
+					const newAudio = new Audio(audioUrl);
+					setAudio(newAudio);
 
-				// 音声再生
-				await newAudio.play();
+					// 音声再生完了時にリソース解放
+					newAudio.addEventListener("ended", () => {
+						URL.revokeObjectURL(audioUrl);
+					});
+
+					// 音声再生
+					await newAudio.play();
+				}
 			} catch (err) {
 				setError(
 					err instanceof Error
@@ -68,7 +85,7 @@ export function useTextToSpeech() {
 				setIsLoading(false);
 			}
 		},
-		[audio],
+		[audio, vrmWrapperRef],
 	);
 
 	/**

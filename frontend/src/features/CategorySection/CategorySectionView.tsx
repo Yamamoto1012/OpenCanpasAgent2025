@@ -4,6 +4,7 @@ import { CategoryNavigator } from "../CategoryNagigator/CategoryNavigator";
 import { ActionPrompt } from "../ActionPromt/ActionPromt";
 import { SearchResults } from "../SearchResult/SearchResult";
 import type { Category } from "../CategoryNagigator/components/CategoryCard";
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type CategorySectionViewProps = {
 	/**
@@ -50,6 +51,11 @@ export type CategorySectionViewProps = {
 	 * 検索結果からの戻るボタン処理のハンドラー
 	 */
 	onBackFromSearch: () => void;
+
+	/**
+	 * VRMWrapperの参照
+	 */
+	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
 };
 
 /**
@@ -65,6 +71,7 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 	onSearch,
 	onAskQuestion,
 	onBackFromSearch,
+	vrmWrapperRef,
 }) => {
 	return (
 		<div className="absolute top-1/7 right-2 flex flex-col items-center">
@@ -85,6 +92,7 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 								isQuestion={isQuestion}
 								onBack={onBackFromSearch}
 								onNewQuestion={onAskQuestion}
+								vrmWrapperRef={vrmWrapperRef}
 							/>
 						</motion.div>
 					) : (
