@@ -74,7 +74,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 			{/* 録音時間インジケーター */}
 			{isRecording && (
 				<div className="mt-2 flex justify-center">
-    			<RecordingIndicator />
+					<RecordingIndicator />
 				</div>
 			)}
 		</div>
