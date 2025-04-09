@@ -9,6 +9,7 @@ import {
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
+import { useTextToSpeech } from "./hooks/useTextToSpeech";
 import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";
 import { AppLayout } from "./components/AppLayout";
 import { VRMContainer } from "./features/VRM/VRMContainer/VRMContainer";
@@ -16,6 +17,7 @@ import { CategorySection } from "./features/CategorySection/CategorySection";
 import { ChatSection } from "./features/ChatInterface/ChatSection";
 import { ControlButtons } from "./features/ControlButtons/ControlButtons";
 import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
+import { generateMockResponse } from "./features/ChatInterface/generateMockResponse";
 
 export default function App() {
 	// グローバル状態の取得
@@ -29,6 +31,7 @@ export default function App() {
 
 	// カスタムフックの利用
 	const { vrmWrapperRef } = useAudioContext();
+	const { speak } = useTextToSpeech(vrmWrapperRef);
 	const chatInterfaceRef = useRef<ChatInterfaceHandle>(null);
 
 	// カテゴリ選択関連の状態とロジックを取得
@@ -57,13 +60,37 @@ export default function App() {
 
 	/**
 	 * チャットから質問が送信された時の処理
-	 * 直接質問モードを有効にして、ActionPromptQuestionモードをリセット
 	 */
 	const handleChatInterfaceQuestion = (question: string) => {
-		setIsDirectChatQuestion(true);
-		setIsActionPromptQuestion(false);
-		handleAskQuestion(question);
-		setIsDirectChatQuestion(false);
+		// 思考モード開始
+		if (vrmWrapperRef.current?.startThinking) {
+			vrmWrapperRef.current.startThinking();
+		}
+
+		// 一定時間後に思考モード終了してモック回答を生成
+		setTimeout(() => {
+			const mockResponse = generateMockResponse(question);
+
+			if (chatInterfaceRef.current) {
+				// レスポンスをチャットに追加
+				chatInterfaceRef.current.addMessage(mockResponse, false, undefined);
+			}
+
+			// 思考モード終了
+			if (vrmWrapperRef.current?.stopThinking) {
+				vrmWrapperRef.current.stopThinking();
+			}
+
+			// StandingIdleアニメーションに切り替え
+			if (vrmWrapperRef.current?.crossFadeAnimation) {
+				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+			}
+
+			// useTextToSpeechフックを使用して音声生成とリップシンク処理
+			setTimeout(() => {
+				speak(mockResponse);
+			}, 300);
+		}, 2000);
 	};
 
 	/**

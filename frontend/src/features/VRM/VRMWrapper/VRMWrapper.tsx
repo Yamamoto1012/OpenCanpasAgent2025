@@ -293,9 +293,6 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 				// 最後に再生したモーションを記録（回答後に戻すため）
 				lastMotionRef.current = "/Motion/Thinking.vrma";
 
-				// 「検索しますね」の音声を再生
-				const searchAudioUrl = "/audio/test.mp3";
-
 				try {
 					// 音声再生の処理
 					if (vrmRenderRef.current?.playAudio) {
@@ -305,13 +302,9 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 						// 実際の音声再生を少し遅らせて開始
 						setTimeout(() => {
 							try {
-								vrmRenderRef.current?.playAudio(
-									searchAudioUrl,
-									handleAudioAnalysis,
-									() => {
-										// 音声再生完了後も思考モーションを継続
-									},
-								);
+								vrmRenderRef.current?.playAudio(handleAudioAnalysis, () => {
+									// 音声再生完了後も思考モーションを継続
+								});
 							} catch (err) {
 								// エラー時は無視して思考モーションを継続
 							}
