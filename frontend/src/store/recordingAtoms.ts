@@ -37,6 +37,78 @@ export const randomTextGeneratorAtom = atom<((text?: string) => string) | null>(
 	null,
 );
 
+// Web Speech APIの型定義
+interface SpeechRecognitionErrorEvent extends Event {
+	error: string;
+	message?: string;
+}
+
+interface SpeechRecognitionEvent extends Event {
+	results: SpeechRecognitionResultList;
+	resultIndex: number;
+	interpretation?: any;
+}
+
+interface SpeechRecognitionResultList {
+	length: number;
+	item(index: number): SpeechRecognitionResult;
+	[index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+	length: number;
+	item(index: number): SpeechRecognitionAlternative;
+	[index: number]: SpeechRecognitionAlternative;
+	isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+	transcript: string;
+	confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+	continuous: boolean;
+	grammars: any;
+	interimResults: boolean;
+	lang: string;
+	maxAlternatives: number;
+	onaudioend: ((this: SpeechRecognition, ev: Event) => any) | null;
+	onaudiostart: ((this: SpeechRecognition, ev: Event) => any) | null;
+	onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+	onerror:
+		| ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any)
+		| null;
+	onnomatch: ((this: SpeechRecognition, ev: Event) => any) | null;
+	onresult:
+		| ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any)
+		| null;
+	onsoundend: ((this: SpeechRecognition, ev: Event) => any) | null;
+	onsoundstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+	onspeechend: ((this: SpeechRecognition, ev: Event) => any) | null;
+	onspeechstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+	onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+	abort(): void;
+	start(): void;
+	stop(): void;
+}
+
+interface SpeechRecognitionConstructor {
+	new (): SpeechRecognition;
+	prototype: SpeechRecognition;
+}
+
+// SpeechRecognition APIのグローバル変数
+declare global {
+	interface Window {
+		SpeechRecognition?: SpeechRecognitionConstructor;
+		webkitSpeechRecognition?: SpeechRecognitionConstructor;
+	}
+}
+
+// 音声認識インスタンスの保持用変数
+let speechRecognition: SpeechRecognition | null = null;
+
 /**
  * 録音の開始/停止を切り替えるアクション
  */
@@ -47,6 +119,10 @@ export const toggleRecordingAtom = atom(
 
 		// 録音中なら停止
 		if (currentlyRecording) {
+			if (speechRecognition) {
+				speechRecognition.stop();
+				speechRecognition = null;
+			}
 			set(isRecordingAtom, false);
 			set(recordingTimerAtom, 0);
 			return;
@@ -59,33 +135,78 @@ export const toggleRecordingAtom = atom(
 			// 録音開始
 			set(isRecordingAtom, true);
 
-			// タイマーをセット
-			const duration = get(recordingDurationAtom);
+			// Web Speech APIのセットアップ
+			// ブラウザの互換性に対応
+			const SpeechRecognition =
+				window.SpeechRecognition || window.webkitSpeechRecognition;
 
-			// 実際のプロジェクトではここで録音処理を実装
-			// ここではモックの実装として、指定時間後に録音を停止
-			setTimeout(() => {
-				// 録音停止時の処理
+			if (!SpeechRecognition) {
+				throw new Error("このブラウザは音声認識に対応していません");
+			}
+
+			speechRecognition = new SpeechRecognition();
+
+			// 設定
+			speechRecognition.lang = "ja-JP"; // 日本語に設定
+			speechRecognition.interimResults = true; // 途中経過も取得
+			speechRecognition.continuous = true; // 連続的な認識を有効に
+
+			// 認識結果イベント
+			speechRecognition.onresult = (event) => {
+				const results = event.results;
+				let finalText = "";
+				let interimText = "";
+
+				// 結果を全て取得
+				for (let i = 0; i < results.length; i++) {
+					const result = results[i];
+
+					// 確定した結果のみ最終テキストに追加
+					if (result.isFinal) {
+						finalText += result[0].transcript;
+					} else {
+						interimText += result[0].transcript;
+					}
+				}
+
+				// 現在の認識テキストを更新
+				const recognizedText = finalText + interimText;
+				set(recognizedTextAtom, recognizedText);
+
+				// コールバック関数経由で親コンポーネントに通知
+				if (onRecognizedText && recognizedText.trim()) {
+					onRecognizedText(recognizedText);
+				}
+			};
+
+			// エラーハンドリング
+			speechRecognition.onerror = (event) => {
+				console.error("音声認識エラー:", event.error);
 				set(isRecordingAtom, false);
 				set(recordingTimerAtom, 0);
 
-				// 録音結果を処理する仮のテキスト
+				// エラーメッセージを表示
 				if (onRecognizedText) {
-					// ランダムテキスト生成関数を取得して実行
-					const textGenerator = get(randomTextGeneratorAtom);
-					const randomText = textGenerator
-						? textGenerator()
-						: "音声が認識できませんでした";
-
-					// 認識テキストを更新
-					set(recognizedTextAtom, randomText);
-
-					// コールバック関数を呼び出す
-					onRecognizedText(randomText);
+					onRecognizedText("音声認識中にエラーが発生しました");
 				}
-			}, duration);
+			};
+
+			// 認識終了時の処理
+			speechRecognition.onend = () => {
+				// 明示的に停止されていない場合は録音状態を更新
+				if (get(isRecordingAtom)) {
+					set(isRecordingAtom, false);
+					set(recordingTimerAtom, 0);
+				}
+			};
+
+			// 認識開始
+			speechRecognition.start();
 		} catch (error) {
-			console.error("マイクの使用許可が得られませんでした:", error);
+			console.error(
+				"マイクの使用許可またはWeb Speech APIの初期化エラー:",
+				error,
+			);
 			alert("マイクへのアクセスを許可してください。");
 			set(isRecordingAtom, false);
 		}
