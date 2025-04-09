@@ -61,36 +61,47 @@ export default function App() {
 	/**
 	 * チャットから質問が送信された時の処理
 	 */
-	const handleChatInterfaceQuestion = (question: string) => {
+	const handleChatInterfaceQuestion = async (question: string) => {
 		// 思考モード開始
 		if (vrmWrapperRef.current?.startThinking) {
 			vrmWrapperRef.current.startThinking();
 		}
 
-		// 一定時間後に思考モード終了してモック回答を生成
-		setTimeout(() => {
-			const mockResponse = generateMockResponse(question);
+		// モック回答を生成
+		const mockResponse = generateMockResponse(question);
 
-			if (chatInterfaceRef.current) {
-				// レスポンスをチャットに追加
-				chatInterfaceRef.current.addMessage(mockResponse, false, undefined);
+		try {
+			// StandingIdleアニメーションに切り替え
+			if (vrmWrapperRef.current?.crossFadeAnimation) {
+				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 			}
+
+			// 音声生成を開始し、完了するまで待機
+			// useTextToSpeechフックのspeak関数は非同期で音声生成とリップシンク付き再生を行う
+			await speak(mockResponse);
 
 			// 思考モード終了
 			if (vrmWrapperRef.current?.stopThinking) {
 				vrmWrapperRef.current.stopThinking();
 			}
 
-			// StandingIdleアニメーションに切り替え
-			if (vrmWrapperRef.current?.crossFadeAnimation) {
-				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+			// 音声が再生開始されたタイミングでChatInterfaceに結果を表示
+			if (chatInterfaceRef.current) {
+				chatInterfaceRef.current.addMessage(mockResponse, false, undefined);
+			}
+		} catch (error) {
+			console.error("音声生成エラー:", error);
+
+			// 思考モード終了
+			if (vrmWrapperRef.current?.stopThinking) {
+				vrmWrapperRef.current.stopThinking();
 			}
 
-			// useTextToSpeechフックを使用して音声生成とリップシンク処理
-			setTimeout(() => {
-				speak(mockResponse);
-			}, 300);
-		}, 2000);
+			// エラー時も結果だけは表示
+			if (chatInterfaceRef.current) {
+				chatInterfaceRef.current.addMessage(mockResponse, false, undefined);
+			}
+		}
 	};
 
 	/**
