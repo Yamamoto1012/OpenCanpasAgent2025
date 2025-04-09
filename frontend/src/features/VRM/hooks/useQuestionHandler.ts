@@ -88,7 +88,11 @@ export const useQuestionHandler = ({
 						// モック回答をChatInterfaceに追加
 						if (chatInterfaceRef.current) {
 							const mockResponse = generateMockResponse(question);
-							chatInterfaceRef.current.addMessage(mockResponse, false);
+							chatInterfaceRef.current.addMessage(
+								mockResponse,
+								false,
+								mockResponse,
+							);
 						}
 
 						// 思考状態を明示的に終了

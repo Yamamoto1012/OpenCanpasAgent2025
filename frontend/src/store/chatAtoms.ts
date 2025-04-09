@@ -5,11 +5,13 @@ import { atom } from "jotai";
  * id: 一意のメッセージID
  * text: メッセージ内容
  * isUser: ユーザーからのメッセージかどうか
+ * speakText: 読み上げるテキスト
  */
 export type Message = {
 	id: number;
 	text: string;
 	isUser: boolean;
+	speakText?: string;
 };
 
 /**
@@ -42,12 +44,17 @@ export const isThinkingAtom = atom<boolean>(false);
  */
 export const addMessageAtom = atom(
 	null,
-	(get, set, payload: { text: string; isUser: boolean }) => {
+	(
+		get,
+		set,
+		payload: { text: string; isUser: boolean; speakText?: string },
+	) => {
 		const currentMessages = get(messagesAtom);
 		const newMessage: Message = {
 			id: currentMessages.length + 1,
 			text: payload.text,
 			isUser: payload.isUser,
+			speakText: payload.speakText,
 		};
 		set(messagesAtom, [...currentMessages, newMessage]);
 	},

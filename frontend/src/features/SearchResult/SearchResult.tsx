@@ -1,9 +1,11 @@
 import type React from "react";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useAtom } from "jotai";
 import type { Category } from "../CategoryNagigator/components/CategoryCard";
 import { SearchResultsView } from "./SearchResultsView";
 import { inputValueAtom } from "./store/searchResultAtoms";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 type SearchResultsProps = {
 	query: string;
@@ -11,6 +13,7 @@ type SearchResultsProps = {
 	isQuestion?: boolean;
 	onBack: () => void;
 	onNewQuestion?: (question: string) => void;
+	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
 };
 
 export const SearchResults: React.FC<SearchResultsProps> = ({
@@ -19,16 +22,40 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	isQuestion = false,
 	onBack,
 	onNewQuestion,
+	vrmWrapperRef,
 }) => {
 	const [inputValue, setInputValue] = useAtom(inputValueAtom);
 	const inputRef = useRef<HTMLInputElement>(
 		null,
 	) as React.RefObject<HTMLInputElement>;
 
-	// AIからの回答テキスト（実際のアプリではAPIから取得）
+	// 音声合成フックを使用
+	const { speak } = useTextToSpeech(vrmWrapperRef);
+
+	// AIからの回答テキスト
 	const mockResponse = isQuestion
 		? `${query}についてはこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`
 		: `「${category?.title || ""}」についての情報はこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`;
+
+	// コンポーネントのマウント時にのみ音声を再生する
+	useEffect(() => {
+		let hasSpoken = false;
+
+		// 画面表示後に音声を再生する
+		const timer = setTimeout(() => {
+			if (!hasSpoken) {
+				// VRMがある場合、読み上げ前に適切なアニメーションに切り替え
+				if (vrmWrapperRef?.current?.crossFadeAnimation) {
+					vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+				}
+				speak(mockResponse);
+				hasSpoken = true;
+			}
+		}, 500);
+
+		// クリーンアップ関数
+		return () => clearTimeout(timer);
+	}, [mockResponse, speak, vrmWrapperRef]);
 
 	// 詳細情報（実際のアプリではAPIから取得）
 	const mockDetails = isQuestion

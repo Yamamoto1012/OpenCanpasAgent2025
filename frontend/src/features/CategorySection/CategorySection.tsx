@@ -6,6 +6,7 @@ import {
 } from "@/store/appStateAtoms";
 import type { Category } from "../CategoryNagigator/components/CategoryCard";
 import { CategorySectionView } from "./CategorySectionView";
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 type CategorySectionProps = {
 	/**
@@ -57,6 +58,11 @@ type CategorySectionProps = {
 	 * 検索結果からの戻るボタン処理のハンドラー
 	 */
 	onBackFromSearch: () => void;
+
+	/**
+	 * VRMWrapperの参照
+	 */
+	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
 };
 
 /**
@@ -75,6 +81,7 @@ export const CategorySection: FC<CategorySectionProps> = ({
 	onSearch,
 	onAskQuestion,
 	onBackFromSearch,
+	vrmWrapperRef,
 }) => {
 	// グローバル状態の取得
 	const [isDirectChatQuestion] = useAtom(isDirectChatQuestionAtom);
@@ -99,6 +106,7 @@ export const CategorySection: FC<CategorySectionProps> = ({
 			onSearch={onSearch}
 			onAskQuestion={onAskQuestion}
 			onBackFromSearch={onBackFromSearch}
+			vrmWrapperRef={vrmWrapperRef}
 		/>
 	);
 };

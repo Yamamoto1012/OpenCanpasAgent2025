@@ -160,6 +160,7 @@ export default function App() {
 						onSearch={handleSearch}
 						onAskQuestion={handleAskQuestion}
 						onBackFromSearch={handleBackFromSearch}
+						vrmWrapperRef={vrmWrapperRef}
 					/>
 
 					{/* チャットインターフェース */}
