@@ -134,9 +134,6 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			// 応答状態に変更
 			setProcessingState("responding");
 
-			// 音声再生（実際は生成した音声URLを使用）
-			playAudio("/audio/test.mp3");
-
 			// 応答完了後、ユーザー入力待ち状態に
 			responseTimerRef.current = setTimeout(() => {
 				setProcessingState("waiting");

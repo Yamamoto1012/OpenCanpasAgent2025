@@ -52,17 +52,9 @@ export const useAudioContext = () => {
 			}
 
 			setAudioInitialized(true);
-			// 少し待ってから音声再生
-			setTimeout(() => {
-				if (vrmWrapperRef.current?.playAudio) {
-					vrmWrapperRef.current.playAudio("/audio/test.mp3");
-				}
-			}, 300);
 		} else {
-			// すでに初期化済みなら直接再生
-			if (vrmWrapperRef.current?.playAudio) {
-				vrmWrapperRef.current.playAudio("/audio/test.mp3");
-			}
+			// すでにAudioContextが初期化されている場合は何もしない
+			console.log("AudioContexがすでに初期化されています");
 		}
 	};
 
@@ -71,7 +63,6 @@ export const useAudioContext = () => {
 	 */
 	const playAudio = (audioUrl: string) => {
 		if (!audioInitialized) {
-			const audioCtx = new AudioContext();
 			setAudioInitialized(true);
 
 			setTimeout(() => {
