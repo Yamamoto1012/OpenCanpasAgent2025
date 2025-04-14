@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings, logger
-from routers import health, speech, dictionary
+from routers import health, speech, dictionary, llm
 
 
 def create_application() -> FastAPI:
@@ -37,9 +37,10 @@ def create_application() -> FastAPI:
     )
     
     # ルーターの登録
-    app.include_router(health.router, prefix="")
-    app.include_router(speech.router, prefix="")
-    app.include_router(dictionary.router, prefix="")
+    app.include_router(health.router, prefix="", tags=["health"])
+    app.include_router(speech.router, prefix="", tags=["speech"])
+    app.include_router(dictionary.router, prefix="", tags=["dictionary"])
+    app.include_router(llm.router, prefix="/llm", tags=["llm"])
     
     logger.info("AivisSpeech API サーバーを初期化しました")
     return app

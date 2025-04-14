@@ -7,3 +7,5 @@ numpy==1.25.2
 soundfile==0.12.1
 pydantic==2.3.0
 onnxruntime==1.15.1
+httpx==0.24.1
+python-dotenv==1.0.0

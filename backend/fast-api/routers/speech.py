@@ -55,19 +55,19 @@ async def synthesis(request: AudioQueryRequest) -> Response:
     return services.get_wav_response(audio_content)
 
 
-@router.post("/tts", summary="テキストから音声を直接生成", response_class=Response)
+@router.post("/tts", summary="テキストから音声を直接生成", response_model=None)
 async def text_to_speech(
     request: TTSRequest
 ) -> Union[Response, AudioBase64Response, HTMLResponse]:
     """
     テキストから直接音声を生成するワンステップAPIエンドポイント。
     フォーマットを指定して異なる形式で受け取ることができます。
-    
+
     Args:
         request: テキスト、話者ID、出力フォーマットを含むリクエスト
-        
+
     Returns:
-        Union[Response, AudioBase64Response, HTMLResponse]: 
+        Union[Response, AudioBase64Response, HTMLResponse]:
             指定されたフォーマットの音声データ
             - wav: 直接ダウンロード可能な音声ファイル
             - base64: Base64エンコードされたJSON
