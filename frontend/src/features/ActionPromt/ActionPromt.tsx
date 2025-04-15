@@ -3,6 +3,7 @@ import { useAtom } from "jotai";
 import { ActionPromptView } from "./ActionPromtView";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { showQuestionInputAtom, questionAtom } from "./store/actionPromptAtoms";
+import { generateText } from "@/services/llmService";
 
 type ActionPromptProps = {
 	categoryTitle: string;
@@ -57,12 +58,28 @@ export const ActionPrompt: React.FC<ActionPromptProps> = ({
 	};
 
 	// 質問送信処理
-	const handleSendQuestion = () => {
+	const handleSendQuestion = async () => {
 		const trimmedQuestion = question.trim();
 		if (trimmedQuestion) {
-			onAskQuestion(trimmedQuestion);
-			// 質問送信後は入力をリセットしつつフォームは表示したままにする
-			setQuestion("");
+			try {
+				// カテゴリ情報をコンテキストとして付加
+				const context = { category: categoryTitle };
+
+				// LLM APIを使用して回答を生成（結果は現在使用していない）
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				await generateText(trimmedQuestion, context);
+				
+				// 親コンポーネントに質問を渡す
+				onAskQuestion(trimmedQuestion);
+				
+				// 質問送信後は入力をリセットしつつフォームは表示したままにする
+				setQuestion("");
+			} catch (error) {
+				console.error("Error generating response:", error);
+				// エラー時は元の質問だけを親に渡す
+				onAskQuestion(trimmedQuestion);
+				setQuestion("");
+			}
 		}
 	};
 
