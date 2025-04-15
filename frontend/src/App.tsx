@@ -97,7 +97,8 @@ export default function App() {
 			console.error("API/音声生成エラー:", error);
 
 			// エラーメッセージ
-			const errorResponse = "申し訳ありません、応答の生成中に問題が発生しました。もう一度お試しください。";
+			const errorResponse =
+				"申し訳ありません、応答の生成中に問題が発生しました。もう一度お試しください。";
 
 			// 思考モード終了 (VRM)
 			if (vrmWrapperRef.current?.stopThinking) {
@@ -106,7 +107,11 @@ export default function App() {
 
 			// エラー時もメッセージを表示
 			if (chatInterfaceRef.current) {
-				chatInterfaceRef.current.addMessage(errorResponse, false, errorResponse);
+				chatInterfaceRef.current.addMessage(
+					errorResponse,
+					false,
+					errorResponse,
+				);
 			}
 
 			// 思考中状態を解除 (ChatInterface)

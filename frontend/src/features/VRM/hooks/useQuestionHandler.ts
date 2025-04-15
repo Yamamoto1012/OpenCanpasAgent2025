@@ -73,10 +73,12 @@ export const useQuestionHandler = ({
 					try {
 						// LLM APIから回答を取得
 						const apiResponse = await generateText(question);
-						
+
 						// 思考モーションから通常モーションに戻す
 						if (vrmWrapperRef.current?.crossFadeAnimation) {
-							vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+							vrmWrapperRef.current.crossFadeAnimation(
+								"/Motion/StandingIdle.vrma",
+							);
 						}
 
 						// API応答をChatInterfaceに追加
@@ -95,22 +97,28 @@ export const useQuestionHandler = ({
 							console.warn("QuestionHandler: stopThinking関数が利用できません");
 						}
 					} catch (responseError) {
-						console.error("QuestionHandler: API応答取得中にエラー:", responseError);
-						
+						console.error(
+							"QuestionHandler: API応答取得中にエラー:",
+							responseError,
+						);
+
 						// エラー時は汎用メッセージを表示
 						if (chatInterfaceRef.current) {
-							const errorMessage = "申し訳ありません、応答の取得中に問題が発生しました。もう一度お試しください。";
+							const errorMessage =
+								"申し訳ありません、応答の取得中に問題が発生しました。もう一度お試しください。";
 							chatInterfaceRef.current.addMessage(errorMessage, false);
 						}
-						
+
 						// エラー発生時も必ず思考状態を解除
 						if (vrmWrapperRef.current?.stopThinking) {
 							vrmWrapperRef.current.stopThinking();
 						}
-						
+
 						// 通常モーションに戻す
 						if (vrmWrapperRef.current?.crossFadeAnimation) {
-							vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+							vrmWrapperRef.current.crossFadeAnimation(
+								"/Motion/StandingIdle.vrma",
+							);
 						}
 					}
 				})();
