@@ -1,15 +1,15 @@
 import { useRef, useEffect } from "react";
 import "./App.css";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import {
 	showVoiceChatAtom,
 	isDirectChatQuestionAtom,
 	isActionPromptQuestionAtom,
 } from "./store/appStateAtoms";
+import { isThinkingAtom } from "./store/chatAtoms";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
-import { useTextToSpeech } from "./hooks/useTextToSpeech";
 import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";
 import { AppLayout } from "./components/AppLayout";
 import { VRMContainer } from "./features/VRM/VRMContainer/VRMContainer";
@@ -17,7 +17,7 @@ import { CategorySection } from "./features/CategorySection/CategorySection";
 import { ChatSection } from "./features/ChatInterface/ChatSection";
 import { ControlButtons } from "./features/ControlButtons/ControlButtons";
 import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
-import { generateMockResponse } from "./features/ChatInterface/generateMockResponse";
+import { generateText } from "./services/llmService";
 
 export default function App() {
 	// グローバル状態の取得
@@ -29,9 +29,12 @@ export default function App() {
 		isActionPromptQuestionAtom,
 	);
 
+	// isThinkingAtom のセッターを取得
+	const setIsThinking = useSetAtom(isThinkingAtom);
+
 	// カスタムフックの利用
 	const { vrmWrapperRef } = useAudioContext();
-	const { speak } = useTextToSpeech(vrmWrapperRef);
+	// speak関数は直接使用しないため削除
 	const chatInterfaceRef = useRef<ChatInterfaceHandle>(null);
 
 	// カテゴリ選択関連の状態とロジックを取得
@@ -62,45 +65,57 @@ export default function App() {
 	 * チャットから質問が送信された時の処理
 	 */
 	const handleChatInterfaceQuestion = async (question: string) => {
-		// 思考モード開始
+		// 思考モード開始 (VRM)
 		if (vrmWrapperRef.current?.startThinking) {
 			vrmWrapperRef.current.startThinking();
 		}
-
-		// モック回答を生成
-		const mockResponse = generateMockResponse(question);
+		// 思考中状態開始 (ChatInterface) - ChatInterface の handleSend で既に true になっています
 
 		try {
+			// LLM APIで回答を取得
+			const apiResponse = await generateText(question);
+
 			// StandingIdleアニメーションに切り替え
 			if (vrmWrapperRef.current?.crossFadeAnimation) {
 				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 			}
 
-			// 音声生成を開始し、完了するまで待機
-			// useTextToSpeechフックのspeak関数は非同期で音声生成とリップシンク付き再生を行う
-			await speak(mockResponse);
-
-			// 思考モード終了
+			// 思考モード終了 (VRM)
 			if (vrmWrapperRef.current?.stopThinking) {
 				vrmWrapperRef.current.stopThinking();
 			}
 
-			// 音声が再生開始されたタイミングでChatInterfaceに結果を表示
+			// ChatInterfaceに結果を表示（音声合成用のテキストも設定）
 			if (chatInterfaceRef.current) {
-				chatInterfaceRef.current.addMessage(mockResponse, false, undefined);
+				chatInterfaceRef.current.addMessage(apiResponse, false, apiResponse);
 			}
+			// 注：音声合成はChatInterfaceコンポーネント内のuseEffectによって自動的に実行されます
+
+			// 思考中状態を解除 (ChatInterface)
+			setIsThinking(false);
 		} catch (error) {
-			console.error("音声生成エラー:", error);
+			console.error("API/音声生成エラー:", error);
 
-			// 思考モード終了
+			// エラーメッセージ
+			const errorResponse =
+				"申し訳ありません、応答の生成中に問題が発生しました。もう一度お試しください。";
+
+			// 思考モード終了 (VRM)
 			if (vrmWrapperRef.current?.stopThinking) {
 				vrmWrapperRef.current.stopThinking();
 			}
 
-			// エラー時も結果だけは表示
+			// エラー時もメッセージを表示
 			if (chatInterfaceRef.current) {
-				chatInterfaceRef.current.addMessage(mockResponse, false, undefined);
+				chatInterfaceRef.current.addMessage(
+					errorResponse,
+					false,
+					errorResponse,
+				);
 			}
+
+			// 思考中状態を解除 (ChatInterface)
+			setIsThinking(false);
 		}
 	};
 

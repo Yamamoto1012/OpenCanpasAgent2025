@@ -22,6 +22,7 @@ import {
 	randomTextGeneratorAtom,
 } from "@/store/recordingAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import { generateText } from "@/services/llmService";
 
 export type ChatInterfaceHandle = {
 	addMessage: (text: string, isUser?: boolean, speakText?: string) => void;
@@ -103,26 +104,41 @@ export const ChatInterface = forwardRef<
 	};
 
 	// メッセージ送信処理
-	const handleSend = () => {
+	const handleSend = async () => {
 		const trimmedInput = inputValue.trim();
 		if (!trimmedInput) return;
 
 		// ユーザーメッセージを追加
 		addMessage({ text: trimmedInput, isUser: true });
 
+		// 思考中状態に設定
+		setIsThinking(true);
+
 		// 親コンポーネントに質問を通知
 		if (props.onSendQuestion) {
 			props.onSendQuestion(trimmedInput);
-		} else {
-			// 既存の自動応答ロジックはバックアップとして使用
-			setIsThinking(true);
-			setTimeout(() => {
-				setIsThinking(false);
-				addMessage({
-					text: "ご質問ありがとうございます。お答えします！",
-					isUser: false,
-				});
-			}, 3000);
+			setInputValue("");
+			return;
+		}
+
+		try {
+			// LLM APIを使用して回答を生成
+			const answer = await generateText(trimmedInput);
+			// 思考中状態を解除
+			setIsThinking(false);
+			// 回答メッセージを追加（音声合成用のテキストも同じものを使用）
+			addMessage({
+				text: answer,
+				isUser: false,
+				speakText: answer,
+			});
+		} catch (error) {
+			console.error("Error generating response:", error);
+			setIsThinking(false);
+			addMessage({
+				text: "すみません、応答の生成中にエラーが発生しました。もう一度お試しください。",
+				isUser: false,
+			});
 		}
 
 		// 入力欄をクリア

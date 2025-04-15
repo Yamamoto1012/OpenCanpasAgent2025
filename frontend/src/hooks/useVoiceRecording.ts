@@ -6,12 +6,10 @@ import {
 	updateRecordingTimerAtom,
 	recordingIntervalAtom,
 	toggleRecordingAtom,
-	randomTextGeneratorAtom,
 } from "@/store/recordingAtoms";
 
 type UseVoiceRecordingProps = {
 	onRecognizedText: (text: string) => void;
-	getRandomText: () => string;
 	recordingDuration?: number;
 };
 
@@ -20,19 +18,12 @@ type UseVoiceRecordingProps = {
  */
 export const useVoiceRecording = ({
 	onRecognizedText,
-	getRandomText,
 }: UseVoiceRecordingProps) => {
 	const [isRecording] = useAtom(isRecordingAtom);
 	const [recordingTimer] = useAtom(recordingTimerAtom);
-	const intervalMs = useAtomValue(recordingIntervalAtom);
+	const intervalMs = useAtomValue(recordingIntervalAtom); // 録音間隔
 	const toggleRecording = useSetAtom(toggleRecordingAtom);
 	const updateRecordingTimer = useSetAtom(updateRecordingTimerAtom);
-	const setRandomTextGenerator = useSetAtom(randomTextGeneratorAtom);
-
-	// ランダムテキスト生成関数を設定
-	useEffect(() => {
-		setRandomTextGenerator(getRandomText);
-	}, [getRandomText, setRandomTextGenerator]);
 
 	// 録音中はタイマーを更新
 	useEffect(() => {
