@@ -18,11 +18,7 @@ import { ControlButtons } from "./features/ControlButtons/ControlButtons";
 import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
 
 export default function App() {
-	// グローバル状態の取得
-	const [isDirectChatQuestion, setIsDirectChatQuestion] = useAtom(
-		isDirectChatQuestionAtom,
-	);
-	const showVoiceChat = useAtom(showVoiceChatAtom);
+	const [showVoiceChat, _setShowVoiceChat] = useAtom(showVoiceChatAtom);
 	const [isActionPromptQuestion, setIsActionPromptQuestion] = useAtom(
 		isActionPromptQuestionAtom,
 	);
@@ -57,37 +53,11 @@ export default function App() {
 		setIsActionPromptQuestion(false);
 	};
 
-
-	/**
-	 * ActionPromptからの質問処理をラップ
-	 * 思考モードの制御とフラグ設定を行う
-	 */
-	const wrappedHandleAskQuestion = (question: string) => {
-		// 思考モード開始
-		if (vrmWrapperRef.current?.startThinking) {
-			vrmWrapperRef.current.startThinking();
-		}
-
-		// フラグ設定
-		setIsActionPromptQuestion(true);
-		setIsDirectChatQuestion(false);
-
-		// 元の質問処理実行
-		originalHandleAskQuestion(question);
-
-		// 一定時間後に思考モード終了
-		setTimeout(() => {
-			if (vrmWrapperRef.current?.stopThinking) {
-				vrmWrapperRef.current.stopThinking();
-			}
-		}, 5500);
-	};
-
 	// 質問処理のカスタムフックを利用
 	const { handleAskQuestion } = useQuestionHandler({
 		vrmWrapperRef,
 		chatInterfaceRef,
-		originalHandleAskQuestion: wrappedHandleAskQuestion,
+		originalHandleAskQuestion,
 	});
 
 
