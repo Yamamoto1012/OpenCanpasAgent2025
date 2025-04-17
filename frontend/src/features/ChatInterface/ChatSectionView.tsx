@@ -13,11 +13,6 @@ export type ChatSectionViewProps = {
 	 * nullableな参照を許容する
 	 */
 	chatInterfaceRef: RefObject<ChatInterfaceHandle | null>;
-
-	/**
-	 * 質問送信時のハンドラー
-	 */
-	onSendQuestion: (question: string) => void;
 };
 
 /**
@@ -28,7 +23,6 @@ export type ChatSectionViewProps = {
 export const ChatSectionView: FC<ChatSectionViewProps> = ({
 	isVisible,
 	chatInterfaceRef,
-	onSendQuestion,
 }) => {
 	return (
 		<AnimatePresence>
@@ -40,10 +34,7 @@ export const ChatSectionView: FC<ChatSectionViewProps> = ({
 					exit={{ opacity: 0, x: -100 }}
 					transition={{ duration: 0.3 }}
 				>
-					<ChatInterface
-						ref={chatInterfaceRef}
-						onSendQuestion={onSendQuestion}
-					/>
+					<ChatInterface ref={chatInterfaceRef} />
 				</motion.div>
 			)}
 		</AnimatePresence>

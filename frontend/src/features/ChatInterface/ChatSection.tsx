@@ -13,11 +13,6 @@ type ChatSectionProps = {
 	 * nullableな参照を許容する
 	 */
 	chatInterfaceRef: RefObject<ChatInterfaceHandle | null>;
-
-	/**
-	 * 質問送信時のハンドラー
-	 */
-	onSendQuestion: (question: string) => void;
 };
 
 /**
@@ -28,7 +23,6 @@ type ChatSectionProps = {
 export const ChatSection: FC<ChatSectionProps> = ({
 	isVisible,
 	chatInterfaceRef,
-	onSendQuestion,
 }) => {
 	// 将来的にチャットに関する追加のロジックや状態管理
 
@@ -36,7 +30,6 @@ export const ChatSection: FC<ChatSectionProps> = ({
 		<ChatSectionView
 			isVisible={isVisible}
 			chatInterfaceRef={chatInterfaceRef}
-			onSendQuestion={onSendQuestion}
 		/>
 	);
 };
