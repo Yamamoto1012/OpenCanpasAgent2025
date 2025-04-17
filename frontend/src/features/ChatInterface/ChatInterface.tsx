@@ -23,6 +23,7 @@ import {
 } from "@/store/recordingAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { generateText } from "@/services/llmService";
+import { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type ChatInterfaceHandle = {
 	addMessage: (text: string, isUser?: boolean, speakText?: string) => void;
@@ -30,6 +31,7 @@ export type ChatInterfaceHandle = {
 
 export type ChatInterfaceProps = {
 	onSendQuestion?: (question: string) => void;
+	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
 };
 
 export const ChatInterface = forwardRef<
@@ -46,7 +48,7 @@ export const ChatInterface = forwardRef<
 	const setRandomTextGenerator = useSetAtom(randomTextGeneratorAtom);
 
 	// 音声合成フックを使用
-	const { speak, stop } = useTextToSpeech();
+	const { speak, stop } = useTextToSpeech(props.vrmWrapperRef);
 
 	// 最後に再生したメッセージのIDを保存するための参照
 	const lastSpokenMessageIdRef = useRef<number | null>(null);

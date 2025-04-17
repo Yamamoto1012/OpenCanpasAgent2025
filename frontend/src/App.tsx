@@ -73,6 +73,7 @@ export default function App() {
 					<ChatSection
 						isVisible={showChat}
 						chatInterfaceRef={chatInterfaceRef}
+						vrmWrapperRef={vrmWrapperRef}
 					/>
 
 					{/* コントロールボタン群 */}

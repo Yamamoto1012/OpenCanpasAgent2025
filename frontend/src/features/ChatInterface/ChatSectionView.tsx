@@ -1,28 +1,18 @@
 import type { FC, RefObject } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatInterface, type ChatInterfaceHandle } from "./ChatInterface";
+import { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type ChatSectionViewProps = {
-	/**
-	 * チャットの表示状態
-	 */
 	isVisible: boolean;
-
-	/**
-	 * ChatInterfaceへの参照
-	 * nullableな参照を許容する
-	 */
 	chatInterfaceRef: RefObject<ChatInterfaceHandle | null>;
+	vrmWrapperRef: RefObject<VRMWrapperHandle | null>;
 };
 
-/**
- * チャットインターフェースの表示を担当するプレゼンテーションコンポーネント
- *
- * 画面左側のチャットUIの表示と非表示、およびアニメーション効果の表示のみを担当
- */
 export const ChatSectionView: FC<ChatSectionViewProps> = ({
 	isVisible,
 	chatInterfaceRef,
+	vrmWrapperRef,
 }) => {
 	return (
 		<AnimatePresence>
@@ -34,7 +24,7 @@ export const ChatSectionView: FC<ChatSectionViewProps> = ({
 					exit={{ opacity: 0, x: -100 }}
 					transition={{ duration: 0.3 }}
 				>
-					<ChatInterface ref={chatInterfaceRef} />
+					<ChatInterface ref={chatInterfaceRef} vrmWrapperRef={vrmWrapperRef} />
 				</motion.div>
 			)}
 		</AnimatePresence>
