@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import "./App.css";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { showVoiceChatAtom } from "./store/appStateAtoms";
+import { addMessageAtom } from "./store/chatAtoms";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
-import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
 import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";
 import { AppLayout } from "./components/AppLayout";
 import { VRMContainer } from "./features/VRM/VRMContainer/VRMContainer";
@@ -15,10 +15,10 @@ import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
 
 export default function App() {
 	const [showVoiceChat, _setShowVoiceChat] = useAtom(showVoiceChatAtom);
+	const addMessage = useSetAtom(addMessageAtom);
 
 	// カスタムフックの利用
 	const { vrmWrapperRef } = useAudioContext();
-	// speak関数は直接使用しないため削除
 	const chatInterfaceRef = useRef<ChatInterfaceHandle>(null);
 
 	// カテゴリ選択関連の状態とロジックを取得
@@ -36,12 +36,15 @@ export default function App() {
 		handleBackFromSearch,
 	} = useCategorySelection();
 
-	// 質問処理のカスタムフックを利用
-	const { handleAskQuestion } = useQuestionHandler({
-		vrmWrapperRef,
-		chatInterfaceRef,
-		originalHandleAskQuestion,
-	});
+	const handleAskQuestion = (question: string, answer?: string | null) => {
+		addMessage({ text: question, isUser: true });
+		if (answer) {
+			addMessage({ text: answer, isUser: false });
+		}
+		if (originalHandleAskQuestion) {
+			originalHandleAskQuestion(question, answer);
+		}
+	};
 
 	return (
 		<AppLayout>

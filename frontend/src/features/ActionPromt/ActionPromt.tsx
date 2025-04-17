@@ -8,7 +8,7 @@ import { toast } from "sonner";
 type ActionPromptProps = {
 	categoryTitle: string;
 	onSearch: () => void;
-	onAskQuestion: (question: string) => void;
+	onAskQuestion: (question: string, answer?: string | null) => void;
 };
 
 /**
@@ -48,8 +48,8 @@ export const ActionPrompt: React.FC<ActionPromptProps> = ({
 		if (trimmedQuestion) {
 			try {
 				const context = { category: categoryTitle };
-				await generateText(trimmedQuestion, context);
-				onAskQuestion(trimmedQuestion);
+				const llmResponse = await generateText(trimmedQuestion, context);
+				onAskQuestion(trimmedQuestion, llmResponse);
 				setState({ question: "" });
 			} catch (error) {
 				// エラーメッセージをトースト通知で表示
@@ -60,8 +60,7 @@ export const ActionPrompt: React.FC<ActionPromptProps> = ({
 						position: "bottom-right",
 					},
 				);
-				// エラー時は元の質問だけを親に渡す
-				onAskQuestion(trimmedQuestion);
+				onAskQuestion(trimmedQuestion, null);
 				setState({ question: "" });
 			}
 		}

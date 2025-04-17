@@ -62,7 +62,7 @@ export const useCategorySelection = () => {
 	};
 
 	// 質問が入力されたとき
-	const handleAskQuestion = (question: string) => {
+	const handleAskQuestion = (question: string, _answer?: string | null) => {
 		if (!categorySelectionState.selectedCategory) return;
 
 		setShowActionPrompt(false);
