@@ -152,24 +152,6 @@ export default function App() {
 	});
 
 	/**
-	 * 音声チャットを開く処理
-	 * モーション状態の保存と切り替えを行う
-	 */
-	const handleOpenVoiceChat = () => {
-		setShowVoiceChat(true);
-
-		// 現在のモーションを保存
-		if (vrmWrapperRef.current?.getLastMotion) {
-			vrmWrapperRef.current.getLastMotion();
-		}
-
-		// モーション切り替え
-		if (vrmWrapperRef.current?.crossFadeAnimation) {
-			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
-		}
-	};
-
-	/**
 	 * 音声チャットを閉じる処理
 	 * 保存していたモーション状態に戻す
 	 */
@@ -224,7 +206,7 @@ export default function App() {
 					/>
 
 					{/* コントロールボタン群 */}
-					<ControlButtons onOpenVoiceChat={handleOpenVoiceChat} />
+					<ControlButtons />
 				</>
 			)}
 
