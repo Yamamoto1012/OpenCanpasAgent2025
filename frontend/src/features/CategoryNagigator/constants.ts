@@ -453,29 +453,33 @@ export const subCategories: Record<string, Category[]> = {
 	],
 };
 
-// サブサブカテゴリーのマッピング（文章を短く）
+// サブサブカテゴリーのマッピング
 export const subSubCategories: Record<string, Category[]> = {
 	// about サブカテゴリー
 	bunri: [
 		{
+			id: "bunri-komyunikeeshon",
 			title: "コミュニケーション",
 			description: "学生交流で新発見。",
 			icon: MessageCircle,
 			color: "text-emerald-700",
 		},
 		{
+			id: "bunri-aratanakachisouzou",
 			title: "新たな価値創造",
 			description: "革新的視点の獲得。",
 			icon: Lightbulb,
 			color: "text-orange-700",
 		},
 		{
+			id: "bunri-kadaitsuikyuu",
 			title: "課題追究",
 			description: "社会課題の解決。",
 			icon: Target,
 			color: "text-blue-700",
 		},
 		{
+			id: "bunri-sougoudaigakuzou",
 			title: "総合大学像",
 			description: "文理融合のコンセプト。",
 			icon: Puzzle,
@@ -484,24 +488,28 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	shakaijissou: [
 		{
+			id: "shakaijissou-kadaitaiou",
 			title: "課題対応",
 			description: "現代の社会課題。",
 			icon: Tool,
 			color: "text-blue-700",
 		},
 		{
+			id: "shakaijissou-sangakukyoudo",
 			title: "産学協同",
 			description: "企業連携研究。",
 			icon: Handshake,
 			color: "text-indigo-700",
 		},
 		{
+			id: "shakaijissou-innovation",
 			title: "イノベーション",
 			description: "新技術の創出。",
 			icon: Rocket,
 			color: "text-red-700",
 		},
 		{
+			id: "shakaijissou-shakaikouken",
 			title: "社会貢献",
 			description: "全体の発展に寄与。",
 			icon: Heart,
@@ -510,42 +518,49 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	kyousou: [
 		{
+			id: "kyousou-fukaimanabi",
 			title: "深い学び",
 			description: "社会人との交流。",
 			icon: Brain,
 			color: "text-purple-700",
 		},
 		{
+			id: "kyousou-komyunikeeshon",
 			title: "コミュニケーション",
 			description: "世代間の対話。",
 			icon: MessageCircle,
 			color: "text-orange-700",
 		},
 		{
+			id: "kyousou-inobeeshonryoku",
 			title: "イノベーション力",
 			description: "実践で鍛錬。",
 			icon: Lightbulb,
 			color: "text-blue-700",
 		},
 		{
+			id: "kyousou-kenkyuushitsukatsuyou",
 			title: "研究室活用",
 			description: "資源の共有。",
 			icon: Microscope,
 			color: "text-green-700",
 		},
 		{
+			id: "kyousou-oudanjugyou",
 			title: "横断授業",
 			description: "学科を超えた授業。",
 			icon: Puzzle,
 			color: "text-indigo-700",
 		},
 		{
+			id: "kyousou-kokusairenkei",
 			title: "国際連携",
 			description: "海外との協働。",
 			icon: Globe,
 			color: "text-cyan-700",
 		},
 		{
+			id: "kyousou-kaigaiintern",
 			title: "海外インターン",
 			description: "国際経験の獲得。",
 			icon: Plane,
@@ -554,39 +569,45 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	sxgx: [
 		{
+			id: "sxgx-sxtaisaku",
 			title: "SX対策",
 			description: "環境保全重視。",
 			icon: Leaf,
 			color: "text-green-700",
 		},
 		{
+			id: "sxgx-gxtaiou",
 			title: "GX対応",
 			description: "産業変革促進。",
 			icon: Recycle,
 			color: "text-teal-700",
 		},
 		{
+			id: "sxgx-dxsuishin",
 			title: "DX推進",
 			description: "デジタル変革。",
 			icon: Cpu,
 			color: "text-purple-700",
 		},
 	],
-	// new-faculty サブカテゴリーのサブサブ
+	// new-faculty サブカテゴリー
 	infoDesign: [
 		{
+			id: "infoDesign-keieijoho",
 			title: "経営情報",
 			description: "戦略とシステム。",
 			icon: BarChart,
 			color: "text-blue-700",
 		},
 		{
+			id: "infoDesign-kankyoudesign",
 			title: "環境デザイン",
 			description: "環境問題解決。",
 			icon: Leaf,
 			color: "text-emerald-700",
 		},
 		{
+			id: "infoDesign-shingakubuzou",
 			title: "新学部像",
 			description: "新時代の目標。",
 			icon: Target,
@@ -595,18 +616,21 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	mediaInfo: [
 		{
+			id: "mediaInfo-eizosouzou",
 			title: "映像創造",
 			description: "デジタル映像技術。",
 			icon: Film,
 			color: "text-purple-700",
 		},
 		{
+			id: "mediaInfo-shinridesign",
 			title: "心理デザイン",
 			description: "心理とデザイン融合。",
 			icon: Brain,
 			color: "text-amber-700",
 		},
 		{
+			id: "mediaInfo-shingakubuzou",
 			title: "新学部像",
 			description: "革新の方向性。",
 			icon: Compass,
@@ -615,24 +639,28 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	infoTech: [
 		{
+			id: "infoTech-johokogaku",
 			title: "情報工学",
 			description: "基礎技術。",
 			icon: Code,
 			color: "text-indigo-700",
 		},
 		{
+			id: "infoTech-chinousystem",
 			title: "知能システム",
 			description: "AIとデータ。",
 			icon: Database,
 			color: "text-blue-700",
 		},
 		{
+			id: "infoTech-robotics",
 			title: "ロボティクス",
 			description: "自動化技術。",
 			icon: Cpu,
 			color: "text-green-700",
 		},
 		{
+			id: "infoTech-shingakubuzou",
 			title: "新学部像",
 			description: "先端技術。",
 			icon: Rocket,
@@ -641,12 +669,14 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	bioChem: [
 		{
+			id: "bioChem-oyokagaku",
 			title: "応用化学",
 			description: "環境対応化学。",
 			icon: Beaker,
 			color: "text-green-700",
 		},
 		{
+			id: "bioChem-seimeibio",
 			title: "生命バイオ",
 			description: "生命科学融合。",
 			icon: Microscope,
@@ -655,36 +685,42 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	eng: [
 		{
+			id: "eng-kikaidesign",
 			title: "機械設計",
 			description: "設計と製造。",
 			icon: Tool,
 			color: "text-orange-700",
 		},
 		{
+			id: "eng-senshinsystem",
 			title: "先進システム",
 			description: "最新技術設計。",
 			icon: Cpu,
 			color: "text-red-700",
 		},
 		{
+			id: "eng-koukuuyuuchuu",
 			title: "航空宇宙",
 			description: "航空技術。",
 			icon: Plane,
 			color: "text-indigo-700",
 		},
 		{
+			id: "eng-denkisystem",
 			title: "電気システム",
 			description: "電気工学。",
 			icon: Zap,
 			color: "text-blue-700",
 		},
 		{
+			id: "eng-denshijouhou",
 			title: "電子情報",
 			description: "電子と情報。",
 			icon: Smartphone,
 			color: "text-green-700",
 		},
 		{
+			id: "eng-kankyoutsuchi",
 			title: "環境土木",
 			description: "土木技術。",
 			icon: Building,
@@ -693,27 +729,31 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	arch: [
 		{
-			title: "建築設計",
+			id: "arch-kenchikudesign",
+			title: "建築デザイン",
 			description: "構造と理論。",
 			icon: Ruler,
 			color: "text-teal-700",
 		},
 		{
+			id: "arch-kenchikusouzou",
 			title: "建築デザイン",
 			description: "デザイン重視。",
 			icon: Tool,
 			color: "text-blue-700",
 		},
 	],
-	// learning サブカテゴリーのサブサブ
+	// learning サブカテゴリー
 	projDesign: [
 		{
+			id: "projDesign-gaiyou",
 			title: "概要",
 			description: "プロジェクトの基本。",
 			icon: FileText,
 			color: "text-blue-700",
 		},
 		{
+			id: "projDesign-jirei",
 			title: "事例",
 			description: "実例の紹介。",
 			icon: Clipboard,
@@ -722,12 +762,14 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	cdio: [
 		{
+			id: "cdio-gaiyou",
 			title: "概要",
 			description: "CDIOの基本。",
 			icon: FileText,
 			color: "text-purple-700",
 		},
 		{
+			id: "cdio-jitsurei",
 			title: "実例",
 			description: "実践例。",
 			icon: Clipboard,
@@ -736,12 +778,14 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	collab: [
 		{
+			id: "collab-merit",
 			title: "配属メリット",
 			description: "早期研究体験。",
 			icon: Star,
 			color: "text-green-700",
 		},
 		{
+			id: "collab-univrenkei",
 			title: "大学院連携",
 			description: "連携研究。",
 			icon: Puzzle,
@@ -750,12 +794,14 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	intern: [
 		{
+			id: "intern-gaiyou",
 			title: "概要",
 			description: "企業体験。",
 			icon: Briefcase,
 			color: "text-orange-700",
 		},
 		{
+			id: "intern-jirei",
 			title: "事例",
 			description: "成功事例。",
 			icon: ThumbsUp,
@@ -764,27 +810,31 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	curriculum: [
 		{
+			id: "curriculum-kousei",
 			title: "構成",
 			description: "全体像。",
 			icon: FileText,
 			color: "text-emerald-700",
 		},
 		{
+			id: "curriculum-syllabus",
 			title: "シラバス",
 			description: "詳細内容。",
 			icon: Book,
 			color: "text-blue-700",
 		},
 		{
+			id: "curriculum-supportplan",
 			title: "支援計画",
 			description: "サポート概要。",
 			icon: Shield,
 			color: "text-gray-700",
 		},
 	],
-	// campus-life サブカテゴリーのサブサブ
+	// campus-life サブカテゴリー
 	dining: [
 		{
+			id: "dining-menu",
 			title: "メニュー",
 			description: "食堂メニュー。",
 			icon: Utensils,
@@ -793,6 +843,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	dorm: [
 		{
+			id: "dorm-features",
 			title: "特徴",
 			description: "寮の設備。",
 			icon: Home,
@@ -801,12 +852,14 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	extracurricular: [
 		{
+			id: "extracurricular-circles",
 			title: "サークル",
 			description: "主要サークル。",
 			icon: Users,
 			color: "text-pink-700",
 		},
 		{
+			id: "extracurricular-projects",
 			title: "プロジェクト",
 			description: "学生実践。",
 			icon: Rocket,
@@ -815,6 +868,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	support: [
 		{
+			id: "support-health",
 			title: "健康",
 			description: "健康管理。",
 			icon: Heart,
@@ -823,21 +877,24 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	bus: [
 		{
+			id: "bus-timetable",
 			title: "時刻表",
 			description: "運行スケジュール。",
 			icon: Clock,
 			color: "text-green-700",
 		},
 	],
-	// admission サブカテゴリーのサブサブ
+	// admission サブカテゴリー
 	entrancePoint: [
 		{
+			id: "entrancePoint-policy",
 			title: "ポリシー",
 			description: "理念概要。",
 			icon: FileText,
 			color: "text-gray-700",
 		},
 		{
+			id: "entrancePoint-points",
 			title: "ポイント",
 			description: "重視項目。",
 			icon: Star,
@@ -846,6 +903,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	entranceList: [
 		{
+			id: "entranceList-comparison",
 			title: "比較",
 			description: "選抜方式比較。",
 			icon: BarChart,
@@ -854,6 +912,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	quota: [
 		{
+			id: "quota-capacity",
 			title: "定員",
 			description: "募集人数。",
 			icon: Users,
@@ -862,6 +921,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	examSchedule: [
 		{
+			id: "examSchedule-dates",
 			title: "日程",
 			description: "試験日時。",
 			icon: Calendar,
@@ -870,6 +930,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	application: [
 		{
+			id: "application-procedure",
 			title: "手続き",
 			description: "出願方法。",
 			icon: Clipboard,
@@ -878,6 +939,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	pastData: [
 		{
+			id: "pastData-analysis",
 			title: "分析",
 			description: "過去データ。",
 			icon: LineChart,
@@ -886,15 +948,17 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	preEducation: [
 		{
+			id: "preEducation-prep",
 			title: "準備",
 			description: "入学前情報。",
 			icon: Book,
 			color: "text-green-700",
 		},
 	],
-	// career サブカテゴリーのサブサブ
+	// career サブカテゴリー
 	employment: [
 		{
+			id: "employment-employers",
 			title: "就職先",
 			description: "主要就職先。",
 			icon: Building,
@@ -903,6 +967,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	careerCenter: [
 		{
+			id: "careerCenter-support",
 			title: "支援",
 			description: "支援内容。",
 			icon: Shield,
@@ -911,6 +976,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	facultyIndustry: [
 		{
+			id: "facultyIndustry-industryalumni",
 			title: "企業出身",
 			description: "実務教員。",
 			icon: Briefcase,
@@ -919,6 +985,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	gradSchool: [
 		{
+			id: "gradSchool-programs",
 			title: "専攻紹介",
 			description: "各専攻の特徴。",
 			icon: GraduationCap,
@@ -927,15 +994,17 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	coopReport: [
 		{
+			id: "coopReport-results",
 			title: "報告",
 			description: "産学連携成果。",
 			icon: FileText,
 			color: "text-red-700",
 		},
 	],
-	// global サブカテゴリーのサブサブ
+	// global サブカテゴリー
 	cultural: [
 		{
+			id: "cultural-collaboration",
 			title: "共創",
 			description: "国際共同。",
 			icon: Puzzle,
@@ -944,12 +1013,14 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	studyAbroad: [
 		{
+			id: "studyAbroad-details",
 			title: "留学詳細",
 			description: "留学制度。",
 			icon: Plane,
 			color: "text-blue-700",
 		},
 		{
+			id: "studyAbroad-externship",
 			title: "Externship",
 			description: "特定プログラム。",
 			icon: Briefcase,
@@ -958,6 +1029,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	japaneseEdu: [
 		{
+			id: "japaneseEdu-courses",
 			title: "講座",
 			description: "日本語講座。",
 			icon: MessageCircle,
@@ -966,21 +1038,24 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	abroadReport: [
 		{
+			id: "abroadReport-report",
 			title: "報告書",
 			description: "留学成果。",
 			icon: FileText,
 			color: "text-green-700",
 		},
 	],
-	// research サブカテゴリーのサブサブ
+	// research サブカテゴリー
 	researchStructure: [
 		{
+			id: "researchStructure-facilities",
 			title: "施設",
 			description: "研究所一覧。",
 			icon: Building,
 			color: "text-red-700",
 		},
 		{
+			id: "researchStructure-themes",
 			title: "テーマ",
 			description: "研究テーマ。",
 			icon: Lightbulb,
@@ -989,6 +1064,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	industryCollab: [
 		{
+			id: "industryCollab-cases",
 			title: "事例",
 			description: "共同研究。",
 			icon: Handshake,
@@ -997,6 +1073,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	facultyResearch: [
 		{
+			id: "facultyResearch-achievements",
 			title: "成果",
 			description: "研究成果。",
 			icon: Trophy,
@@ -1005,15 +1082,17 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	labGuide: [
 		{
+			id: "labGuide-features",
 			title: "特色",
 			description: "各室の特徴。",
 			icon: Map,
 			color: "text-indigo-700",
 		},
 	],
-	// tuition サブカテゴリーのサブサブ
+	// tuition サブカテゴリー
 	tuitionFee: [
 		{
+			id: "tuitionFee-entryfee",
 			title: "入学金",
 			description: "入学金詳細。",
 			icon: DollarSign,
@@ -1022,6 +1101,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	scholarship: [
 		{
+			id: "scholarship-overview",
 			title: "奨学金",
 			description: "奨学金詳細。",
 			icon: Gift,
@@ -1030,6 +1110,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	gradScholarship: [
 		{
+			id: "gradScholarship-scholar",
 			title: "特待生",
 			description: "大学院特待生。",
 			icon: Medal,
@@ -1038,6 +1119,7 @@ export const subSubCategories: Record<string, Category[]> = {
 	],
 	eduSupport: [
 		{
+			id: "eduSupport-support",
 			title: "修学支援",
 			description: "国の支援制度。",
 			icon: Shield,
