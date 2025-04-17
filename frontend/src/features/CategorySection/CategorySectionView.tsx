@@ -120,7 +120,7 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 						transition={{ duration: 0.3 }}
 					>
 						<ActionPrompt
-							categoryTitle={selectedCategory.title}
+							categoryTitle={selectedCategory?.title ?? "カテゴリーを選択"}
 							onSearch={onSearch}
 							onAskQuestion={onAskQuestion}
 						/>

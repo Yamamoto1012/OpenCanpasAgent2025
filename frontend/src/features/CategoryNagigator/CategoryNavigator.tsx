@@ -11,8 +11,9 @@ import {
 	categoryPathAtom,
 	selectCategoryAtom,
 	navigateBackAtom,
+	selectedSubSubCategoryIdAtom,
 } from "@/store/categoryAtoms";
-import { mainCategories, subCategories } from "./constants";
+import { mainCategories, subCategories, subSubCategories } from "./constants";
 
 type CategoryNavigatorProps = {
 	onCategoryDepthChange?: (depth: number, category?: Category) => void;
@@ -25,27 +26,40 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 	const displayedCategories = useAtomValue(currentCategoriesAtom);
 	const [selectedMainId] = useAtom(selectedMainCategoryIdAtom);
 	const [selectedSubId] = useAtom(selectedSubCategoryIdAtom);
+	const [selectedSubSubId] = useAtom(selectedSubSubCategoryIdAtom);
 	const selectCategory = useSetAtom(selectCategoryAtom);
 	const navigateBack = useSetAtom(navigateBackAtom);
 	const categoryPath = useAtomValue(categoryPathAtom);
 
 	// 親コンポーネントに現在のカテゴリー深さを通知
 	useEffect(() => {
-		if (onCategoryDepthChange) {
-			// 選択されているカテゴリを取得
-			let selectedCategory: Category | undefined;
+		if (!onCategoryDepthChange) return;
 
-			if (categoryDepth === 1 && selectedMainId) {
-				selectedCategory = mainCategories.find((c) => c.id === selectedMainId);
-			} else if (categoryDepth === 2 && selectedMainId && selectedSubId) {
-				selectedCategory = subCategories[selectedMainId]?.find(
-					(c) => c.id === selectedSubId,
-				);
-			}
+		let selectedCategory: Category | undefined;
 
-			onCategoryDepthChange(categoryDepth, selectedCategory);
+		if (categoryDepth === 1 && selectedMainId) {
+			selectedCategory = mainCategories.find((c) => c.id === selectedMainId);
 		}
-	}, [categoryDepth, onCategoryDepthChange, selectedMainId, selectedSubId]);
+		// selectedSubId が null でないことをチェック
+		else if (categoryDepth === 2 && selectedSubSubId && selectedSubId) {
+			// サブサブカテゴリーが選択されているとき
+			selectedCategory = subSubCategories[selectedSubId]?.find(
+				(c) => c.id === selectedSubSubId,
+			);
+		} else if (categoryDepth === 2 && selectedMainId && selectedSubId) {
+			selectedCategory = subCategories[selectedMainId]?.find(
+				(c) => c.id === selectedSubId,
+			);
+		}
+
+		onCategoryDepthChange(categoryDepth, selectedCategory);
+	}, [
+		categoryDepth,
+		onCategoryDepthChange,
+		selectedMainId,
+		selectedSubId,
+		selectedSubSubId,
+	]);
 
 	// カテゴリークリック時の処理
 	const handleCategoryClick = (category: Category) => {
@@ -53,11 +67,6 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 
 		// カテゴリー選択アクション
 		selectCategory({ categoryId: category.id, depth: categoryDepth });
-
-		// 親コンポーネントにも通知
-		if (onCategoryDepthChange) {
-			onCategoryDepthChange(categoryDepth + 1, category);
-		}
 	};
 
 	// バックボタンで一段階上に戻る
