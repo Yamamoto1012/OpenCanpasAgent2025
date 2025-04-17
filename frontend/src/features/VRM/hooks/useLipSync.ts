@@ -143,20 +143,158 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 		}
 	};
 
+	// テキスト→音素変換
+	function textToPhonemes(text: string): string[] {
+		const kanaToVowel: Record<string, string> = {
+			あ: "a",
+			い: "i",
+			う: "u",
+			え: "e",
+			お: "o",
+			か: "a",
+			き: "i",
+			く: "u",
+			け: "e",
+			こ: "o",
+			さ: "a",
+			し: "i",
+			す: "u",
+			せ: "e",
+			そ: "o",
+			た: "a",
+			ち: "i",
+			つ: "u",
+			て: "e",
+			と: "o",
+			な: "a",
+			に: "i",
+			ぬ: "u",
+			ね: "e",
+			の: "o",
+			は: "a",
+			ひ: "i",
+			ふ: "u",
+			へ: "e",
+			ほ: "o",
+			ま: "a",
+			み: "i",
+			む: "u",
+			め: "e",
+			も: "o",
+			や: "a",
+			ゆ: "u",
+			よ: "o",
+			ら: "a",
+			り: "i",
+			る: "u",
+			れ: "e",
+			ろ: "o",
+			わ: "a",
+			を: "o",
+			ん: "n",
+			が: "a",
+			ぎ: "i",
+			ぐ: "u",
+			げ: "e",
+			ご: "o",
+			ざ: "a",
+			じ: "i",
+			ず: "u",
+			ぜ: "e",
+			ぞ: "o",
+			だ: "a",
+			ぢ: "i",
+			づ: "u",
+			で: "e",
+			ど: "o",
+			ば: "a",
+			び: "i",
+			ぶ: "u",
+			べ: "e",
+			ぼ: "o",
+			ぱ: "a",
+			ぴ: "i",
+			ぷ: "u",
+			ぺ: "e",
+			ぽ: "o",
+		};
+		return Array.from(text).map((c) => kanaToVowel[c] || "");
+	}
+	function phonemeToBlendShape(phoneme: string): string {
+		switch (phoneme) {
+			case "a":
+				return "aa";
+			case "i":
+				return "ih";
+			case "u":
+				return "ou";
+			case "e":
+				return "ee";
+			case "o":
+				return "oh";
+			default:
+				return "";
+		}
+	}
+
 	/**
 	 * 音声再生関数
 	 */
-	const playAudio = async (url: string, onEnded?: () => void) => {
+	const playAudio = async (
+		url: string,
+		text?: string,
+		onEnded?: () => void,
+	) => {
 		if (!lipSyncRef.current || isMuted) {
 			if (onEnded) onEnded();
 			return;
 		}
-
+		let stopLipSync = false;
 		try {
-			await lipSyncRef.current.playFromURL(url, onEnded);
-		} catch (error) {
-			console.error("音声再生に失敗しました", error);
-			// エラー時もコールバック実行
+			if (text && vrm) {
+				const phonemes = textToPhonemes(text).filter(Boolean);
+				const phonemeDuration = Math.max(
+					(text.length * 60) / (phonemes.length || 1),
+					80,
+				);
+				lipSyncRef.current.playFromURL(url, undefined, () => {
+					stopLipSync = true;
+					if (vrm) {
+						["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
+							safeSetExpression(vrm, k, 0),
+						);
+					}
+					if (onEnded) onEnded();
+				});
+				(async () => {
+					for (let i = 0; i < phonemes.length; i++) {
+						if (stopLipSync) break;
+						const shape = phonemeToBlendShape(phonemes[i]);
+						if (shape) {
+							["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
+								safeSetExpression(vrm, k, 0),
+							);
+							safeSetExpression(vrm, shape, 1.0);
+						}
+						await new Promise((res) => setTimeout(res, phonemeDuration));
+						if (stopLipSync) break;
+						if (vrm) {
+							["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
+								safeSetExpression(vrm, k, 0),
+							);
+						}
+					}
+				})();
+				return;
+			}
+			await lipSyncRef.current.playFromURL(url, undefined, onEnded);
+			if (vrm) {
+				["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
+					safeSetExpression(vrm, k, 0),
+				);
+			}
+		} catch (e) {
+			console.error("音声再生に失敗しました", e);
 			if (onEnded) onEnded();
 		}
 	};

@@ -8,7 +8,7 @@ import {
 } from "react";
 
 export type VRMWrapperHandle = {
-	playAudio: (audioUrl: string) => void; // 音声再生（リップシンク含む）
+	playAudio: (audioUrl: string, text?: string) => void; // 音声再生（リップシンク含む）
 	crossFadeAnimation: (vrmaUrl: string) => void; // モーション切り替え
 	setExpression?: (preset: string, weight: number) => void; // 表情設定
 	setExpressionForMotion?: (motionName: string) => void; // モーションに応じた表情設定
@@ -82,8 +82,8 @@ export const VRMWrapper = forwardRef<VRMWrapperHandle, VRMWrapperProps>(
 					crossFadeToMotion(vrmaUrl);
 				}
 			},
-			playAudio: (audioUrl: string) => {
-				vrmRenderRef.current?.playAudio(audioUrl);
+			playAudio: (audioUrl: string, text?: string) => {
+				vrmRenderRef.current?.playAudio(audioUrl, text);
 			},
 			setExpression: (preset: string, weight: number) => {
 				if (vrmRenderRef.current?.setExpression) {
