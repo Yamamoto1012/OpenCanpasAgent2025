@@ -53,10 +53,13 @@ export const ActionPrompt: React.FC<ActionPromptProps> = ({
 				setState({ question: "" });
 			} catch (error) {
 				// エラーメッセージをトースト通知で表示
-				toast.error("応答の生成中にエラーが発生しました。もう一度お試しください。", {
-					duration: 3000,
-					position: "bottom-right",
-				});
+				toast.error(
+					"応答の生成中にエラーが発生しました。もう一度お試しください。",
+					{
+						duration: 3000,
+						position: "bottom-right",
+					},
+				);
 				// エラー時は元の質問だけを親に渡す
 				onAskQuestion(trimmedQuestion);
 				setState({ question: "" });

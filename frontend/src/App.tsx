@@ -1,10 +1,7 @@
 import { useRef } from "react";
 import "./App.css";
 import { useAtom } from "jotai";
-import {
-	showVoiceChatAtom,
-	isActionPromptQuestionAtom,
-} from "./store/appStateAtoms";
+import { showVoiceChatAtom } from "./store/appStateAtoms";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import { useQuestionHandler } from "./features/VRM/hooks/useQuestionHandler";
@@ -18,10 +15,6 @@ import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
 
 export default function App() {
 	const [showVoiceChat, _setShowVoiceChat] = useAtom(showVoiceChatAtom);
-	const [_isActionPromptQuestion, setIsActionPromptQuestion] = useAtom(
-		isActionPromptQuestionAtom,
-	);
-
 
 	// カスタムフックの利用
 	const { vrmWrapperRef } = useAudioContext();

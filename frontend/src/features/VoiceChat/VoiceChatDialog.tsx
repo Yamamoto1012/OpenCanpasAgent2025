@@ -17,7 +17,9 @@ type VoiceChatDialogProps = {
  *
  * 音声チャット機能の状態管理とロジックを担当
  */
-export const VoiceChatDialog: FC<Omit<VoiceChatDialogProps, "isVisible" | "onClose">> = ({ vrmWrapperRef }) => {
+export const VoiceChatDialog: FC<
+	Omit<VoiceChatDialogProps, "isVisible" | "onClose">
+> = ({ vrmWrapperRef }) => {
 	// グローバルな音声チャット表示状態を参照
 	const [showVoiceChat, setShowVoiceChat] = useAtom(showVoiceChatAtom);
 
@@ -26,12 +28,12 @@ export const VoiceChatDialog: FC<Omit<VoiceChatDialogProps, "isVisible" | "onClo
 		setShowVoiceChat(false);
 	};
 
-	  // 音声チャット表示用のモーション制御
-		useEffect(() => {
-			if (showVoiceChat && vrmWrapperRef.current?.crossFadeAnimation) {
-				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
-			}
-		}, [showVoiceChat, vrmWrapperRef]);
+	// 音声チャット表示用のモーション制御
+	useEffect(() => {
+		if (showVoiceChat && vrmWrapperRef.current?.crossFadeAnimation) {
+			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+		}
+	}, [showVoiceChat, vrmWrapperRef]);
 
 	return (
 		<VoiceChatDialogView

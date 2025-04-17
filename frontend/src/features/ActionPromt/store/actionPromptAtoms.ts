@@ -8,16 +8,20 @@ export const questionAtom = atom<string>("");
 
 // get/set両対応のatom
 export const actionPromptStateAtom = atom(
-  (get) => ({
-    showQuestionInput: get(showQuestionInputAtom),
-    question: get(questionAtom),
-  }),
-  (_get, set, update: Partial<{ showQuestionInput: boolean; question: string }>) => {
-    if (update.showQuestionInput !== undefined) {
-      set(showQuestionInputAtom, update.showQuestionInput);
-    }
-    if (update.question !== undefined) {
-      set(questionAtom, update.question);
-    }
-  }
+	(get) => ({
+		showQuestionInput: get(showQuestionInputAtom),
+		question: get(questionAtom),
+	}),
+	(
+		_get,
+		set,
+		update: Partial<{ showQuestionInput: boolean; question: string }>,
+	) => {
+		if (update.showQuestionInput !== undefined) {
+			set(showQuestionInputAtom, update.showQuestionInput);
+		}
+		if (update.question !== undefined) {
+			set(questionAtom, update.question);
+		}
+	},
 );
