@@ -70,7 +70,7 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 			setExpression("surprised", 0.8);
 		} else {
 			// デフォルト - 軽い笑顔
-			setExpression("happy", 0.3);
+			setExpression("happy", 0);
 		}
 	};
 

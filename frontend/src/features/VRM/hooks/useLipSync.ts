@@ -274,7 +274,8 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 							["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
 								safeSetExpression(vrm, k, 0),
 							);
-							safeSetExpression(vrm, shape, 1.0);
+							// 口の開き具合を0.5に抑える
+							safeSetExpression(vrm, shape, 0.2);
 						}
 						await new Promise((res) => setTimeout(res, phonemeDuration));
 						if (stopLipSync) break;
