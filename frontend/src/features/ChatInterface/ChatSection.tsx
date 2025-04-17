@@ -1,23 +1,12 @@
 import type { FC, RefObject } from "react";
 import { ChatSectionView } from "./ChatSectionView";
 import type { ChatInterfaceHandle } from "./ChatInterface";
+import { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 type ChatSectionProps = {
-	/**
-	 * チャットの表示状態
-	 */
 	isVisible: boolean;
-
-	/**
-	 * ChatInterfaceへの参照
-	 * nullableな参照を許容する
-	 */
 	chatInterfaceRef: RefObject<ChatInterfaceHandle | null>;
-
-	/**
-	 * 質問送信時のハンドラー
-	 */
-	onSendQuestion: (question: string) => void;
+	vrmWrapperRef: RefObject<VRMWrapperHandle | null>;
 };
 
 /**
@@ -28,7 +17,7 @@ type ChatSectionProps = {
 export const ChatSection: FC<ChatSectionProps> = ({
 	isVisible,
 	chatInterfaceRef,
-	onSendQuestion,
+	vrmWrapperRef,
 }) => {
 	// 将来的にチャットに関する追加のロジックや状態管理
 
@@ -36,7 +25,7 @@ export const ChatSection: FC<ChatSectionProps> = ({
 		<ChatSectionView
 			isVisible={isVisible}
 			chatInterfaceRef={chatInterfaceRef}
-			onSendQuestion={onSendQuestion}
+			vrmWrapperRef={vrmWrapperRef}
 		/>
 	);
 };
