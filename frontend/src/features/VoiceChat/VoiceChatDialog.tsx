@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { showVoiceChatAtom } from "@/store/appStateAtoms";
-import type { FC, RefObject } from "react";
+import { useEffect, type FC, type RefObject } from "react";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatDialogView } from "./VoiceChatDialogView";
 
@@ -25,6 +25,13 @@ export const VoiceChatDialog: FC<Omit<VoiceChatDialogProps, "isVisible" | "onClo
 	const handleClose = () => {
 		setShowVoiceChat(false);
 	};
+
+	  // 音声チャット表示用のモーション制御
+		useEffect(() => {
+			if (showVoiceChat && vrmWrapperRef.current?.crossFadeAnimation) {
+				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
+			}
+		}, [showVoiceChat, vrmWrapperRef]);
 
 	return (
 		<VoiceChatDialogView

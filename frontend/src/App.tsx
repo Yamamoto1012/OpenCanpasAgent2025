@@ -1,9 +1,8 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import "./App.css";
 import { useAtom } from "jotai";
 import {
 	showVoiceChatAtom,
-	isDirectChatQuestionAtom,
 	isActionPromptQuestionAtom,
 } from "./store/appStateAtoms";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
@@ -19,7 +18,7 @@ import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
 
 export default function App() {
 	const [showVoiceChat, _setShowVoiceChat] = useAtom(showVoiceChatAtom);
-	const [isActionPromptQuestion, setIsActionPromptQuestion] = useAtom(
+	const [_isActionPromptQuestion, setIsActionPromptQuestion] = useAtom(
 		isActionPromptQuestionAtom,
 	);
 
@@ -41,17 +40,8 @@ export default function App() {
 		handleCategorySelect,
 		handleSearch,
 		handleAskQuestion: originalHandleAskQuestion,
-		handleBackFromSearch: originalHandleBackFromSearch,
+		handleBackFromSearch,
 	} = useCategorySelection();
-
-	/**
-	 * 検索結果から戻る際の処理
-	 * useCategorySelectionの処理に加えて、ActionPromptQuestion状態をリセット
-	 */
-	const handleBackFromSearch = () => {
-		originalHandleBackFromSearch();
-		setIsActionPromptQuestion(false);
-	};
 
 	// 質問処理のカスタムフックを利用
 	const { handleAskQuestion } = useQuestionHandler({
@@ -59,15 +49,6 @@ export default function App() {
 		chatInterfaceRef,
 		originalHandleAskQuestion,
 	});
-
-
-	// 音声チャット表示時のモーション制御
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-	useEffect(() => {
-		if (showVoiceChat && vrmWrapperRef.current?.crossFadeAnimation) {
-			vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
-		}
-	}, [showVoiceChat]);
 
 	return (
 		<AppLayout>
