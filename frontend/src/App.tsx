@@ -151,18 +151,6 @@ export default function App() {
 		originalHandleAskQuestion: wrappedHandleAskQuestion,
 	});
 
-	/**
-	 * 音声チャットを閉じる処理
-	 * 保存していたモーション状態に戻す
-	 */
-	const handleCloseVoiceChat = () => {
-		setShowVoiceChat(false);
-
-		// 元のモーションに戻す
-		if (vrmWrapperRef.current?.restoreLastMotion) {
-			vrmWrapperRef.current.restoreLastMotion();
-		}
-	};
 
 	// 音声チャット表示時のモーション制御
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -211,11 +199,7 @@ export default function App() {
 			)}
 
 			{/* 音声チャットダイアログ */}
-			<VoiceChatDialog
-				isVisible={showVoiceChat}
-				onClose={handleCloseVoiceChat}
-				vrmWrapperRef={vrmWrapperRef}
-			/>
+			<VoiceChatDialog vrmWrapperRef={vrmWrapperRef} />
 		</AppLayout>
 	);
 }
