@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { IconButton } from "../IconButton/IconButton";
 import type { Category } from "./components/CategoryCard";
 import { CategoryGrid } from "./components/CategoryGrid";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export type CategoryNavigatorViewProps = {
 	breadcrumbs: React.ReactNode;
@@ -40,10 +41,14 @@ export const CategoryNavigatorView: React.FC<CategoryNavigatorViewProps> = ({
 				)}
 			</div>
 			{/* カテゴリーグリッド */}
-			<CategoryGrid
-				categories={displayedCategories}
-				onCategoryClick={onCategoryClick}
-			/>
+			<ScrollArea className="h-[384px] pr-2">
+				<div className="h-full">
+					<CategoryGrid
+						categories={displayedCategories}
+						onCategoryClick={onCategoryClick}
+					/>
+				</div>
+			</ScrollArea>
 		</div>
 	);
 };
