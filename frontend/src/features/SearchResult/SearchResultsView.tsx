@@ -1,3 +1,5 @@
+"use client";
+
 import type React from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Send } from "lucide-react";
@@ -5,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 
 export type SearchResultsViewProps = {
 	title: string;
@@ -59,9 +63,96 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 					transition={{ duration: 0.3, delay: 0.2 }}
 				>
 					<Card className="p-5 border-0 shadow-sm bg-white">
-						<ScrollArea className="h-[300px]">
-							<div className="whitespace-pre-line text-gray-700">
-								{detailText}
+						<ScrollArea className="h-[350px]">
+							<div className="markdown-content px-1">
+								<ReactMarkdown
+									components={{
+										h1: ({ node, ...props }) => (
+											<h1 className="text-2xl font-bold mt-6 mb-4" {...props} />
+										),
+										h2: ({ node, ...props }) => (
+											<h2 className="text-xl font-bold mt-5 mb-3" {...props} />
+										),
+										h3: ({ node, ...props }) => (
+											<h3 className="text-lg font-bold mt-4 mb-2" {...props} />
+										),
+										p: ({ node, ...props }) => (
+											<p className="my-3" {...props} />
+										),
+										ul: ({ node, ...props }) => (
+											<ul className="list-disc pl-6 my-3" {...props} />
+										),
+										ol: ({ node, ...props }) => (
+											<ol className="list-decimal pl-6 my-3" {...props} />
+										),
+										li: ({ node, ...props }) => (
+											<li className="my-1" {...props} />
+										),
+										img: ({ node, ...props }) => (
+											<div className="my-4">
+												<img
+													className="rounded-md max-w-full h-auto"
+													{...props}
+													alt={props.alt || "Image"}
+												/>
+											</div>
+										),
+										a: ({ node, ...props }) => (
+											<a className="text-blue-600 hover:underline" {...props} />
+										),
+										blockquote: ({ node, ...props }) => (
+											<blockquote
+												className="border-l-4 border-gray-200 pl-4 italic my-4"
+												{...props}
+											/>
+										),
+										code: ({ node, className, children, ...props }) => {
+											const match = /language-(\w+)/.exec(className || "");
+											const isInline =
+												!match && (className?.includes("inline") || !className);
+											return isInline ? (
+												<code
+													className="bg-gray-100 px-1 py-0.5 rounded text-sm"
+													{...props}
+												>
+													{children}
+												</code>
+											) : (
+												<pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto my-4 whitespace-pre-wrap">
+													<code className={className} {...props}>
+														{children}
+													</code>
+												</pre>
+											);
+										},
+										hr: ({ node, ...props }) => (
+											<hr className="my-6 border-gray-200" {...props} />
+										),
+										table: ({ node, ...props }) => (
+											<div className="overflow-x-auto my-4">
+												<table
+													className="min-w-full border-collapse"
+													{...props}
+												/>
+											</div>
+										),
+										th: ({ node, ...props }) => (
+											<th
+												className="border border-gray-300 px-4 py-2 bg-gray-50 font-medium"
+												{...props}
+											/>
+										),
+										td: ({ node, ...props }) => (
+											<td
+												className="border border-gray-300 px-4 py-2"
+												{...props}
+											/>
+										),
+									}}
+									rehypePlugins={[rehypeRaw]}
+								>
+									{detailText}
+								</ReactMarkdown>
 							</div>
 						</ScrollArea>
 					</Card>

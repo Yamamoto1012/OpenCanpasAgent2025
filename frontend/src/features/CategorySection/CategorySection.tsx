@@ -4,7 +4,7 @@ import {
 	isDirectChatQuestionAtom,
 	isActionPromptQuestionAtom,
 } from "@/store/appStateAtoms";
-import type { Category } from "../CategoryNagigator/components/CategoryCard";
+import type { Category } from "../CategoryNavigator/components/CategoryCard";
 import { CategorySectionView } from "./CategorySectionView";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 

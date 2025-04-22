@@ -23,7 +23,7 @@ import {
 } from "@/store/recordingAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { generateText } from "@/services/llmService";
-import { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type ChatInterfaceHandle = {
 	addMessage: (text: string, isUser?: boolean, speakText?: string) => void;

@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import type { Category } from "../features/CategoryNagigator/components/CategoryCard";
+import type { Category } from "../features/CategoryNavigator/components/CategoryCard";
 import {
 	categoryDepthAtom,
 	selectedCategoryAtom,

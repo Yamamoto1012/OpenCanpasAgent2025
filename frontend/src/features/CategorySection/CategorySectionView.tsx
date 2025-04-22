@@ -1,9 +1,9 @@
 import type { FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CategoryNavigator } from "../CategoryNagigator/CategoryNavigator";
+import { CategoryNavigator } from "../CategoryNavigator/CategoryNavigator";
 import { ActionPrompt } from "../ActionPromt/ActionPromt";
 import { SearchResults } from "../SearchResult/SearchResult";
-import type { Category } from "../CategoryNagigator/components/CategoryCard";
+import type { Category } from "../CategoryNavigator/components/CategoryCard";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type CategorySectionViewProps = {
@@ -80,7 +80,7 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 					{shouldShowSearchResults ? (
 						<motion.div
 							key="search-results"
-							className="w-full max-w-lg -translate-x-24"
+							className="w-full max-w-xl -translate-x-24"
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: -20 }}

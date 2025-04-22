@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import type { Category } from "../features/CategoryNagigator/components/CategoryCard";
+import type { Category } from "../features/CategoryNavigator/components/CategoryCard";
 
 // カテゴリ選択の深さを表すatom
 export const categoryDepthAtom = atom<number>(0);
