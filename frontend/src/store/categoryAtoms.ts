@@ -3,8 +3,8 @@ import {
 	mainCategories,
 	subCategories,
 	subSubCategories,
-} from "@/features/CategoryNagigator/constants";
-import type { Category } from "@/features/CategoryNagigator/components/CategoryCard";
+} from "@/features/CategoryNavigator/constants";
+import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
 
 /**
  * 選択されたメインカテゴリーのIDを管理するアトム

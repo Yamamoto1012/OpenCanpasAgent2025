@@ -1,12 +1,32 @@
 import type React from "react";
 import { useRef, useEffect, useState } from "react";
 import { useAtom } from "jotai";
-import type { Category } from "../CategoryNagigator/components/CategoryCard";
+import type { Category } from "../CategoryNavigator/components/CategoryCard";
 import { SearchResultsView } from "./SearchResultsView";
 import { inputValueAtom } from "./store/searchResultAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { generateText } from "@/services/llmService";
+import { archAnswers } from "../CategoryNavigator/const/archAnswers";
+import { admissionAnswers } from "../CategoryNavigator/const/admissionAnswers";
+import { diningAnswers } from "../CategoryNavigator/const/diningAnswers";
+import { supportAnswers } from "../CategoryNavigator/const/supportAnswers";
+import { dormAnswers } from "../CategoryNavigator/const/dormAnswers";
+import { busAnswers } from "../CategoryNavigator/const/busAnswers";
+import { extracurricularAnswers } from "../CategoryNavigator/const/extracurricularAnswers";
+import { kyousouAnswers } from "../CategoryNavigator/const/kyousouAnswers";
+import { bunriAnswers } from "../CategoryNavigator/const/bunriAnswers";
+import { bioChemAnswers } from "../CategoryNavigator/const/bioChemAnswers";
+import { careerAnswers } from "../CategoryNavigator/const/careerAnswers";
+import { engAnswers } from "../CategoryNavigator/const/engAnswers";
+import { globalAnswers } from "../CategoryNavigator/const/globalAnswers";
+import { infoDesignAnswers } from "../CategoryNavigator/const/infoDesignAnswers";
+import { infoTechAnswers } from "../CategoryNavigator/const/infoTechAnswers";
+import { mediaInfoAnswers } from "../CategoryNavigator/const/mediaInfoAnswers";
+import { researchAnswers } from "../CategoryNavigator/const/researchAnswers";
+import { shakaijissouAnswers } from "../CategoryNavigator/const/shakaijissouAnswers";
+import { sxgxAnswers } from "../CategoryNavigator/const/sxgxAnswers";
+import { tuitionAnswers } from "../CategoryNavigator/const/tuitionAnswers";
 
 type SearchResultsProps = {
 	query: string;
@@ -15,6 +35,43 @@ type SearchResultsProps = {
 	onBack: () => void;
 	onNewQuestion?: (question: string) => void;
 	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
+};
+
+const getTemplateAnswer = (category?: Category) => {
+	if (!category) return undefined;
+	// サブサブカテゴリID優先
+	if (admissionAnswers[category.id ?? ""])
+		return admissionAnswers[category.id ?? ""];
+	if (archAnswers[category.id ?? ""]) return archAnswers[category.id ?? ""];
+	if (bioChemAnswers[category.id ?? ""])
+		return bioChemAnswers[category.id ?? ""];
+	if (bunriAnswers[category.id ?? ""]) return bunriAnswers[category.id ?? ""];
+	if (busAnswers[category.id ?? ""]) return busAnswers[category.id ?? ""];
+	if (careerAnswers[category.id ?? ""]) return careerAnswers[category.id ?? ""];
+	if (diningAnswers[category.id ?? ""]) return diningAnswers[category.id ?? ""];
+	if (dormAnswers[category.id ?? ""]) return dormAnswers[category.id ?? ""];
+	if (engAnswers[category.id ?? ""]) return engAnswers[category.id ?? ""];
+	if (extracurricularAnswers[category.id ?? ""])
+		return extracurricularAnswers[category.id ?? ""];
+	if (globalAnswers[category.id ?? ""]) return globalAnswers[category.id ?? ""];
+	if (infoDesignAnswers[category.id ?? ""])
+		return infoDesignAnswers[category.id ?? ""];
+	if (infoTechAnswers[category.id ?? ""])
+		return infoTechAnswers[category.id ?? ""];
+	if (kyousouAnswers[category.id ?? ""])
+		return kyousouAnswers[category.id ?? ""];
+	if (mediaInfoAnswers[category.id ?? ""])
+		return mediaInfoAnswers[category.id ?? ""];
+	if (researchAnswers[category.id ?? ""])
+		return researchAnswers[category.id ?? ""];
+	if (shakaijissouAnswers[category.id ?? ""])
+		return shakaijissouAnswers[category.id ?? ""];
+	if (supportAnswers[category.id ?? ""])
+		return supportAnswers[category.id ?? ""];
+	if (sxgxAnswers[category.id ?? ""]) return sxgxAnswers[category.id ?? ""];
+	if (tuitionAnswers[category.id ?? ""])
+		return tuitionAnswers[category.id ?? ""];
+	return undefined;
 };
 
 export const SearchResults: React.FC<SearchResultsProps> = ({
@@ -41,18 +98,33 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 		? `${query}についてはこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`
 		: `「${category?.title || ""}」についての情報はこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`;
 
-	// 初回表示時やquery変更時にLLMへ問い合わせ
+	// 初回表示時やquery変更時にテンプレ回答 or LLMへ問い合わせ
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		if (!query) return;
+		if (!category && !query) return;
 		setLoading(true);
-		generateText(query, category ? { category: category.title } : undefined)
-			.then((res) => {
-				setDetailText(res || "回答が取得できませんでした。");
-				setResponseText(guideMessage);
-				speak(guideMessage);
-			})
-			.finally(() => setLoading(false));
-	}, [query, category, speak, guideMessage]);
+
+		const isInitialLoad = !detailText; // 初回読み込みかどうかを判断
+
+		if (!isQuestion && category?.id) {
+			// テンプレ回答を表示
+			const template =
+				getTemplateAnswer(category) || "このカテゴリの概要情報は準備中です。";
+			setDetailText(template);
+			setResponseText(guideMessage);
+			if (isInitialLoad) speak(guideMessage);
+			setLoading(false);
+			return;
+		}
+		if (isQuestion && query) {
+			generateText(query, category ? { category: category.title } : undefined)
+				.then((res) => {
+					setDetailText(res || "回答が取得できませんでした。");
+					setResponseText(guideMessage);
+				})
+				.finally(() => setLoading(false));
+		}
+	}, [query, category, isQuestion]);
 
 	// 新しい質問を送信する処理
 	const handleSendQuestion = async () => {
@@ -65,7 +137,6 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			);
 			setDetailText(res || "回答が取得できませんでした。");
 			setResponseText(guideMessage);
-			speak(guideMessage);
 			setInputValue("");
 			if (onNewQuestion) onNewQuestion(newQuestion);
 			setLoading(false);
