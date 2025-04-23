@@ -40,15 +40,16 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 		if (categoryDepth === 1 && selectedMainId) {
 			selectedCategory = mainCategories.find((c) => c.id === selectedMainId);
 		}
+		else if (categoryDepth === 1 && selectedMainId && selectedSubId) {
+			selectedCategory = subCategories[selectedMainId]?.find(
+				(c) => c.id === selectedSubId,
+			);
+		}
 		// selectedSubId が null でないことをチェック
 		else if (categoryDepth === 2 && selectedSubSubId && selectedSubId) {
 			// サブサブカテゴリーが選択されているとき
 			selectedCategory = subSubCategories[selectedSubId]?.find(
 				(c) => c.id === selectedSubSubId,
-			);
-		} else if (categoryDepth === 2 && selectedMainId && selectedSubId) {
-			selectedCategory = subCategories[selectedMainId]?.find(
-				(c) => c.id === selectedSubId,
 			);
 		}
 
