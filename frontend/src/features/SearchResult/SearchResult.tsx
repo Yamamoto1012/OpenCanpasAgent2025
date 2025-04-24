@@ -27,6 +27,10 @@ import { researchAnswers } from "../CategoryNavigator/const/researchAnswers";
 import { shakaijissouAnswers } from "../CategoryNavigator/const/shakaijissouAnswers";
 import { sxgxAnswers } from "../CategoryNavigator/const/sxgxAnswers";
 import { tuitionAnswers } from "../CategoryNavigator/const/tuitionAnswers";
+import { collabAnswers } from "../CategoryNavigator/const/collabAnswers";
+import { curriculumAnswers } from "../CategoryNavigator/const/curriculumAnswers";
+import { educationMethodAnswers } from "../CategoryNavigator/const/educationMethodAnswers";
+import { internAnswers } from "../CategoryNavigator/const/internAnswers";
 
 type SearchResultsProps = {
 	query: string;
@@ -71,6 +75,12 @@ const getTemplateAnswer = (category?: Category) => {
 	if (sxgxAnswers[category.id ?? ""]) return sxgxAnswers[category.id ?? ""];
 	if (tuitionAnswers[category.id ?? ""])
 		return tuitionAnswers[category.id ?? ""];
+	if (collabAnswers[category.id ?? ""]) return collabAnswers[category.id ?? ""];
+	if (curriculumAnswers[category.id ?? ""])
+		return curriculumAnswers[category.id ?? ""];
+	if (educationMethodAnswers[category.id ?? ""])
+		return educationMethodAnswers[category.id ?? ""];
+	if (internAnswers[category.id ?? ""]) return internAnswers[category.id ?? ""];
 	return undefined;
 };
 

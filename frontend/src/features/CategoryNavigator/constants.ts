@@ -607,32 +607,34 @@ export const subSubCategories: Record<string, Category[]> = {
 			color: "text-blue-700",
 		},
 	],
-	// learning サブカテゴリー
+	// learning
 	educationMethod: [
 		{
-			id: "projDesign",
+			id: "educationMethod-projDesign",
 			title: "プロジェクトデザイン教育",
 			description: "実践的な問題解決能力を育成。",
 			icon: iconMap.Target,
 			color: "text-blue-700",
 		},
 		{
-			id: "cdio",
+			id: "educationMethod-cdio",
 			title: "CDIO (Conceive, Design, Implement, Operate)",
 			description: "実践的な工学教育。",
 			icon: iconMap.Puzzle,
 			color: "text-purple-700",
 		},
 	],
+	// collab
 	collab: [
 		{
-			id: "coop",
+			id: "collab-coop",
 			title: "コーオプ教育",
 			description: "企業との連携による実践教育。",
 			icon: iconMap.Handshake,
 			color: "text-green-700",
 		},
 	],
+	// intern
 	intern: [
 		{
 			id: "intern-domestic",
@@ -649,6 +651,7 @@ export const subSubCategories: Record<string, Category[]> = {
 			color: "text-blue-700",
 		},
 	],
+	// curriculum
 	curriculum: [
 		{
 			id: "curriculum-basic",
