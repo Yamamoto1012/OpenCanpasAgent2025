@@ -1,7 +1,7 @@
 import type { FC, RefObject } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatInterface, type ChatInterfaceHandle } from "./ChatInterface";
-import { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type ChatSectionViewProps = {
 	isVisible: boolean;

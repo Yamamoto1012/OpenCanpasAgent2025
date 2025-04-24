@@ -260,6 +260,7 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 				lipSyncRef.current.playFromURL(url, undefined, () => {
 					stopLipSync = true;
 					if (vrm) {
+						// biome-ignore lint/complexity/noForEach: <explanation>
 						["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
 							safeSetExpression(vrm, k, 0),
 						);
@@ -271,6 +272,7 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 						if (stopLipSync) break;
 						const shape = phonemeToBlendShape(phonemes[i]);
 						if (shape) {
+							// biome-ignore lint/complexity/noForEach: <explanation>
 							["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
 								safeSetExpression(vrm, k, 0),
 							);
@@ -280,6 +282,7 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 						await new Promise((res) => setTimeout(res, phonemeDuration));
 						if (stopLipSync) break;
 						if (vrm) {
+							// biome-ignore lint/complexity/noForEach: <explanation>
 							["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
 								safeSetExpression(vrm, k, 0),
 							);
@@ -290,6 +293,7 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 			}
 			await lipSyncRef.current.playFromURL(url, undefined, onEnded);
 			if (vrm) {
+				// biome-ignore lint/complexity/noForEach: <explanation>
 				["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
 					safeSetExpression(vrm, k, 0),
 				);
