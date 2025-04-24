@@ -149,12 +149,6 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 		setInputValue(e.target.value);
 	};
 
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.nativeEvent.isComposing) return;
-		if (e.key !== "Enter") return;
-		handleSendQuestion();
-	};
-
 	const title = isQuestion
 		? `「${query}」の回答`
 		: `「${category?.title || ""}」の検索結果`;
@@ -166,7 +160,6 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			detailText={detailText}
 			inputValue={inputValue}
 			onInputChange={handleInputChange}
-			onKeyDown={handleKeyDown}
 			onSendQuestion={handleSendQuestion}
 			onBack={onBack}
 			inputRef={inputRef}
