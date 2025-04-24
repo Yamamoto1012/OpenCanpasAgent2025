@@ -17,7 +17,7 @@ export const AppLayout: FC<AppLayoutProps> = ({ children }) => {
 			{/* ロゴ */}
 			<div className="absolute top-2 left-4 p-2 z-50 hover:scale-95 duration-200">
 				<motion.a
-					href="https://old-aizawa-hp.vercel.app/"
+					href="https://www.aizawaminori.com/"
 					target="_blank"
 					rel="noopener noreferrer"
 					whileHover={{
