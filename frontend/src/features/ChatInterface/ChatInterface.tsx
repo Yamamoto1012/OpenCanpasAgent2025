@@ -5,6 +5,7 @@ import {
 	useRef,
 	type KeyboardEvent,
 	type ChangeEvent,
+	useCallback,
 } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { ChatInterfaceView } from "./ChatInterfaceView";
@@ -14,13 +15,8 @@ import {
 	isThinkingAtom,
 	addMessageAtom,
 	resetChatAtom,
-	getRandomText,
 } from "@/store/chatAtoms";
-import {
-	isRecordingAtom,
-	toggleRecordingAtom,
-	randomTextGeneratorAtom,
-} from "@/store/recordingAtoms";
+import { isRecordingAtom, toggleRecordingAtom } from "@/store/recordingAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { generateText } from "@/services/llmService";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
@@ -38,112 +34,87 @@ export const ChatInterface = forwardRef<
 	ChatInterfaceHandle,
 	React.PropsWithChildren<ChatInterfaceProps>
 >((props, ref) => {
-	const [messages, setMessages] = useAtom(messagesAtom);
+	const [messages] = useAtom(messagesAtom);
 	const [inputValue, setInputValue] = useAtom(inputValueAtom);
 	const [isThinking, setIsThinking] = useAtom(isThinkingAtom);
 	const [isRecording] = useAtom(isRecordingAtom);
 	const toggleRecording = useSetAtom(toggleRecordingAtom);
 	const addMessage = useSetAtom(addMessageAtom);
 	const resetChat = useSetAtom(resetChatAtom);
-	const setRandomTextGenerator = useSetAtom(randomTextGeneratorAtom);
 
 	// 音声合成フックを使用
 	const { speak, stop } = useTextToSpeech(props.vrmWrapperRef);
 
-	// 最後に再生したメッセージのIDを保存するための参照
-	const lastSpokenMessageIdRef = useRef<number | null>(null);
-
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-	// ランダムテキスト生成関数を設定
-	useEffect(() => {
-		setRandomTextGenerator(getRandomText);
-	}, [setRandomTextGenerator]);
+	// メッセージIDを採番
+	const createId = () => Date.now() + Math.random();
 
-	// メッセージ更新時にスクロールするための処理
-	const scrollToBottom = () => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	};
+	// メッセージを入れる
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	const pushMessage = useCallback(
+		(msg: { text: string; isUser: boolean; speakText?: string }) => {
+			const enriched = { ...msg, id: createId() };
+			addMessage(enriched);
+			if (!enriched.isUser && enriched.speakText) {
+				stop();
+				speak(enriched.speakText);
+			}
+		},
+		[addMessage, speak, stop],
+	);
 
 	// 外部から呼び出し可能なメソッドを定義
 	useImperativeHandle(ref, () => ({
-		addMessage: (text: string, isUser = false, speakText?: string) => {
-			addMessage({ text, isUser, speakText });
-		},
+		// biome-ignore lint/style/useDefaultParameterLast: <explanation>
+		addMessage: (text, isUser = false, speakText) =>
+			pushMessage({ text, isUser, speakText }),
 	}));
 
-	// メッセージ更新時のスクロール処理と音声合成
+	// メッセージ更新時のスクロール処理
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		// スクロール処理
-		scrollToBottom();
+		// 入力欄からの値更新
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	}, [messages.length]);
 
-		// 最新のメッセージを取得
-		const latestMessage = messages[messages.length - 1];
-
-		// 最新のメッセージが存在し、ユーザーからのメッセージでなく、speakTextが設定されている場合
-		if (
-			latestMessage &&
-			!latestMessage.isUser &&
-			latestMessage.speakText &&
-			latestMessage.id !== lastSpokenMessageIdRef.current // 以前に再生したメッセージでないことを確認
-		) {
-			// 再生前に以前の音声を停止
-			stop();
-
-			// 少し遅延を入れて音声合成を実行（UIの更新が完了してから）
-			setTimeout(() => {
-				speak(latestMessage.speakText || "");
-				// 再生したメッセージのIDを記録
-				lastSpokenMessageIdRef.current = latestMessage.id;
-			}, 100);
-		}
-	}, [messages]);
-
-	// 入力欄からの値更新
 	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setInputValue(e.target.value);
 	};
 
+	// メッセージ送信中断用のref
+	const abortRef = useRef<AbortController | null>(null);
+
 	// メッセージ送信処理
 	const handleSend = async () => {
-		const trimmedInput = inputValue.trim();
-		if (!trimmedInput) return;
+		const trimmed = inputValue.trim();
+		if (!trimmed) return;
 
 		// ユーザーメッセージを追加
-		addMessage({ text: trimmedInput, isUser: true });
+		pushMessage({ text: trimmed, isUser: true });
+
+		// 送信中のメッセージをキャンセル
+		const controller = new AbortController();
+		abortRef.current = controller;
 
 		// 思考中状態に設定
 		setIsThinking(true);
 
-		// 親コンポーネントに質問を通知
-		if (props.onSendQuestion) {
-			props.onSendQuestion(trimmedInput);
-			setInputValue("");
-			return;
-		}
-
 		try {
-			// LLM APIを使用して回答を生成
-			const answer = await generateText(trimmedInput);
-			// 思考中状態を解除
+			const answer = await generateText(trimmed, undefined, controller.signal);
 			setIsThinking(false);
-			// 回答メッセージを追加（音声合成用のテキストも同じものを使用）
-			addMessage({
-				text: answer,
-				isUser: false,
-				speakText: answer,
-			});
-		} catch (error) {
-			console.error("Error generating response:", error);
-			setIsThinking(false);
-			addMessage({
-				text: "すみません、応答の生成中にエラーが発生しました。もう一度お試しください。",
-				isUser: false,
-			});
+			pushMessage({ text: answer, isUser: false, speakText: answer });
+		} catch (err) {
+			if (err instanceof Error && err.name === "AbortError") {
+				pushMessage({ text: "（生成を停止しました）", isUser: false });
+			} else {
+				setIsThinking(false);
+				pushMessage({
+					text: "すみません、応答の生成中にエラーが発生しました。もう一度お試しください。",
+					isUser: false,
+				});
+			}
 		}
-
-		// 入力欄をクリア
 		setInputValue("");
 	};
 
@@ -174,6 +145,13 @@ export const ChatInterface = forwardRef<
 		});
 	};
 
+	// 停止ボタンが押されたとき
+	const handleStop = () => {
+		abortRef.current?.abort(); // fetch を即キャンセル
+		stop(); // TTS も停止
+		setIsThinking(false); // UI を通常状態へ
+	};
+
 	return (
 		<ChatInterfaceView
 			messages={messages}
@@ -186,6 +164,7 @@ export const ChatInterface = forwardRef<
 			onSelect={handleSelect}
 			onReset={handleReset}
 			onToggleRecording={handleToggleRecording}
+			onStop={handleStop} // ★ 追加
 			messagesEndRef={messagesEndRef}
 		/>
 	);

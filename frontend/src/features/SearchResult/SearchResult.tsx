@@ -27,6 +27,10 @@ import { researchAnswers } from "../CategoryNavigator/const/researchAnswers";
 import { shakaijissouAnswers } from "../CategoryNavigator/const/shakaijissouAnswers";
 import { sxgxAnswers } from "../CategoryNavigator/const/sxgxAnswers";
 import { tuitionAnswers } from "../CategoryNavigator/const/tuitionAnswers";
+import { collabAnswers } from "../CategoryNavigator/const/collabAnswers";
+import { curriculumAnswers } from "../CategoryNavigator/const/curriculumAnswers";
+import { educationMethodAnswers } from "../CategoryNavigator/const/educationMethodAnswers";
+import { internAnswers } from "../CategoryNavigator/const/internAnswers";
 
 type SearchResultsProps = {
 	query: string;
@@ -71,6 +75,12 @@ const getTemplateAnswer = (category?: Category) => {
 	if (sxgxAnswers[category.id ?? ""]) return sxgxAnswers[category.id ?? ""];
 	if (tuitionAnswers[category.id ?? ""])
 		return tuitionAnswers[category.id ?? ""];
+	if (collabAnswers[category.id ?? ""]) return collabAnswers[category.id ?? ""];
+	if (curriculumAnswers[category.id ?? ""])
+		return curriculumAnswers[category.id ?? ""];
+	if (educationMethodAnswers[category.id ?? ""])
+		return educationMethodAnswers[category.id ?? ""];
+	if (internAnswers[category.id ?? ""]) return internAnswers[category.id ?? ""];
 	return undefined;
 };
 
@@ -87,6 +97,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 		null,
 	) as React.RefObject<HTMLInputElement>;
 	const { speak } = useTextToSpeech(vrmWrapperRef);
+	const prevGuideMessageRef = useRef<string>("");
 
 	// LLMの返答
 	const [responseText, setResponseText] = useState<string>("");
@@ -99,12 +110,12 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 		: `「${category?.title || ""}」についての情報はこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`;
 
 	// 初回表示時やquery変更時にテンプレ回答 or LLMへ問い合わせ
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		if (!category && !query) return;
 		setLoading(true);
 
-		const isInitialLoad = !detailText; // 初回読み込みかどうかを判断
+		const guideChanged = prevGuideMessageRef.current !== guideMessage;
+		prevGuideMessageRef.current = guideMessage;
 
 		if (!isQuestion && category?.id) {
 			// テンプレ回答を表示
@@ -112,7 +123,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 				getTemplateAnswer(category) || "このカテゴリの概要情報は準備中です。";
 			setDetailText(template);
 			setResponseText(guideMessage);
-			if (isInitialLoad) speak(guideMessage);
+			if (guideChanged) speak(guideMessage);
 			setLoading(false);
 			return;
 		}
@@ -121,10 +132,11 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 				.then((res) => {
 					setDetailText(res || "回答が取得できませんでした。");
 					setResponseText(guideMessage);
+					if (guideChanged) speak(guideMessage);
 				})
 				.finally(() => setLoading(false));
 		}
-	}, [query, category, isQuestion]);
+	}, [query, category, isQuestion, guideMessage, speak]);
 
 	// 新しい質問を送信する処理
 	const handleSendQuestion = async () => {
@@ -147,12 +159,6 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 		setInputValue(e.target.value);
 	};
 
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.nativeEvent.isComposing) return;
-		if (e.key !== "Enter") return;
-		handleSendQuestion();
-	};
-
 	const title = isQuestion
 		? `「${query}」の回答`
 		: `「${category?.title || ""}」の検索結果`;
@@ -164,7 +170,6 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			detailText={detailText}
 			inputValue={inputValue}
 			onInputChange={handleInputChange}
-			onKeyDown={handleKeyDown}
 			onSendQuestion={handleSendQuestion}
 			onBack={onBack}
 			inputRef={inputRef}

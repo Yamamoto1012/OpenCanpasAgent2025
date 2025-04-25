@@ -17,6 +17,7 @@ export type ChatInterfaceViewProps = {
 	onSelect: (value: string) => void;
 	onReset: () => void;
 	onToggleRecording: () => void;
+	onStop: () => void;
 	messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
 
@@ -31,6 +32,7 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 	onSelect,
 	onReset,
 	onToggleRecording,
+	onStop,
 	messagesEndRef,
 }) => {
 	return (
@@ -50,6 +52,7 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 				onKeyDown={onKeyDown}
 				onSend={onSend}
 				onToggleRecording={onToggleRecording}
+				onStop={onStop}
 			/>
 		</div>
 	);

@@ -1,4 +1,4 @@
-import { Mic, MicOff, Send } from "lucide-react";
+import { Mic, MicOff, Send, SquareSlash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
@@ -12,6 +12,7 @@ export type ChatInputAreaProps = {
 	onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
 	onSend: () => void;
 	onToggleRecording: () => void;
+	onStop: () => void;
 };
 
 export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
@@ -22,6 +23,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 	onKeyDown,
 	onSend,
 	onToggleRecording,
+	onStop,
 }) => {
 	return (
 		<div style={{ backgroundColor: "#b3cfad" }} className="px-3 py-2">
@@ -69,9 +71,20 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 				>
 					<Send className="h-4 w-4" />
 				</Button>
+
+				{/* 停止 */}
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={onStop}
+					disabled={!isThinking}
+					title="生成を停止"
+				>
+					<SquareSlash className="h-4 w-4" />
+				</Button>
 			</div>
 
-			{/* 録音時間インジケーター */}
+			{/* 録音中のインジケーター */}
 			{isRecording && (
 				<div className="mt-2 flex justify-center">
 					<RecordingIndicator />

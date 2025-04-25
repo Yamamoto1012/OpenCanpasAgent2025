@@ -28,6 +28,7 @@ export function useTextToSpeech(
 					audio.pause();
 					audio.currentTime = 0;
 				}
+				// biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
 				const response = await fetch(`http://localhost:8000/tts`, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },

@@ -32,6 +32,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const generateText = async (
 	query: string,
 	context?: Record<string, any>,
+	signal?: AbortSignal,
 	retries = MAX_RETRIES,
 ): Promise<string> => {
 	try {
@@ -44,6 +45,7 @@ export const generateText = async (
 				query,
 				context,
 			} as QueryRequest),
+			signal,
 		});
 
 		if (!response.ok) {
@@ -53,7 +55,7 @@ export const generateText = async (
 					`API一時利用不可 (${response.status})、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
 				);
 				await sleep(RETRY_DELAY);
-				return generateText(query, context, retries - 1);
+				return generateText(query, context, signal, retries - 1);
 			}
 			throw new Error(`API error: ${response.status}`);
 		}
@@ -67,7 +69,7 @@ export const generateText = async (
 				`ネットワークエラー、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
 			);
 			await sleep(RETRY_DELAY);
-			return generateText(query, context, retries - 1);
+			return generateText(query, context, signal, retries - 1);
 		}
 		console.error("Error generating text:", error);
 		throw error;

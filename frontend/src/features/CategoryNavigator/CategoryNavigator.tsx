@@ -39,8 +39,7 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 
 		if (categoryDepth === 1 && selectedMainId) {
 			selectedCategory = mainCategories.find((c) => c.id === selectedMainId);
-		}
-		else if (categoryDepth === 1 && selectedMainId && selectedSubId) {
+		} else if (categoryDepth === 1 && selectedMainId && selectedSubId) {
 			selectedCategory = subCategories[selectedMainId]?.find(
 				(c) => c.id === selectedSubId,
 			);

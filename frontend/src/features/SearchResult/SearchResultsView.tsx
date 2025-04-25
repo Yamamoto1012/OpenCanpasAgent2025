@@ -16,7 +16,6 @@ export type SearchResultsViewProps = {
 	detailText: string;
 	inputValue: string;
 	onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-	onKeyDown: (e: React.KeyboardEvent) => void;
 	onSendQuestion: () => void;
 	onBack: () => void;
 	inputRef: React.RefObject<HTMLInputElement>;
@@ -28,7 +27,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 	detailText,
 	inputValue,
 	onInputChange,
-	onKeyDown,
 	onSendQuestion,
 	onBack,
 	inputRef,
@@ -188,7 +186,11 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 					onChange={onInputChange}
 					placeholder="質問を入力してください"
 					className="flex-1 bg-white border-gray-200"
-					onKeyDown={onKeyDown}
+					onKeyDown={(e) => {
+						if (e.nativeEvent.isComposing) return;
+						if (e.key !== "Enter") return;
+						onSendQuestion();
+					}}
 				/>
 				<Button
 					onClick={onSendQuestion}

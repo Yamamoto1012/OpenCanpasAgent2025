@@ -13,7 +13,6 @@ export type ActionPromptViewProps = {
 	isRecording: boolean;
 	onQuestionClick: () => void;
 	onQuestionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-	onQuestionKeyDown: (e: React.KeyboardEvent) => void;
 	onSendQuestion: () => void;
 	onToggleRecording: () => void;
 	onSearch: () => void;
@@ -26,7 +25,6 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 	isRecording,
 	onQuestionClick,
 	onQuestionChange,
-	onQuestionKeyDown,
 	onSendQuestion,
 	onToggleRecording,
 	onSearch,
@@ -83,7 +81,11 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 										isRecording ? "bg-red-50 border-0" : "bg-white border-0"
 									}
 									autoFocus
-									onKeyDown={onQuestionKeyDown}
+									onKeyDown={(e) => {
+										if (e.nativeEvent.isComposing) return;
+										if (e.key !== "Enter") return;
+										onSendQuestion();
+									}}
 									disabled={isRecording}
 								/>
 
