@@ -82,6 +82,9 @@ export const ChatInterface = forwardRef<
 		setInputValue(e.target.value);
 	};
 
+	// メッセージ送信中断用のref
+	const abortRef = useRef<AbortController | null>(null);
+
 	// メッセージ送信処理
 	const handleSend = async () => {
 		const trimmed = inputValue.trim();
@@ -90,19 +93,27 @@ export const ChatInterface = forwardRef<
 		// ユーザーメッセージを追加
 		pushMessage({ text: trimmed, isUser: true });
 
+		// 送信中のメッセージをキャンセル
+		const controller = new AbortController();
+		abortRef.current = controller;
+
 		// 思考中状態に設定
 		setIsThinking(true);
 
 		try {
-			const answer = await generateText(trimmed);
+			const answer = await generateText(trimmed, undefined, controller.signal);
 			setIsThinking(false);
 			pushMessage({ text: answer, isUser: false, speakText: answer });
-		} catch {
-			setIsThinking(false);
-			pushMessage({
-				text: "すみません、応答の生成中にエラーが発生しました。もう一度お試しください。",
-				isUser: false,
-			});
+		} catch (err) {
+			if (err instanceof Error && err.name === "AbortError") {
+				pushMessage({ text: "（生成を停止しました）", isUser: false });
+			} else {
+				setIsThinking(false);
+				pushMessage({
+					text: "すみません、応答の生成中にエラーが発生しました。もう一度お試しください。",
+					isUser: false,
+				});
+			}
 		}
 		setInputValue("");
 	};
@@ -134,6 +145,13 @@ export const ChatInterface = forwardRef<
 		});
 	};
 
+	// 停止ボタンが押されたとき
+	const handleStop = () => {
+		abortRef.current?.abort(); // fetch を即キャンセル
+		stop(); // TTS も停止
+		setIsThinking(false); // UI を通常状態へ
+	};
+
 	return (
 		<ChatInterfaceView
 			messages={messages}
@@ -146,6 +164,7 @@ export const ChatInterface = forwardRef<
 			onSelect={handleSelect}
 			onReset={handleReset}
 			onToggleRecording={handleToggleRecording}
+			onStop={handleStop} // ★ 追加
 			messagesEndRef={messagesEndRef}
 		/>
 	);
