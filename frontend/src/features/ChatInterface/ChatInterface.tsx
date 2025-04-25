@@ -101,7 +101,7 @@ export const ChatInterface = forwardRef<
 		setIsThinking(true);
 
 		try {
-			const answer = await generateText(trimmed, undefined, controller.signal);
+			const answer = await generateText(trimmed, undefined, controller.signal, undefined, "/voice_mode_answer");
 			setIsThinking(false);
 			pushMessage({ text: answer, isUser: false, speakText: answer });
 		} catch (err) {
