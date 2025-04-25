@@ -34,9 +34,10 @@ export const generateText = async (
 	context?: Record<string, any>,
 	signal?: AbortSignal,
 	retries = MAX_RETRIES,
+	endpoint: string = "/answer_query"
 ): Promise<string> => {
 	try {
-		const response = await fetch(`${API_BASE_URL}/llm/query`, {
+		const response = await fetch(`${API_BASE_URL}/llm${endpoint}`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -55,7 +56,7 @@ export const generateText = async (
 					`API一時利用不可 (${response.status})、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
 				);
 				await sleep(RETRY_DELAY);
-				return generateText(query, context, signal, retries - 1);
+				return generateText(query, context, signal, retries - 1, endpoint);
 			}
 			throw new Error(`API error: ${response.status}`);
 		}
@@ -69,7 +70,7 @@ export const generateText = async (
 				`ネットワークエラー、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
 			);
 			await sleep(RETRY_DELAY);
-			return generateText(query, context, signal, retries - 1);
+			return generateText(query, context, signal, retries - 1, endpoint);
 		}
 		console.error("Error generating text:", error);
 		throw error;
