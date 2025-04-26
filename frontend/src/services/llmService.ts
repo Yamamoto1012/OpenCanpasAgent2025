@@ -34,7 +34,7 @@ export const generateText = async (
 	context?: Record<string, any>,
 	signal?: AbortSignal,
 	retries = MAX_RETRIES,
-	endpoint: string = "/answer_query"
+	endpoint: string = "/query"
 ): Promise<string> => {
 	try {
 		const response = await fetch(`${API_BASE_URL}/llm${endpoint}`, {
