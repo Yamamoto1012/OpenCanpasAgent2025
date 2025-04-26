@@ -1,14 +1,15 @@
+import { useRef, useEffect } from "react";
+import type React from "react";
 import { Mic, MicOff, Send, SquareSlash } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
 
 export type ChatInputAreaProps = {
 	inputValue: string;
 	isThinking: boolean;
 	isRecording: boolean;
-	onInputChange: React.ChangeEventHandler<HTMLInputElement>;
-	onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
+	onInputChange: React.ChangeEventHandler<HTMLTextAreaElement>;
+	onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>;
 	onSend: () => void;
 	onToggleRecording: () => void;
 	onStop: () => void;
@@ -24,6 +25,25 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 	onToggleRecording,
 	onStop,
 }) => {
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+	// 入力内容に応じて高さを自動調整
+	const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+		const textarea = e.currentTarget;
+		textarea.style.height = "auto";
+		textarea.style.height = `${textarea.scrollHeight}px`;
+	};
+
+	// valueが変わるたびに高さを再計算
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+		useEffect(() => {
+		const textarea = textareaRef.current;
+		if (textarea) {
+			textarea.style.height = "auto";
+			textarea.style.height = `${textarea.scrollHeight}px`;
+		}
+	}, [inputValue]);
+
 	return (
 		<div style={{ backgroundColor: "#b3cfad" }} className="px-3 py-2">
 			{/* 録音中の波形表示 */}
@@ -31,15 +51,19 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
 			{/* 入力エリア */}
 			<div className="flex items-center gap-2">
-				<Input
+				<textarea
+					ref={textareaRef}
 					value={inputValue}
 					onChange={onInputChange}
 					onKeyDown={onKeyDown}
+					onInput={handleInput}
 					placeholder={
 						isRecording ? "音声を認識しています..." : "質問を入力..."
 					}
 					disabled={isThinking || isRecording}
-					className={isRecording ? "bg-red-50 border-0" : "bg-white border-0"}
+					rows={1}
+					className={`resize-none w-full rounded-md border-0 px-3 py-2 text-base bg-white focus-visible:ring-2 focus-visible:ring-[#9f9579] focus-visible:outline-none transition-all ${isRecording ? "bg-red-50" : ""}`}
+					style={{ minHeight: 40, maxHeight: 200, lineHeight: 1.5, overflow: "hidden" }}
 				/>
 
 				{/* マイクボタン */}

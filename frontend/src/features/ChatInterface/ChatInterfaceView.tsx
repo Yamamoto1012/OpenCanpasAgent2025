@@ -11,8 +11,8 @@ export type ChatInterfaceViewProps = {
 	inputValue: string;
 	isThinking: boolean;
 	isRecording: boolean;
-	onInputChange: React.ChangeEventHandler<HTMLInputElement>;
-	onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
+	onInputChange: React.ChangeEventHandler<HTMLTextAreaElement>;
+	onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>;
 	onSend: () => void;
 	onSelect: (value: string) => void;
 	onReset: () => void;
