@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatView } from "./VoiceChatView";
@@ -42,6 +42,36 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 
 	// タイマー参照を保持
 	const responseTimerRef = useRef<NodeJS.Timeout | null>(null);
+	const [lastSpokenTime, setLastSpokenTime] = useState<number | null>(null);
+	const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	// transcriptが更新されるたびに最終発話時刻を記録
+	useEffect(() => {
+		if (isListening && transcript) {
+			setLastSpokenTime(Date.now());
+		}
+	}, [transcript, isListening]);
+
+	// isListening中は無音監視タイマーを動かす
+	useEffect(() => {
+		if (!isListening) {
+			if (silenceTimeoutRef.current) {
+				clearInterval(silenceTimeoutRef.current);
+			}
+			return;
+		}
+		silenceTimeoutRef.current = setInterval(() => {
+			if (lastSpokenTime && Date.now() - lastSpokenTime > 1500) {
+				// 1.5秒無音なら自動停止
+				stopListening();
+			}
+		}, 300);
+		return () => {
+			if (silenceTimeoutRef.current) {
+				clearInterval(silenceTimeoutRef.current);
+			}
+		};
+	}, [isListening, lastSpokenTime, stopListening]);
 
 	// コンポーネントがマウントされたら、モーションをStandingIdleに設定する
 	useEffect(() => {
@@ -138,6 +168,9 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			// TTSで音声再生し、再生終了後にwaitingへ
 			await speak(response);
 			setProcessingState("waiting");
+			// TTS再生後に自動で音声認識を再開
+			setProcessingState("recording");
+			startListening();
 		} catch (error) {
 			console.error("AI応答生成エラー:", error);
 			setProcessingState("waiting");
