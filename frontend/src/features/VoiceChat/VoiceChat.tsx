@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatView } from "./VoiceChatView";
@@ -14,6 +14,8 @@ import {
 	setProcessingStateAtom,
 	setVrmThinkingStateAtom,
 } from "@/store/voiceChatAtoms";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import { generateText } from "@/services/llmService";
 
 type VoiceChatProps = {
 	onClose?: () => void;
@@ -25,6 +27,7 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	const { isListening, transcript, startListening, stopListening } =
 		useVoiceChat();
 	const { playAudio } = useAudioContext();
+	const { speak } = useTextToSpeech(vrmWrapperRef);
 
 	const [aiResponse] = useAtom(aiResponseAtom);
 	const [processingState] = useAtom(processingStateAtom);
@@ -39,6 +42,36 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 
 	// タイマー参照を保持
 	const responseTimerRef = useRef<NodeJS.Timeout | null>(null);
+	const [lastSpokenTime, setLastSpokenTime] = useState<number | null>(null);
+	const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	// transcriptが更新されるたびに最終発話時刻を記録
+	useEffect(() => {
+		if (isListening && transcript) {
+			setLastSpokenTime(Date.now());
+		}
+	}, [transcript, isListening]);
+
+	// isListening中は無音監視タイマーを動かす
+	useEffect(() => {
+		if (!isListening) {
+			if (silenceTimeoutRef.current) {
+				clearInterval(silenceTimeoutRef.current);
+			}
+			return;
+		}
+		silenceTimeoutRef.current = setInterval(() => {
+			if (lastSpokenTime && Date.now() - lastSpokenTime > 1500) {
+				// 1.5秒無音なら自動停止
+				stopListening();
+			}
+		}, 300);
+		return () => {
+			if (silenceTimeoutRef.current) {
+				clearInterval(silenceTimeoutRef.current);
+			}
+		};
+	}, [isListening, lastSpokenTime, stopListening]);
 
 	// コンポーネントがマウントされたら、モーションをStandingIdleに設定する
 	useEffect(() => {
@@ -107,18 +140,16 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 
 	// AIの応答を生成する関数（APIとの通信部分）
 	const generateAIResponse = async (userInput: string) => {
-		// 簡易的なレスポンスをシミュレーション
 		try {
-			// 応答生成を模擬（2〜3秒程度）
-			await new Promise((resolve) =>
-				setTimeout(resolve, 2000 + Math.random() * 1000),
+			// 応答を保存
+			const response = await generateText(
+				userInput,
+				undefined,
+				undefined,
+				3,
+				"/voice_mode_answer",
 			);
 
-			// サンプルレスポンス（実際はAPIから取得）
-			const response = `「${userInput}」というご質問ですね。承りました。こちらについて回答いたします。
-この内容については詳しく調べる必要がありますが、一般的には以下のように考えられています...`;
-
-			// 応答を保存
 			addAiMessage(response);
 
 			// 思考状態を終了するが、モーションは変更しない
@@ -134,15 +165,12 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			// 応答状態に変更
 			setProcessingState("responding");
 
-			// 応答完了後、ユーザー入力待ち状態に
-			responseTimerRef.current = setTimeout(() => {
-				setProcessingState("waiting");
-
-				// 待機状態でもStandingIdleモーションを維持
-				if (vrmWrapperRef.current?.crossFadeAnimation) {
-					vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
-				}
-			}, 5000); // 音声再生想定時間
+			// TTSで音声再生し、再生終了後にwaitingへ
+			await speak(response);
+			setProcessingState("waiting");
+			// TTS再生後に自動で音声認識を再開
+			setProcessingState("recording");
+			startListening();
 		} catch (error) {
 			console.error("AI応答生成エラー:", error);
 			setProcessingState("waiting");
@@ -151,7 +179,6 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			if (vrmWrapperRef.current?.crossFadeAnimation) {
 				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
 			}
-
 			setVrmThinkingState(false);
 		}
 	};
