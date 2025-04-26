@@ -7,52 +7,8 @@ import {
 	startListeningAtom,
 	stopListeningAtom,
 } from "@/store/voiceChatAtoms";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 
-type SpeechRecognitionEvent = Event & {
-	results: SpeechRecognitionResultList;
-};
-
-type SpeechRecognitionErrorEvent = Event & {
-	error: string;
-	message?: string;
-};
-
-type SpeechRecognitionResult = {
-	isFinal: boolean;
-} & {
-	[index: number]: {
-		confidence: number;
-		transcript: string;
-	};
-};
-
-type SpeechRecognitionResultList = {
-	length: number;
-} & {
-	[index: number]: SpeechRecognitionResult;
-};
-
-type SpeechRecognition = EventTarget & {
-	continuous: boolean;
-	interimResults: boolean;
-	lang: string;
-	start(): void;
-	stop(): void;
-	onresult: (event: SpeechRecognitionEvent) => void;
-	onerror: (event: SpeechRecognitionErrorEvent) => void;
-};
-
-declare global {
-	interface Window {
-		SpeechRecognition?: new () => SpeechRecognition;
-		webkitSpeechRecognition?: new () => SpeechRecognition;
-	}
-}
-
-/**
- * 音声認識機能を提供するカスタムフック
- * Jotaiアトムを使用して状態管理を行う
- */
 export const useVoiceChat = () => {
 	const [isListening] = useAtom(isListeningAtom);
 	const [transcript] = useAtom(transcriptAtom);
@@ -60,69 +16,81 @@ export const useVoiceChat = () => {
 	const initiateStartListening = useSetAtom(startListeningAtom);
 	const initiateStopListening = useSetAtom(stopListeningAtom);
 
-	const recognitionRef = useRef<SpeechRecognition | null>(null);
+	const recognitionRef = useRef<any>(null);
+	const { stop: stopTTS } = useTextToSpeech();
 
-	// SpeechRecognitionの初期化
 	useEffect(() => {
-		if (typeof window !== "undefined") {
-			const SpeechRecognition =
-				window.SpeechRecognition || window.webkitSpeechRecognition;
+		if (typeof window === "undefined") return;
+		const SpeechRecognition =
+			(window as any).SpeechRecognition ||
+			(window as any).webkitSpeechRecognition;
 
-			if (SpeechRecognition) {
-				const recognition = new SpeechRecognition();
-				recognition.continuous = true;
-				recognition.interimResults = true;
-				recognition.lang = "ja-JP"; // 日本語に設定
+		if (!SpeechRecognition) return;
 
-				recognition.onresult = (event: SpeechRecognitionEvent) => {
-					const result = event.results[event.results.length - 1];
-					const transcriptText = result[0].transcript;
-					setTranscript(transcriptText);
-				};
+		console.log("useVoiceChat effect: isListening =", isListening);
 
-				recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-					console.error("Speech recognition error", event.error);
-					stopListening();
-				};
+		if (isListening) {
+			// 既存インスタンスがあればabortしてnull
+			if (recognitionRef.current) {
+				try {
+					recognitionRef.current.abort();
+				} catch {}
+				recognitionRef.current = null;
+			}
+			stopTTS?.();
 
-				recognitionRef.current = recognition;
+			const recognition = new SpeechRecognition();
+			recognition.continuous = true;
+			recognition.interimResults = true;
+			recognition.lang = "ja-JP";
+
+			recognition.onresult = (event: any) => {
+				const result = event.results[event.results.length - 1];
+				const transcriptText = result[0].transcript;
+				setTranscript(transcriptText);
+			};
+			recognition.onerror = (event: any) => {
+				console.error("Speech recognition error", event.error);
+				recognitionRef.current = null;
+				if (isListening && event.error !== "aborted") initiateStopListening();
+			};
+			recognition.onend = () => {
+				recognitionRef.current = null;
+			};
+
+			recognitionRef.current = recognition;
+			try {
+				recognition.start();
+			} catch (e) {
+				recognitionRef.current = null;
+			}
+		} else {
+			if (recognitionRef.current) {
+				try {
+					recognitionRef.current.abort();
+				} catch {}
+				recognitionRef.current = null;
 			}
 		}
 
 		return () => {
 			if (recognitionRef.current) {
-				recognitionRef.current.stop();
+				try {
+					recognitionRef.current.abort();
+				} catch {}
+				recognitionRef.current = null;
 			}
 		};
-	}, [setTranscript]);
+		// isListeningだけでなくstopTTSも依存に入れる
+	}, [isListening, setTranscript, initiateStopListening, stopTTS]);
 
-	// isListeningの変更を検出し、実際の音声認識APIを制御
-	useEffect(() => {
-		const recognition = recognitionRef.current;
-		if (!recognition) return;
-
-		if (isListening) {
-			try {
-				recognition.start();
-			} catch (error) {
-				console.error("Failed to start speech recognition:", error);
-			}
-		} else {
-			try {
-				recognition.stop();
-			} catch (error) {
-				console.error("Failed to stop speech recognition:", error);
-			}
-		}
-	}, [isListening]);
-
-	// 音声認識を開始する関数
 	const startListening = async () => {
+		console.log("startListening called");
 		initiateStartListening();
 	};
 
-	// 音声認識を停止する関数
 	const stopListening = () => {
+		console.log("stopListening called");
 		initiateStopListening();
 	};
 

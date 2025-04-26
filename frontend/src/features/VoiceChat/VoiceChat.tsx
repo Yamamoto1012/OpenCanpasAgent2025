@@ -60,6 +60,7 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 			}
 			return;
 		}
+		setLastSpokenTime(Date.now());
 		silenceTimeoutRef.current = setInterval(() => {
 			if (lastSpokenTime && Date.now() - lastSpokenTime > 1500) {
 				// 1.5秒無音なら自動停止
@@ -152,33 +153,16 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 
 			addAiMessage(response);
 
-			// 思考状態を終了するが、モーションは変更しない
-			if (vrmIsThinking) {
-				setVrmThinkingState(false);
-
-				// StandingIdleモーションを維持
-				if (vrmWrapperRef.current?.crossFadeAnimation) {
-					vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
-				}
-			}
-
 			// 応答状態に変更
 			setProcessingState("responding");
 
-			// TTSで音声再生し、再生終了後にwaitingへ
+			// TTSで音声再生
 			await speak(response);
-			setProcessingState("waiting");
-			// TTS再生後に自動で音声認識を再開
-			setProcessingState("recording");
-			startListening();
+			setProcessingState("initial");
 		} catch (error) {
 			console.error("AI応答生成エラー:", error);
-			setProcessingState("waiting");
+			setProcessingState("initial");
 
-			// エラー発生時もStandingIdleモーションを維持
-			if (vrmWrapperRef.current?.crossFadeAnimation) {
-				vrmWrapperRef.current.crossFadeAnimation("/Motion/StandingIdle.vrma");
-			}
 			setVrmThinkingState(false);
 		}
 	};
