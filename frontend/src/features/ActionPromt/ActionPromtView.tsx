@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
-import { RecordingIndicator } from "@/features/RecordingIndicator/RecordingIndicator";
 
 export type ActionPromptViewProps = {
 	categoryTitle: string;
@@ -112,13 +111,6 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 									<Send className="h-4 w-4" />
 								</Button>
 							</div>
-
-							{/* 録音時間インジケーター */}
-							{isRecording && (
-								<div className="mt-2 flex justify-center">
-									<RecordingIndicator />
-								</div>
-							)}
 						</>
 					)}
 				</div>

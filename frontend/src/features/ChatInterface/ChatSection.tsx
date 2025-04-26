@@ -19,8 +19,6 @@ export const ChatSection: FC<ChatSectionProps> = ({
 	chatInterfaceRef,
 	vrmWrapperRef,
 }) => {
-	// 将来的にチャットに関する追加のロジックや状態管理
-
 	return (
 		<ChatSectionView
 			isVisible={isVisible}

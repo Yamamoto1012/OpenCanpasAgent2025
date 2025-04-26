@@ -78,7 +78,8 @@ export const ChatInterface = forwardRef<
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages.length]);
 
-	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+	// 入力欄の値が変わったとき
+	const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
 		setInputValue(e.target.value);
 	};
 
@@ -119,7 +120,7 @@ export const ChatInterface = forwardRef<
 	};
 
 	// Enter キー送信
-	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
 			e.preventDefault();
 			handleSend();
@@ -164,7 +165,7 @@ export const ChatInterface = forwardRef<
 			onSelect={handleSelect}
 			onReset={handleReset}
 			onToggleRecording={handleToggleRecording}
-			onStop={handleStop} // ★ 追加
+			onStop={handleStop}
 			messagesEndRef={messagesEndRef}
 		/>
 	);
