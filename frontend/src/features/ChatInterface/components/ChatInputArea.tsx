@@ -2,7 +2,6 @@ import { Mic, MicOff, Send, SquareSlash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
-import { RecordingIndicator } from "@/features/RecordingIndicator/RecordingIndicator";
 
 export type ChatInputAreaProps = {
 	inputValue: string;
@@ -83,13 +82,6 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 					<SquareSlash className="h-4 w-4" />
 				</Button>
 			</div>
-
-			{/* 録音中のインジケーター */}
-			{isRecording && (
-				<div className="mt-2 flex justify-center">
-					<RecordingIndicator />
-				</div>
-			)}
 		</div>
 	);
 };
