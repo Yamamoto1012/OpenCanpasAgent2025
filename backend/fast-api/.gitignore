@@ -1,4 +1,3 @@
-
 # Python関連
 __pycache__/
 *.py[cod]
@@ -45,6 +44,10 @@ htmlcov/
 
 # ログファイル
 *.log
+
+# AI関連
+.cursor/          # Cursor IDEの設定とルール
+docs/            # タスクドキュメント
 
 # その他
 .DS_Store
