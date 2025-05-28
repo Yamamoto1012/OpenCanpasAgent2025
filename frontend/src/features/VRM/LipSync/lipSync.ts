@@ -40,7 +40,7 @@ export class LipSync {
 
 			// RMS（Root Mean Square）による音量計算でより正確な音量を取得
 			let volume = 0.0; // 一番音が大きかった瞬間の大きさ
-			let rmsSum = 0.0;	// それぞれの波形の二乗して、全部足し算していく
+			let rmsSum = 0.0; // それぞれの波形の二乗して、全部足し算していく
 
 			for (let i = 0; i < TIME_DOMAIN_DATA_LENGTH; i++) {
 				const sample = this.timeDomainData[i];

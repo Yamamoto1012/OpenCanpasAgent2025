@@ -10,6 +10,8 @@ import {
 } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { ChatInterfaceView } from "./ChatInterfaceView";
+import { ChatMobileView } from "./ChatMobileView";
+import { useResponsive } from "@/hooks/useResponsive";
 import { messagesAtom, addMessageAtom, resetChatAtom } from "@/store/chatAtoms";
 import { isRecordingAtom, toggleRecordingAtom } from "@/store/recordingAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
@@ -25,10 +27,16 @@ export type ChatInterfaceHandle = {
 	stopGeneration: () => void;
 };
 
+/**
+ * @param props - チャットインターフェースのプロパティ
+ * @param ref - 外部からの参照を受け取るためのref
+ */
+
 export const ChatInterface = forwardRef<
 	ChatInterfaceHandle,
 	React.PropsWithChildren<ChatInterfaceProps>
 >((props, ref) => {
+	const { isMobile } = useResponsive();
 	const [messages] = useAtom(messagesAtom);
 	const [input, setInput] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -63,7 +71,6 @@ export const ChatInterface = forwardRef<
 
 	// 外部から呼び出し可能なメソッドを定義
 	useImperativeHandle(ref, () => ({
-		// biome-ignore lint/style/useDefaultParameterLast: <explanation>
 		sendMessage: (text) => pushMessage({ text, isUser: true }),
 		stopGeneration: () => {
 			abortRef.current?.abort();
@@ -153,24 +160,35 @@ export const ChatInterface = forwardRef<
 		});
 	};
 
-	return (
-		<ChatInterfaceView
-			messages={messages}
-			inputValue={input}
-			isThinking={isLoading}
-			isRecording={isRecording}
-			onInputChange={handleInputChange}
-			onKeyDown={handleKeyDown}
-			onSend={handleSend}
-			onSelect={handleSelect}
-			onReset={handleReset}
-			onToggleRecording={handleToggleRecording}
-			onStop={() => {
-				abortRef.current?.abort();
-				stop();
-				setIsLoading(false);
-			}}
-			messagesEndRef={messagesEndRef}
-		/>
+	// 共通のprops
+	const commonProps = {
+		messages,
+		inputValue: input,
+		isThinking: isLoading,
+		isRecording,
+		onInputChange: handleInputChange,
+		onKeyDown: handleKeyDown,
+		onSend: handleSend,
+		onToggleRecording: handleToggleRecording,
+		messagesEndRef,
+	};
+
+	// デスクトップ専用のprops
+	const desktopProps = {
+		...commonProps,
+		onSelect: handleSelect,
+		onReset: handleReset,
+		onStop: () => {
+			abortRef.current?.abort();
+			stop();
+			setIsLoading(false);
+		},
+	};
+
+	// デバイスに応じて適切なViewを選択
+	return isMobile ? (
+		<ChatMobileView {...commonProps} />
+	) : (
+		<ChatInterfaceView {...desktopProps} />
 	);
 });

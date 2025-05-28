@@ -21,6 +21,21 @@ export type ChatInterfaceViewProps = {
 	messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
 
+/**
+ * チャットインターフェースのプレゼンテーションコンポーネント
+ * @param messages - チャットメッセージの配列
+ * @param inputValue - 入力フィールドの値
+ * @param isThinking - 応答中かどうかのフラグ
+ * @param isRecording - 音声入力中かどうかのフラグ
+ * @param onInputChange - 入力値変更時のハンドラ
+ * @param onKeyDown - キー入力時のハンドラ
+ * @param onSend - 送信ボタン押下時のハンドラ
+ * @param onSelect - 候補テキスト選択時のハンドラ
+ * @param onReset - チャットリセット時のハンドラ
+ * @param onToggleRecording - 音声入力のトグルハンドラ
+ * @param onStop - 音声入力停止時のハンドラ
+ * @param messagesEndRef - メッセージの末尾を参照するためのRef
+ */
 export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 	messages,
 	inputValue,
@@ -36,7 +51,19 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 	messagesEndRef,
 }) => {
 	return (
-		<div className="w-md max-w-md h-[80vh] max-h-[700px] flex flex-col rounded-lg overflow-hidden shadow-xl">
+		<div
+			className="
+			w-full h-full 
+			md:max-w-sm md:h-[70vh] 
+			lg:max-w-md lg:h-[75vh] 
+			xl:max-w-lg xl:h-[80vh] 
+			md:max-h-[600px] lg:max-h-[650px] xl:max-h-[700px] 
+			flex flex-col 
+			rounded-none md:rounded-lg 
+			overflow-hidden 
+			shadow-none md:shadow-xl
+		"
+		>
 			<ChatHeader onReset={onReset} />
 			<ChatMessages
 				messages={messages}

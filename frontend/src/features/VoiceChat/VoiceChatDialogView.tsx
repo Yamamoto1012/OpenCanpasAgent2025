@@ -1,7 +1,11 @@
 import type { FC, RefObject } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 import { X } from "lucide-react";
+import { useAtom } from "jotai";
 import { VoiceChat } from "./VoiceChat";
+import { useResponsive } from "@/hooks/useResponsive";
+import { currentScreenAtom } from "@/store/navigationAtoms";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type VoiceChatDialogViewProps = {
@@ -24,14 +28,25 @@ export type VoiceChatDialogViewProps = {
 
 /**
  * 音声チャットのダイアログUIプレゼンテーションコンポーネント
- *
- * 画面中央に表示される音声チャット機能のUI表示のみを担当
+ * @param isVisible - ダイアログの表示状態
+ * @param onClose - ダイアログを閉じるためのコールバック関数
+ * @param vrmWrapperRef - VRMWrapperコンポーネントへの参照
  */
 export const VoiceChatDialogView: FC<VoiceChatDialogViewProps> = ({
 	isVisible,
 	onClose,
 	vrmWrapperRef,
 }) => {
+	const { isMobile } = useResponsive();
+	const [currentScreen] = useAtom(currentScreenAtom);
+
+	// モバイル時にナビゲーションで他の画面が選択された場合、ダイアログを閉じる
+	useEffect(() => {
+		if (isMobile && isVisible && currentScreen !== "voice") {
+			onClose();
+		}
+	}, [currentScreen, isMobile, isVisible, onClose]);
+
 	return (
 		<AnimatePresence>
 			{isVisible && (
@@ -49,16 +64,20 @@ export const VoiceChatDialogView: FC<VoiceChatDialogViewProps> = ({
 						exit={{ scale: 0.9, y: 20 }}
 						transition={{ type: "spring", damping: 25, stiffness: 300 }}
 					>
-						<div className="flex justify-end mb-2">
-							<button
-								onClick={onClose}
-								className="p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
-								aria-label="音声チャットを閉じる"
-								type="button"
-							>
-								<X className="h-5 w-5 text-white" />
-							</button>
-						</div>
+						{/* デスクトップでのみバツボタンを表示 */}
+						{!isMobile && (
+							<div className="flex justify-end mb-2">
+								<button
+									onClick={onClose}
+									className="p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
+									aria-label="音声チャットを閉じる"
+									type="button"
+								>
+									<X className="h-5 w-5 text-white" />
+								</button>
+							</div>
+						)}
+
 						<VoiceChat onClose={onClose} vrmWrapperRef={vrmWrapperRef} />
 					</motion.div>
 				</motion.div>

@@ -3,18 +3,22 @@ import "./App.css";
 import { useAtom, useSetAtom } from "jotai";
 import { showVoiceChatAtom } from "./store/appStateAtoms";
 import { addMessageAtom } from "./store/chatAtoms";
+import { showBottomNavigationAtom } from "./store/navigationAtoms";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";
 import { AppLayout } from "./components/AppLayout";
 import { VRMContainer } from "./features/VRM/VRMContainer/VRMContainer";
-import { CategorySection } from "./features/CategorySection/CategorySection";
-import { ChatSection } from "./features/ChatInterface/ChatSection";
+import { ScreenManager } from "./features/ScreenManager/ScreenManager";
 import { ControlButtons } from "./features/ControlButtons/ControlButtons";
 import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
 
+/**
+ * アプリケーションのメインコンポーネント
+ */
 export default function App() {
-	const [showVoiceChat, _setShowVoiceChat] = useAtom(showVoiceChatAtom);
+	const [showVoiceChat] = useAtom(showVoiceChatAtom);
+	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
 	const addMessage = useSetAtom(addMessageAtom);
 
 	// カスタムフックの利用
@@ -44,6 +48,10 @@ export default function App() {
 		originalHandleAskQuestion(question);
 	};
 
+	const handleCloseInfo = () => {
+		// 情報パネルを閉じる処理
+	};
+
 	return (
 		<AppLayout>
 			{/* 3Dモデル表示領域 */}
@@ -55,8 +63,8 @@ export default function App() {
 			{/* 音声チャットが非表示の時のみUIを表示 */}
 			{!showVoiceChat && (
 				<>
-					{/* カテゴリナビゲーションと検索結果 */}
-					<CategorySection
+					{/* 画面管理 */}
+					<ScreenManager
 						categoryDepth={categoryDepth}
 						selectedCategory={selectedCategory}
 						showActionPrompt={showActionPrompt}
@@ -67,18 +75,14 @@ export default function App() {
 						onSearch={handleSearch}
 						onAskQuestion={handleAskQuestion}
 						onBackFromSearch={handleBackFromSearch}
-						vrmWrapperRef={vrmWrapperRef}
-					/>
-
-					{/* チャットインターフェース */}
-					<ChatSection
-						isVisible={showChat}
+						showChat={showChat}
 						chatInterfaceRef={chatInterfaceRef}
 						vrmWrapperRef={vrmWrapperRef}
+						onCloseInfo={handleCloseInfo}
 					/>
 
-					{/* コントロールボタン群 */}
-					<ControlButtons />
+					{/* コントロールボタン群*/}
+					{!showBottomNavigation && <ControlButtons />}
 				</>
 			)}
 

@@ -74,13 +74,18 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 	vrmWrapperRef,
 }) => {
 	return (
-		<div className="absolute top-1/7 right-2 flex flex-col items-center">
-			<div className="relative w-full min-h-[400px] flex justify-end">
+		<div
+			className="absolute 
+			top-16 left-2 right-2 md:top-1/7 md:right-2 md:left-auto 
+			flex flex-col items-center md:items-end 
+			z-10"
+		>
+			<div className="relative w-full md:w-auto min-h-[300px] md:min-h-[400px] flex justify-center md:justify-end">
 				<AnimatePresence mode="wait">
 					{shouldShowSearchResults ? (
 						<motion.div
 							key="search-results"
-							className="w-full max-w-xl -translate-x-24"
+							className="w-full max-w-lg md:max-w-xl md:-translate-x-24"
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: -20 }}
@@ -98,6 +103,7 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 					) : (
 						<motion.div
 							key="category-navigator"
+							className="w-full md:w-auto"
 							initial={{ opacity: 0, y: -20 }}
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: 20 }}
@@ -113,7 +119,7 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 			<AnimatePresence>
 				{showActionPrompt && selectedCategory && (
 					<motion.div
-						className="mt-4 w-full flex items-center justify-center"
+						className="mt-4 w-full max-w-lg md:max-w-none flex items-center justify-center md:justify-end"
 						initial={{ opacity: 0, y: -20 }}
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -20 }}
