@@ -22,6 +22,7 @@ export default function App() {
 	const chatInterfaceRef = useRef<ChatInterfaceHandle>(null);
 
 	// カテゴリ選択関連の状態とロジックを取得
+	const { state, actions } = useCategorySelection();
 	const {
 		categoryDepth,
 		selectedCategory,
@@ -30,20 +31,17 @@ export default function App() {
 		showSearchResult,
 		searchQuery,
 		isQuestion,
+	} = state;
+	const {
 		handleCategorySelect,
 		handleSearch,
 		handleAskQuestion: originalHandleAskQuestion,
 		handleBackFromSearch,
-	} = useCategorySelection();
+	} = actions;
 
-	const handleAskQuestion = (question: string, answer?: string | null) => {
+	const handleAskQuestion = (question: string) => {
 		addMessage({ text: question, isUser: true });
-		if (answer) {
-			addMessage({ text: answer, isUser: false });
-		}
-		if (originalHandleAskQuestion) {
-			originalHandleAskQuestion(question, answer);
-		}
+		originalHandleAskQuestion(question);
 	};
 
 	return (
