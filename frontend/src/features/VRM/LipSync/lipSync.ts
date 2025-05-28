@@ -1,4 +1,5 @@
 import type { LipSyncAnalyzeResult } from "./types";
+import { FrequencyAnalyzer } from "./frequencyAnalyzer";
 
 const TIME_DOMAIN_DATA_LENGTH = 2048;
 
@@ -6,13 +7,22 @@ export class LipSync {
 	public readonly audio: AudioContext;
 	public readonly analyser: AnalyserNode;
 	public readonly timeDomainData: Float32Array;
+	private readonly frequencyAnalyzer: FrequencyAnalyzer;
 	private isInitialized = false;
 
 	public constructor(audio: AudioContext) {
 		try {
 			this.audio = audio;
 			this.analyser = audio.createAnalyser();
+
+			// 周波数解析のための設定
+			this.analyser.fftSize = 2048;
+			this.analyser.smoothingTimeConstant = 0.6; // より敏感な反応のため低めに設定
+			this.analyser.minDecibels = -90; // より幅広い音量範囲を検出
+			this.analyser.maxDecibels = -10; // 高音量での飽和を防ぐ
+
 			this.timeDomainData = new Float32Array(TIME_DOMAIN_DATA_LENGTH);
+			this.frequencyAnalyzer = new FrequencyAnalyzer(this.analyser);
 			this.isInitialized = true;
 		} catch (error) {
 			console.error("LipSync初期化エラー:", error);
@@ -28,20 +38,64 @@ export class LipSync {
 		try {
 			this.analyser.getFloatTimeDomainData(this.timeDomainData);
 
-			let volume = 0.0;
+			// RMS（Root Mean Square）による音量計算でより正確な音量を取得
+			let volume = 0.0; // 一番音が大きかった瞬間の大きさ
+			let rmsSum = 0.0;	// それぞれの波形の二乗して、全部足し算していく
+
 			for (let i = 0; i < TIME_DOMAIN_DATA_LENGTH; i++) {
-				volume = Math.max(volume, Math.abs(this.timeDomainData[i]));
+				const sample = this.timeDomainData[i];
+				rmsSum += sample * sample;
+				volume = Math.max(volume, Math.abs(sample)); // その瞬間の最大波形を保存
 			}
 
-			// 音量を正規化（シグモイド関数を使用）
-			volume = 1 / (1 + Math.exp(-45 * volume + 5));
-			if (volume < 0.1) volume = 0;
+			// RMS値を計算して平均音量を取得
+			const rmsVolume = Math.sqrt(rmsSum / TIME_DOMAIN_DATA_LENGTH);
 
-			return { volume };
+			// ピークとRMSの組み合わせでより動的な音量を算出
+			const combinedVolume = volume * 0.7 + rmsVolume * 0.3;
+
+			// 音量を正規化
+			let normalizedVolume = 1 / (1 + Math.exp(-35 * combinedVolume + 3)); // 0~1の範囲に正規化
+			if (normalizedVolume < 0.03) normalizedVolume = 0; // より低い閾値
+
+			// 周波数解析と音素推定
+			const frequencyData = this.frequencyAnalyzer.getFrequencyData();
+			const phonemeResult = this.frequencyAnalyzer.estimatePhoneme(
+				frequencyData,
+				this.audio.sampleRate,
+			);
+
+			return {
+				volume: normalizedVolume,
+				frequencyData,
+				phoneme: phonemeResult.phoneme,
+				confidence: phonemeResult.confidence,
+			};
 		} catch (error) {
 			console.warn("音量解析エラー:", error);
 			return { volume: 0 };
 		}
+	}
+
+	/**
+	 * 周波数データを取得
+	 * リアルタイム解析用
+	 */
+	public getFrequencyData(): Float32Array {
+		return this.frequencyAnalyzer.getFrequencyData();
+	}
+
+	/**
+	 * 音素推定を実行
+	 * @param frequencyData 周波数データ（オプション、未指定時は自動取得）
+	 * @returns 推定された音素と信頼度
+	 */
+	public estimatePhoneme(frequencyData?: Float32Array): {
+		phoneme: string;
+		confidence: number;
+	} {
+		const data = frequencyData || this.frequencyAnalyzer.getFrequencyData();
+		return this.frequencyAnalyzer.estimatePhoneme(data, this.audio.sampleRate);
 	}
 
 	public async playFromArrayBuffer(
@@ -65,7 +119,7 @@ export class LipSync {
 			bufferSource.connect(this.audio.destination);
 			bufferSource.connect(this.analyser);
 
-			// 音声のステータスを継続的にモニター
+			// リアルタイム音響解析とコールバック実行
 			const monitorInterval = setInterval(() => {
 				try {
 					const result = this.update();
@@ -75,7 +129,7 @@ export class LipSync {
 				} catch (error) {
 					console.warn("リップシンク解析エラー:", error);
 				}
-			}, 50); // 50ミリ秒ごとに更新
+			}, 30); // 30ミリ秒ごとに更新
 
 			bufferSource.start();
 

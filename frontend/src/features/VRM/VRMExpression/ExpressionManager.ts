@@ -200,4 +200,116 @@ export class ExpressionManager {
 			this.resetLipSyncExpressions();
 		}
 	}
+
+	/**
+	 * 音響データに基づくリアルタイムリップシンク制御
+	 * 音量レベルと推定音素に応じて表情の重みを動的に調整
+	 * @param volume 音量レベル（0-1）
+	 * @param phoneme 推定された音素
+	 * @param confidence 音素推定の信頼度（0-1）
+	 */
+	setLipSyncByAcousticData(
+		volume: number,
+		phoneme: string,
+		confidence: number,
+	): void {
+		if (!this.vrm) return;
+
+		// 音量が非常に小さい場合は段階的に口を閉じる
+		if (volume <= 0.05) {
+			this.resetLipSyncExpressions();
+			this.isLipSyncActive = false;
+			return;
+		}
+
+		// 音素に対応する表情を取得
+		const expressionName = this.getExpressionForPhoneme(phoneme);
+		if (!expressionName) {
+			// 認識できない音素の場合は軽く口を開ける（「あ」音）
+			this.setLipSyncExpression("aa", volume * 0.4);
+			this.isLipSyncActive = true;
+			return;
+		}
+
+		// 音量と信頼度に基づいて重みを計算（ぱくぱく動作のため調整）
+		const baseWeight = VRM_EXPRESSION_CONFIG.WEIGHTS.LIP_SYNC;
+
+		// 音量による重み調整（非線形変換でより動的に）
+		const volumeWeight = volume ** 0.7 * 1.2; // べき乗で非線形調整
+
+		// 信頼度による重み調整（最低20%保証）
+		const confidenceWeight = Math.max(0.2, Math.min(1.0, confidence));
+
+		// 最終的な重み計算（ぱくぱく効果のため最小値を設定）
+		let finalWeight = baseWeight * volumeWeight * confidenceWeight;
+		finalWeight = Math.max(0.15, Math.min(1.0, finalWeight)); // 最小15%、最大100%
+
+		// 現在のリップシンク表情をリセット
+		this.resetLipSyncExpressions();
+
+		// 新しい表情を設定（補間機能付き）
+		this.setLipSyncWithInterpolation(expressionName, finalWeight, 0.6);
+		this.isLipSyncActive = true;
+
+		// 周期的な微調整でぱくぱく効果を強化
+		const timeOffset = Date.now() * 0.008; // より滑らかな周期
+		const pulse = Math.sin(timeOffset) * 0.08 + 1.0; // 8%の変動
+		const adjustedWeight = finalWeight * pulse;
+
+		this.setLipSyncExpression(expressionName, Math.max(0.1, adjustedWeight));
+	}
+
+	/**
+	 * 滑らかな表情変化のための補間機能
+	 * 急激な表情変化を抑制し、自然なアニメーションを実現
+	 * @param targetExpression 目標の表情
+	 * @param targetWeight 目標の重み
+	 * @param interpolationSpeed 補間速度（0-1、高いほど速い）
+	 */
+	setLipSyncWithInterpolation(
+		targetExpression: LipSyncExpression,
+		targetWeight: number,
+		interpolationSpeed = 0.3,
+	): void {
+		if (!this.vrm) return;
+
+		// 現在の重みを取得（VRMからの直接取得は複雑なため、簡易実装）
+		const currentWeight = this.getCurrentLipSyncWeight(targetExpression);
+
+		// 線形補間による滑らかな重み変化
+		const interpolatedWeight =
+			currentWeight + (targetWeight - currentWeight) * interpolationSpeed;
+
+		this.setLipSyncExpression(targetExpression, interpolatedWeight);
+	}
+
+	/**
+	 * 現在のリップシンク表情の重みを取得（簡易実装）
+	 * @param expression 対象の表情
+	 * @returns 現在の重み
+	 */
+	private getCurrentLipSyncWeight(expression: LipSyncExpression): number {
+		if (!this.vrm?.expressionManager) return 0;
+
+		try {
+			// VRMの表情システムから現在の重みを取得
+			const currentValue = this.vrm.expressionManager.getValue(expression);
+			return currentValue || 0;
+		} catch (error) {
+			console.warn(`表情 ${expression} の重み取得エラー:`, error);
+			return 0;
+		}
+	}
+
+	/**
+	 * デバッグ用：現在の音響リップシンク状態を取得
+	 */
+	getAcousticLipSyncDebugInfo() {
+		return {
+			isLipSyncActive: this.isLipSyncActive,
+			currentExpression: this.currentExpression,
+			currentWeight: this.currentWeight,
+			vrmAvailable: !!this.vrm,
+		};
+	}
 }

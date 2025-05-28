@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import type { VRM } from "@pixiv/three-vrm";
 import { LipSync } from "../LipSync/lipSync";
+import type { LipSyncAnalyzeResult } from "../LipSync/types";
 import { ExpressionManager } from "../VRMExpression/ExpressionManager";
 import { VRM_EXPRESSION_CONFIG } from "../constants/vrmExpressions";
 
@@ -83,6 +84,7 @@ const KANA_TO_PHONEME_MAP: Record<string, string> = {
 
 /**
  * 音素からリップシンク用の表情重みへの変換設定
+ * テキストベースリップシンクのフォールバック用
  */
 const PHONEME_WEIGHT_CONFIG = {
 	a: { weight: 0.8, duration: 120 },
@@ -94,15 +96,24 @@ const PHONEME_WEIGHT_CONFIG = {
 } as const;
 
 /**
+ * リップシンクモード
+ */
+type LipSyncMode = "acoustic" | "text" | "hybrid";
+
+/**
  * VRMモデルのリップシンク制御を行うフック
+ * 音響データベースのリアルタイムリップシンクとテキストベースのフォールバックを提供
  * @param vrm VRMモデルインスタンス
  * @param isMuted 音声ミュート状態
  * @returns リップシンク制御のための関数と状態
  */
 export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 	const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+	const [lipSyncMode, setLipSyncMode] = useState<LipSyncMode>("acoustic");
 	const lipSyncRef = useRef<LipSync | null>(null);
 	const isPlayingAudioRef = useRef<boolean>(false);
+	const lastPhonemeRef = useRef<string>("");
+	const smoothingBufferRef = useRef<number[]>([]);
 
 	// ExpressionManagerのインスタンスを作成・管理
 	const expressionManager = useMemo(() => new ExpressionManager(vrm), [vrm]);
@@ -142,6 +153,92 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 	}, [audioContext]);
 
 	/**
+	 * 音量の平滑化処理
+	 * 急激な音量変化を抑制し、自然な表情変化を実現
+	 * @param volume - 現在の音量
+	 * @returns 平滑化された音量
+	 */
+	const smoothVolume = useCallback((volume: number): number => {
+		const bufferSize = 2; // 2フレーム分の平均でより敏感に
+		smoothingBufferRef.current.push(volume);
+
+		if (smoothingBufferRef.current.length > bufferSize) {
+			smoothingBufferRef.current.shift();
+		}
+
+		// 重み付き平均で最新の値により重みを置く
+		const weights = [0.3, 0.7]; // 最新の値により大きな重み
+		let weightedSum = 0;
+		let totalWeight = 0;
+
+		for (let i = 0; i < smoothingBufferRef.current.length; i++) {
+			const weight = weights[i] || 0.5;
+			weightedSum += smoothingBufferRef.current[i] * weight;
+			totalWeight += weight;
+		}
+
+		return totalWeight > 0 ? weightedSum / totalWeight : volume;
+	}, []);
+
+	/**
+	 * 音響データに基づくリアルタイムリップシンクコールバック
+	 * 50ms間隔で実行され、音響データを表情制御に反映する
+	 * @param result - 音響解析結果
+	 */
+	const handleAcousticAnalysis = useCallback(
+		(result: LipSyncAnalyzeResult): void => {
+			if (!expressionManager || !isPlayingAudioRef.current) {
+				return;
+			}
+
+			const { volume, phoneme, confidence } = result;
+
+			if (lipSyncMode === "acoustic" || lipSyncMode === "hybrid") {
+				// 音量の平滑化（より細かい変化に対応）
+				const smoothedVolume = smoothVolume(volume);
+
+				// 音量閾値の設定（より低い閾値でぱくぱく動作を実現）
+				const volumeThreshold = 0.05; // 非常に小さな音量でも反応
+				const maxVolume = 0.8; // 最大音量の制限
+
+				if (smoothedVolume > volumeThreshold) {
+					// 音量を0-1の範囲に正規化（ぱくぱく動作のため非線形調整）
+					const normalizedVolume = Math.min(smoothedVolume / maxVolume, 1.0);
+
+					// ぱくぱく効果のための音量調整（より動的な変化）
+					const pulsedVolume =
+						Math.sin(Date.now() * 0.01) * 0.1 + normalizedVolume;
+					const clampedVolume = Math.max(0.1, Math.min(1.0, pulsedVolume));
+
+					if (phoneme && confidence !== undefined) {
+						// 音響データが利用可能な場合はリアルタイム制御
+						expressionManager.setLipSyncByAcousticData(
+							clampedVolume,
+							phoneme,
+							confidence,
+						);
+						lastPhonemeRef.current = phoneme;
+					} else if (normalizedVolume > 0.1) {
+						// 音響データがない場合は音量ベースの制御
+						expressionManager.setLipSyncByAcousticData(
+							clampedVolume,
+							lastPhonemeRef.current || "a", // 最後の音素またはデフォルト
+							0.5, // 中程度の信頼度
+						);
+					} else {
+						// 低音量時は軽く口を開ける
+						expressionManager.setLipSyncByAcousticData(0.2, "a", 0.3);
+					}
+				} else {
+					// 無音時は段階的に口を閉じる
+					expressionManager.setLipSyncActive(false);
+				}
+			}
+		},
+		[expressionManager, lipSyncMode, smoothVolume],
+	);
+
+	/**
 	 * テキストから音素配列への変換
 	 * ひらがな・カタカナから対応する音素を抽出する
 	 * @param text - 変換するテキスト
@@ -154,13 +251,13 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 	}, []);
 
 	/**
-	 * テキストベースのリップシンクアニメーションを実行
+	 * テキストベースのリップシンクアニメーション（フォールバック用）
 	 * @param text - リップシンクに使用するテキスト
 	 * @param baseDuration - 基本的な音素あたりの時間（ミリ秒）
 	 */
 	const executeTextLipSync = useCallback(
 		async (text: string, baseDuration: number): Promise<void> => {
-			if (!expressionManager || !text) {
+			if (!expressionManager || !text || lipSyncMode === "acoustic") {
 				return;
 			}
 
@@ -176,11 +273,19 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 					PHONEME_WEIGHT_CONFIG[phoneme as keyof typeof PHONEME_WEIGHT_CONFIG];
 
 				if (config) {
-					// 音素に対応する表情を設定
-					expressionManager.setLipSyncByPhoneme(
-						phoneme,
-						VRM_EXPRESSION_CONFIG.WEIGHTS.LIP_SYNC * config.weight,
-					);
+					// acousticモード以外でテキストベースのリップシンクを実行
+					const shouldUseTextSync =
+						lipSyncMode === "text" || lipSyncMode === "hybrid";
+
+					if (shouldUseTextSync) {
+						// テキストベースのリップシンク
+						if (lipSyncMode === "text") {
+							expressionManager.setLipSyncByPhoneme(
+								phoneme,
+								VRM_EXPRESSION_CONFIG.WEIGHTS.LIP_SYNC * config.weight,
+							);
+						}
+					}
 
 					// 音素の持続時間だけ待機
 					await new Promise((resolve) => setTimeout(resolve, config.duration));
@@ -199,15 +304,18 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 				await new Promise((resolve) => setTimeout(resolve, baseDuration * 0.1));
 			}
 		},
-		[expressionManager, convertTextToPhonemes],
+		[expressionManager, convertTextToPhonemes, lipSyncMode],
 	);
 
 	/**
-	 * 音声再生とテキストベースリップシンクの実行
+	 * 音声再生とリップシンクの実行
+	 * 音響データベースのリアルタイム制御を優先し、テキストベースをフォールバックとして使用
 	 * @param audioUrl - 再生する音声のURL
 	 * @param lipSyncText - リップシンクに使用するテキスト（オプション）
 	 * @param onAudioEnded - 音声再生終了時のコールバック
 	 */
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	const playAudioWithLipSync = useCallback(
 		async (
 			audioUrl: string,
@@ -221,38 +329,66 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 
 			try {
 				isPlayingAudioRef.current = true;
+				lastPhonemeRef.current = "";
+				smoothingBufferRef.current = [];
 
-				if (lipSyncText && expressionManager) {
-					// テキストの長さに基づいて基本時間を計算
-					const baseDurationPerCharacter = Math.max(
-						(lipSyncText.length * 60) /
-							(convertTextToPhonemes(lipSyncText).length || 1),
-						80,
-					);
+				// 音声終了時のクリーンアップ
+				const handleAudioEnd = () => {
+					isPlayingAudioRef.current = false;
+					expressionManager?.setLipSyncActive(false);
+					smoothingBufferRef.current = [];
+					onAudioEnded?.();
+				};
 
-					// 音声再生を開始
+				if (lipSyncMode === "acoustic" || lipSyncMode === "hybrid") {
+					// 音響データベースのリアルタイムリップシンク
 					const audioPlayPromise = lipSyncRef.current.playFromURL(
 						audioUrl,
-						undefined, // 音量解析コールバックは使用しない
-						() => {
-							isPlayingAudioRef.current = false;
-							expressionManager.setLipSyncActive(false);
-							onAudioEnded?.();
-						},
+						handleAcousticAnalysis, // リアルタイム音響解析コールバック
+						handleAudioEnd,
 					);
 
-					// テキストベースのリップシンクを並行実行
-					await Promise.all([
-						audioPlayPromise,
-						executeTextLipSync(lipSyncText, baseDurationPerCharacter),
-					]);
+					if (lipSyncText && lipSyncMode === "hybrid") {
+						// ハイブリッドモード：音響データとテキストデータを併用
+						const baseDurationPerCharacter = Math.max(
+							(lipSyncText.length * 60) /
+								(convertTextToPhonemes(lipSyncText).length || 1),
+							80,
+						);
+
+						await Promise.all([
+							audioPlayPromise,
+							executeTextLipSync(lipSyncText, baseDurationPerCharacter),
+						]);
+					} else {
+						await audioPlayPromise;
+					}
 				} else {
-					// テキストなしの場合は音声再生のみ
-					await lipSyncRef.current.playFromURL(audioUrl, undefined, () => {
-						isPlayingAudioRef.current = false;
-						expressionManager?.setLipSyncActive(false);
-						onAudioEnded?.();
-					});
+					// テキストベースのみ
+					if (lipSyncText) {
+						const baseDurationPerCharacter = Math.max(
+							(lipSyncText.length * 60) /
+								(convertTextToPhonemes(lipSyncText).length || 1),
+							80,
+						);
+
+						const audioPlayPromise = lipSyncRef.current.playFromURL(
+							audioUrl,
+							undefined,
+							handleAudioEnd,
+						);
+
+						await Promise.all([
+							audioPlayPromise,
+							executeTextLipSync(lipSyncText, baseDurationPerCharacter),
+						]);
+					} else {
+						await lipSyncRef.current.playFromURL(
+							audioUrl,
+							undefined,
+							handleAudioEnd,
+						);
+					}
 				}
 			} catch (error) {
 				console.error("音声再生またはリップシンクに失敗しました:", error);
@@ -265,14 +401,32 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 			lipSyncRef,
 			isMuted,
 			expressionManager,
+			lipSyncMode,
+			handleAcousticAnalysis,
 			executeTextLipSync,
 			convertTextToPhonemes,
 		],
 	);
 
+	/**
+	 * デバッグ情報の取得
+	 */
+	const getDebugInfo = useCallback(() => {
+		return {
+			audioInitialized: !!audioContext,
+			lipSyncMode,
+			isPlaying: isPlayingAudioRef.current,
+			lastPhoneme: lastPhonemeRef.current,
+			expressionManagerState: expressionManager?.getAcousticLipSyncDebugInfo(),
+		};
+	}, [audioContext, lipSyncMode, expressionManager]);
+
 	return {
 		playAudio: playAudioWithLipSync,
 		isAudioInitialized: !!audioContext,
 		expressionManager,
+		lipSyncMode,
+		setLipSyncMode,
+		getDebugInfo,
 	};
 };
