@@ -84,14 +84,6 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 }) => {
 	const setShowVoiceChat = useSetAtom(showVoiceChatAtom);
 
-	// 画面切り替えのアニメーション設定
-	const screenTransition = {
-		initial: { opacity: 0, y: 20 },
-		animate: { opacity: 1, y: 0 },
-		exit: { opacity: 0, y: -20 },
-		transition: { duration: 0.3 },
-	};
-
 	// 音声チャット画面がアクティブな場合は音声チャットダイアログを表示
 	const handleVoiceScreenActivation = () => {
 		if (currentScreen === "voice" && showBottomNavigation) {
@@ -108,17 +100,18 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 	// モバイルモードでの画面表示
 	if (showBottomNavigation) {
 		return (
-			<div className="h-full w-full">
+			<div className="h-full w-full relative">
 				<AnimatePresence mode="wait">
 					{currentScreen === "home" && (
 						<motion.div
 							key="home"
-							className="h-full w-full"
-							{...screenTransition}
+							className="absolute inset-0 flex flex-col"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.2 }}
 						>
-							<div className="pb-20">
-								{" "}
-								{/* ボトムナビゲーション分の余白 */}
+							<div className="flex-1 pb-20">
 								<CategorySection
 									categoryDepth={categoryDepth}
 									selectedCategory={selectedCategory}
@@ -139,10 +132,13 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 					{currentScreen === "chat" && (
 						<motion.div
 							key="chat"
-							className="h-full w-full flex flex-col"
-							{...screenTransition}
+							className="absolute inset-0 flex flex-col"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.2 }}
 						>
-							<div className="flex-1 flex flex-col pb-20 overflow-hidden">
+							<div className="flex-1 pb-20 overflow-hidden">
 								<ChatSection
 									isVisible={true}
 									chatInterfaceRef={chatInterfaceRef}
@@ -155,8 +151,11 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 					{currentScreen === "voice" && (
 						<motion.div
 							key="voice"
-							className="h-full w-full flex items-center justify-center"
-							{...screenTransition}
+							className="absolute inset-0 flex items-center justify-center"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.2 }}
 						>
 							<div className="pb-20 p-8 text-center text-white">
 								<h2 className="text-2xl font-bold mb-4">音声チャット</h2>
@@ -170,8 +169,11 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 					{currentScreen === "info" && (
 						<motion.div
 							key="info"
-							className="h-full w-full"
-							{...screenTransition}
+							className="absolute inset-0"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.2 }}
 						>
 							<InfoPanel onClose={onCloseInfo} />
 						</motion.div>

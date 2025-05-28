@@ -64,11 +64,11 @@ export const ChatMobileView: React.FC<ChatMobileViewProps> = ({
 								>
 									<div
 										className={`
-										max-w-[85%] px-4 py-3 rounded-2xl shadow-lg
+										max-w-[85%] px-4 py-3 rounded-3xl shadow-lg backdrop-blur-sm
 										${
 											message.isUser
-												? "bg-white text-gray-800 rounded-br-md border border-gray-200"
-												: "bg-[#b3cfad] text-white rounded-bl-md"
+												? "bg-white/90 text-gray-800 rounded-br-lg border border-white/30"
+												: "bg-gradient-to-br from-[#b3cfad] to-[#9bb896] text-white rounded-bl-lg shadow-xl"
 										}
 									`}
 									>
@@ -82,7 +82,7 @@ export const ChatMobileView: React.FC<ChatMobileViewProps> = ({
 									animate={{ opacity: 1, scale: 1 }}
 									className="flex justify-start"
 								>
-									<div className="bg-white text-gray-800 rounded-2xl rounded-bl-md border border-gray-200 px-4 py-3 shadow-lg">
+									<div className="bg-white/90 backdrop-blur-sm text-gray-800 rounded-3xl rounded-bl-lg border border-white/30 px-4 py-3 shadow-xl">
 										<div className="flex space-x-1">
 											<div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
 											<div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
@@ -102,7 +102,7 @@ export const ChatMobileView: React.FC<ChatMobileViewProps> = ({
 					animate={{ opacity: 1, y: 0 }}
 					className="px-4"
 				>
-					<div className="bg-white rounded-full shadow-lg border border-gray-200 p-2">
+					<div className="bg-white/95 backdrop-blur-lg rounded-3xl shadow-xl border border-white/20 p-3">
 						<div className="flex items-end gap-2">
 							{/* メッセージ入力欄 */}
 							<div className="flex-1">
@@ -137,11 +137,11 @@ export const ChatMobileView: React.FC<ChatMobileViewProps> = ({
 								onClick={onToggleRecording}
 								disabled={isThinking}
 								className={`
-									p-3 rounded-full flex-shrink-0 touch-manipulation
+									p-3 rounded-2xl flex-shrink-0 touch-manipulation transition-all duration-300
 									${
 										isRecording
-											? "bg-red-500 text-white animate-pulse"
-											: "bg-gray-100 text-gray-600 hover:bg-gray-200"
+											? "bg-gradient-to-br from-red-500 to-red-600 text-white animate-pulse shadow-lg"
+											: "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 hover:from-gray-200 hover:to-gray-300 shadow-md"
 									}
 									disabled:opacity-50
 								`}
@@ -159,9 +159,10 @@ export const ChatMobileView: React.FC<ChatMobileViewProps> = ({
 								onClick={onSend}
 								disabled={isThinking || !inputValue.trim() || isRecording}
 								className="
-									bg-[#b3cfad] text-white p-3 rounded-full flex-shrink-0 touch-manipulation
-									disabled:opacity-50 disabled:bg-gray-300
-									hover:bg-[#9f9579] transition-colors
+									bg-gradient-to-br from-[#b3cfad] to-[#9bb896] text-white p-3 rounded-2xl flex-shrink-0 touch-manipulation
+									disabled:opacity-50 disabled:from-gray-300 disabled:to-gray-400
+									hover:from-[#9bb896] hover:to-[#8aa785] transition-all duration-300
+									shadow-lg hover:shadow-xl
 								"
 							>
 								<Send className="h-5 w-5" />
@@ -176,13 +177,17 @@ export const ChatMobileView: React.FC<ChatMobileViewProps> = ({
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.5 }}
-						className="px-4 pt-4"
+						className="px-4 pt-6 pb-24"
 					>
-						<div className="text-center text-white/80">
-							<p className="text-sm mb-2">こんにちは！</p>
-							<p className="text-xs">
-								メッセージを入力するか、マイクボタンで音声入力してください
-							</p>
+						<div className="text-center">
+							<div className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 border border-white/30 shadow-xl">
+								<p className="text-white text-base font-medium mb-3">
+									こんにちは！
+								</p>
+								<p className="text-white/80 text-sm leading-relaxed">
+									メッセージを入力するか、マイクボタンで音声入力してください
+								</p>
+							</div>
 						</div>
 					</motion.div>
 				)}
