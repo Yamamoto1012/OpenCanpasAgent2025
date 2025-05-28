@@ -22,7 +22,7 @@ export type CategorySelectionState = {
 	readonly showSearchResult: boolean;
 	readonly searchQuery: string;
 	readonly isQuestion: boolean;
-}
+};
 
 /**
  * カテゴリー選択のアクション群の型
@@ -33,7 +33,7 @@ export type CategorySelectionActions = {
 	readonly handleAskQuestion: (question: string) => void;
 	readonly handleBackFromSearch: () => void;
 	readonly resetSelection: () => void;
-}
+};
 
 /**
  * useCategorySelectionの返却値の型
@@ -43,7 +43,7 @@ export type UseCategorySelectionReturn = {
 	readonly actions: CategorySelectionActions;
 	readonly isSelectionComplete: boolean;
 	readonly canProceedToSearch: boolean;
-}
+};
 
 /**
  * カテゴリー選択、検索、質問の状態とロジックを管理するカスタムフック（改良版）

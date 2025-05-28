@@ -9,7 +9,7 @@ export type AudioState = {
 	readonly context: AudioContext | null;
 	readonly contextState: AudioContextState | null;
 	readonly error: Error | null;
-}
+};
 
 /**
  * AudioContextのアクション群の型
@@ -20,7 +20,7 @@ export type AudioActions = {
 	readonly suspend: () => Promise<void>;
 	readonly close: () => Promise<void>;
 	readonly playAudio: (audioUrl: string, text?: string) => void;
-}
+};
 
 /**
  * useAudioContextの返却値の型
@@ -30,7 +30,7 @@ export type UseAudioContextReturn = {
 	readonly actions: AudioActions;
 	readonly vrmWrapperRef: React.RefObject<VRMWrapperHandle | null>;
 	readonly isReady: boolean;
-}
+};
 
 /**
  * AudioContextの初期化オプション
@@ -39,7 +39,7 @@ export type AudioContextOptions = {
 	sampleRate?: number;
 	latencyHint?: AudioContextLatencyCategory;
 	autoInitialize?: boolean;
-}
+};
 
 /**
  * AudioContextの初期化と音声再生を管理するカスタムフック（

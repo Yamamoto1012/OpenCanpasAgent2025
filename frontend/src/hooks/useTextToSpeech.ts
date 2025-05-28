@@ -16,7 +16,7 @@ export type UseTTSOptions = {
 	defaultSpeakerId?: number;
 	defaultFormat?: AudioFormat;
 	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
-}
+};
 
 /**
  * TTS フックの状態
@@ -26,7 +26,7 @@ export type TTSState = {
 	error: Error | null;
 	isPlaying: boolean;
 	currentText: string | null;
-}
+};
 
 /**
  * TTS フックの返却値の型

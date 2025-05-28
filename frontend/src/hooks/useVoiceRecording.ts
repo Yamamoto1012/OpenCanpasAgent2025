@@ -14,32 +14,32 @@ import {
 export type UseVoiceRecordingProps = {
 	onRecognizedText: (text: string) => void;
 	recordingDuration?: number;
-}
+};
 
 /**
  * 音声録音フックの状態の型
  */
-export type VoiceRecordingState ={
+export type VoiceRecordingState = {
 	readonly isRecording: boolean;
 	readonly recordingTimer: number;
 	readonly recordingInterval: number;
-}
+};
 
 /**
  * 音声録音フックのアクション群の型
  */
 export type VoiceRecordingActions = {
 	readonly toggleRecording: () => void;
-}
+};
 
 /**
  * useVoiceRecordingの返却値の型
  */
-export type UseVoiceRecordingReturn ={
+export type UseVoiceRecordingReturn = {
 	readonly state: VoiceRecordingState;
 	readonly actions: VoiceRecordingActions;
 	readonly isReady: boolean;
-}
+};
 
 /**
  * 音声録音機能を提供するカスタムフック
