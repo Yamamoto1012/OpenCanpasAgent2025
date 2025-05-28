@@ -1,9 +1,15 @@
-import { useMemo, useEffect, forwardRef, useImperativeHandle } from "react";
+import {
+	useMemo,
+	useEffect,
+	forwardRef,
+	useImperativeHandle,
+	useRef,
+} from "react";
 import { useFrame } from "@react-three/fiber";
-import { Clock, Object3D } from "three";
+import { Clock, Object3D, Vector3, Euler } from "three";
 import { useVRM } from "../hooks/useVRM";
-import * as THREE from "three";
 import { useVRMExpression } from "../hooks/useVRMExpression";
+import { VRM_EXPRESSION_CONFIG } from "../constants/vrmExpressions";
 
 type VRMRenderProps = {
 	vrmUrl: string; // VRMモデルのURL
@@ -23,8 +29,8 @@ type VRMRenderProps = {
  * @param lookAtCamera カメラを見る機能の有効/無効
  * @param isMuted 音声ミュート状態
  * @param ref 親コンポーネントに公開するためのref
+ * @returns VRMモデルのプリミティブ
  */
-
 export const VRMRender = forwardRef(
 	(
 		{
@@ -40,10 +46,19 @@ export const VRMRender = forwardRef(
 		// VRMモデルとアニメーションの読み込み
 		const { vrm, scene, mixer, crossFadeAnimation } = useVRM(vrmUrl, vrmaUrl);
 
-		// 瞬きと呼吸アニメーション + リップシンク
+		// 表情制御
 		const expressions = useVRMExpression(vrm, isMuted);
 
-		// refを通じて親コンポーネントにcrossFadeAnimation関数を公開
+		// 位置と回転の現在値を保持するref
+		const currentPositionRef = useRef<Vector3>(new Vector3(...position));
+		const currentRotationRef = useRef<Euler>(new Euler(...rotation));
+		const targetPositionRef = useRef<Vector3>(new Vector3(...position));
+		const targetRotationRef = useRef<Euler>(new Euler(...rotation));
+
+		// 補間のアニメーション状態
+		const animationProgressRef = useRef<number>(1); // 1で完了状態
+
+		// refを通じて親コンポーネントにAPI関数を公開
 		useImperativeHandle(ref, () => ({
 			crossFadeAnimation,
 			setExpression: expressions.setExpression,
@@ -53,13 +68,37 @@ export const VRMRender = forwardRef(
 		}));
 
 		// 初期モーション読み込み時に表情も設定
-		// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 		useEffect(() => {
 			if (vrm && vrmaUrl) {
 				// モデルとモーションの両方がロードされたら表情を設定
 				expressions.setExpressionForMotion(vrmaUrl);
 			}
-		}, [vrm, vrmaUrl]);
+		}, [vrm, vrmaUrl, expressions]);
+
+		// 位置と回転の変更検知と目標値設定
+		useEffect(() => {
+			if (!scene) return;
+
+			const newTargetPosition = new Vector3(...position);
+			const newTargetRotation = new Euler(...rotation);
+
+			// 目標値が変更された場合のみアニメーション開始
+			if (
+				!targetPositionRef.current.equals(newTargetPosition) ||
+				!targetRotationRef.current.equals(newTargetRotation)
+			) {
+				// 現在値を開始位置として設定
+				currentPositionRef.current.copy(scene.position);
+				currentRotationRef.current.copy(scene.rotation);
+
+				// 新しい目標値を設定
+				targetPositionRef.current.copy(newTargetPosition);
+				targetRotationRef.current.copy(newTargetRotation);
+
+				// アニメーション開始
+				animationProgressRef.current = 0;
+			}
+		}, [scene, position, rotation]);
 
 		// 視線のターゲットとなるオブジェクト
 		const lookAtTarget = useMemo(() => {
@@ -71,78 +110,59 @@ export const VRMRender = forwardRef(
 		// 時間計測用のクロック
 		const clock = useMemo(() => new Clock(true), []);
 
-		/**
-		 * 位置と回転の滑らかな補間
-		 * モデルの移動をアニメーション化し、唐突な移動を防止
-		 */
+		// VRMのルックアット機能の設定
 		useEffect(() => {
-			if (!scene) return;
-			// 開始位置と目標位置
-			const startPos = scene.position.clone();
-			const startRot = scene.rotation.clone();
-			const targetPos = { x: position[0], y: position[1], z: position[2] };
-			const targetRot = { x: rotation[0], y: rotation[1], z: rotation[2] };
-
-			// アニメーション制御変数
-			let progress = 0;
-			const duration = 0.05; // 短い時間でスムーズに移動（50ミリ秒）
-
-			// 位置と回転を更新する関数
-			const update = () => {
-				if (progress >= duration) return;
-
-				progress += clock.getDelta();
-				const t = Math.min(progress / duration, 1);
-
-				// 位置の線形補間（Vector3.lerpVectors使用）
-				scene.position.lerpVectors(
-					startPos,
-					new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z),
-					t,
-				);
-
-				// 回転の線形補間
-				scene.rotation.x = startRot.x + (targetRot.x - startRot.x) * t;
-				scene.rotation.y = startRot.y + (targetRot.y - startRot.y) * t;
-				scene.rotation.z = startRot.z + (targetRot.z - startRot.z) * t;
-
-				// アニメーションが終わるまで再帰呼び出し
-				if (t < 1) requestAnimationFrame(update);
-			};
-
-			// アニメーション開始
-			update();
-		}, [scene, position, rotation, clock]);
-
-		/**
-		 * VRMのルックアット機能の設定
-		 * モデルの視線制御を行う
-		 */
-		useEffect(() => {
-			// biome-ignore lint/complexity/useOptionalChain: <explanation>
-			if (vrm && vrm.lookAt) {
+			if (vrm?.lookAt) {
 				vrm.lookAt.target = lookAtTarget;
 			}
 		}, [vrm, lookAtTarget]);
 
-		/**
-		 * フレームごとの更新処理
-		 * アニメーションの更新や視線の制御を行う
-		 */
+		// フレームごとの更新処理
 		useFrame(() => {
 			const delta = clock.getDelta();
 
+			// 位置と回転の補間アニメーション
+			if (scene && animationProgressRef.current < 1) {
+				animationProgressRef.current = Math.min(
+					animationProgressRef.current +
+						delta / VRM_EXPRESSION_CONFIG.TRANSITION_DURATION,
+					1,
+				);
+
+				// イージング関数（ease-out）
+				const t = 1 - (1 - animationProgressRef.current) ** 3;
+
+				// 位置の補間
+				scene.position.lerpVectors(
+					currentPositionRef.current,
+					targetPositionRef.current,
+					t,
+				);
+
+				// 回転の補間
+				scene.rotation.x =
+					currentRotationRef.current.x +
+					(targetRotationRef.current.x - currentRotationRef.current.x) * t;
+				scene.rotation.y =
+					currentRotationRef.current.y +
+					(targetRotationRef.current.y - currentRotationRef.current.y) * t;
+				scene.rotation.z =
+					currentRotationRef.current.z +
+					(targetRotationRef.current.z - currentRotationRef.current.z) * t;
+			}
+
 			// カメラ目線の制御
-			if (!lookAtCamera && vrm && vrm.lookAt) {
+			if (!lookAtCamera && vrm?.lookAt) {
 				// lookAtCameraがfalseの場合、モデルの前方を見る
+				const currentPos = scene ? scene.position : new Vector3(...position);
 				lookAtTarget.position.set(
-					position[0],
-					position[1] + 1.4,
-					position[2] + 1,
+					currentPos.x,
+					currentPos.y + 1.4,
+					currentPos.z + 1,
 				);
 			}
 
-			// 瞬きと呼吸アニメーションの更新 + リップシンク
+			// 表情アニメーションの更新（瞬き、呼吸、リップシンク）
 			expressions.update(delta);
 
 			// VRMモデルとアニメーションの更新

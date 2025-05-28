@@ -1,15 +1,18 @@
 import { useRef } from "react";
 import type { VRM } from "@pixiv/three-vrm";
-import { getRandomBlinkInterval } from "../VRMExpression/getRandomBlinkInterval";
 import { safeSetExpression } from "../VRMExpression/safeSetExpression";
+import { VRM_EXPRESSION_CONFIG } from "../constants/vrmExpressions";
 
 /**
  * VRMモデルの瞬き制御を行うフック
+ * @param vrm - VRMモデルインスタンス
+ * @returns 瞬き更新関数
  */
 export const useBlinking = (vrm: VRM | null) => {
-	const blinkStateRef = useRef<"open" | "closing" | "opening">("open");
-	const nextBlinkTimeRef = useRef<number>(getRandomBlinkInterval());
-	const timeCounterRef = useRef<number>(0);
+	// 瞬きの位相（0〜2π）
+	const blinkPhaseRef = useRef<number>(0);
+	// 瞬きの間隔
+	const blinkIntervalRef = useRef<number>(3);
 
 	/**
 	 * 瞬き処理の更新
@@ -18,52 +21,67 @@ export const useBlinking = (vrm: VRM | null) => {
 	const updateBlink = (deltaTime: number) => {
 		if (!vrm) return;
 
-		const deltaMs = deltaTime * 1000; // ミリ秒に変換
-		timeCounterRef.current += deltaMs;
+		// 瞬きの位相を更新
+		blinkPhaseRef.current += deltaTime;
 
-		// 瞬きの状態に応じた処理
-		if (blinkStateRef.current === "open") {
-			// 開いた状態で、次の瞬きの時間に達したら閉じ始める
-			if (timeCounterRef.current >= nextBlinkTimeRef.current) {
-				blinkStateRef.current = "closing";
-				timeCounterRef.current = 0;
-			}
-		} else if (blinkStateRef.current === "closing") {
-			// 閉じる過程（100ms）
-			const blinkValue = Math.min(timeCounterRef.current / 100, 1);
+		// 瞬きの発生タイミング（ランダムな間隔）
+		if (blinkPhaseRef.current >= blinkIntervalRef.current) {
+			// 瞬きの実行
+			performBlink();
 
-			// 両目まばたき
-			const blinkSuccess = safeSetExpression(vrm, "blink", blinkValue);
-
-			// 両目まばたきがサポートされていなければ左右個別に試す
-			if (!blinkSuccess) {
-				safeSetExpression(vrm, "blinkLeft", blinkValue);
-				safeSetExpression(vrm, "blinkRight", blinkValue);
-			}
-
-			if (timeCounterRef.current >= 100) {
-				blinkStateRef.current = "opening";
-				timeCounterRef.current = 0;
-			}
-		} else if (blinkStateRef.current === "opening") {
-			// 開く過程（150ms）
-			const blinkValue = Math.max(1 - timeCounterRef.current / 150, 0);
-
-			// 両目まばたき
-			const blinkSuccess = safeSetExpression(vrm, "blink", blinkValue);
-
-			// 両目まばたきがサポートされていなければ左右個別に試す
-			if (!blinkSuccess) {
-				safeSetExpression(vrm, "blinkLeft", blinkValue);
-				safeSetExpression(vrm, "blinkRight", blinkValue);
-			}
-
-			if (timeCounterRef.current >= 150) {
-				blinkStateRef.current = "open";
-				timeCounterRef.current = 0;
-				nextBlinkTimeRef.current = getRandomBlinkInterval();
-			}
+			// 次の瞬きまでの間隔をランダムに設定（2〜5秒）
+			blinkIntervalRef.current = Math.random() * 3 + 2;
+			blinkPhaseRef.current = 0;
 		}
+	};
+
+	/**
+	 * 瞬きを実行する
+	 */
+	const performBlink = () => {
+		if (!vrm) return;
+
+		const blinkDuration = 0.15; // 瞬きの持続時間（秒）
+		let blinkProgress = 0;
+
+		// 瞬きアニメーション
+		const animateBlink = () => {
+			blinkProgress += 0.016; // 約60FPSでの更新間隔
+
+			const blinkValue =
+				blinkProgress < blinkDuration / 2
+					? (blinkProgress / (blinkDuration / 2)) *
+						VRM_EXPRESSION_CONFIG.WEIGHTS.BLINK
+					: ((blinkDuration - blinkProgress) / (blinkDuration / 2)) *
+						VRM_EXPRESSION_CONFIG.WEIGHTS.BLINK;
+
+			// まず汎用的な瞬き表情を試す
+			const blinkSuccess = safeSetExpression(
+				vrm,
+				"blink",
+				Math.max(0, blinkValue),
+			);
+
+			// 汎用瞬きが無い場合は左右別々に設定
+			if (!blinkSuccess) {
+				safeSetExpression(vrm, "blinkLeft", Math.max(0, blinkValue));
+				safeSetExpression(vrm, "blinkRight", Math.max(0, blinkValue));
+			}
+
+			if (blinkProgress < blinkDuration) {
+				requestAnimationFrame(animateBlink);
+			} else {
+				// 瞬き終了時にリセット
+				const resetSuccess = safeSetExpression(vrm, "blink", 0);
+
+				if (!resetSuccess) {
+					safeSetExpression(vrm, "blinkLeft", 0);
+					safeSetExpression(vrm, "blinkRight", 0);
+				}
+			}
+		};
+
+		animateBlink();
 	};
 
 	return { updateBlink };

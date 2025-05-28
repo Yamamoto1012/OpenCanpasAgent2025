@@ -96,7 +96,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	const inputRef = useRef<HTMLInputElement>(
 		null,
 	) as React.RefObject<HTMLInputElement>;
-	const { speak } = useTextToSpeech(vrmWrapperRef);
+	const { speak } = useTextToSpeech({ vrmWrapperRef });
 	const prevGuideMessageRef = useRef<string>("");
 
 	// LLMの返答

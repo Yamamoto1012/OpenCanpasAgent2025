@@ -1,21 +1,130 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import type { VRM } from "@pixiv/three-vrm";
 import { LipSync } from "../LipSync/lipSync";
 import type { LipSyncAnalyzeResult } from "../LipSync/types";
-import { safeSetExpression } from "../VRMExpression/safeSetExpression";
+import { ExpressionManager } from "../VRMExpression/ExpressionManager";
+import { VRM_EXPRESSION_CONFIG } from "../constants/vrmExpressions";
+
+/**
+ * 日本語文字から音素への変換テーブル
+ */
+const KANA_TO_PHONEME_MAP: Record<string, string> = {
+	あ: "a",
+	い: "i",
+	う: "u",
+	え: "e",
+	お: "o",
+	か: "a",
+	き: "i",
+	く: "u",
+	け: "e",
+	こ: "o",
+	さ: "a",
+	し: "i",
+	す: "u",
+	せ: "e",
+	そ: "o",
+	た: "a",
+	ち: "i",
+	つ: "u",
+	て: "e",
+	と: "o",
+	な: "a",
+	に: "i",
+	ぬ: "u",
+	ね: "e",
+	の: "o",
+	は: "a",
+	ひ: "i",
+	ふ: "u",
+	へ: "e",
+	ほ: "o",
+	ま: "a",
+	み: "i",
+	む: "u",
+	め: "e",
+	も: "o",
+	や: "a",
+	ゆ: "u",
+	よ: "o",
+	ら: "a",
+	り: "i",
+	る: "u",
+	れ: "e",
+	ろ: "o",
+	わ: "a",
+	を: "o",
+	ん: "n",
+	が: "a",
+	ぎ: "i",
+	ぐ: "u",
+	げ: "e",
+	ご: "o",
+	ざ: "a",
+	じ: "i",
+	ず: "u",
+	ぜ: "e",
+	ぞ: "o",
+	だ: "a",
+	ぢ: "i",
+	づ: "u",
+	で: "e",
+	ど: "o",
+	ば: "a",
+	び: "i",
+	ぶ: "u",
+	べ: "e",
+	ぼ: "o",
+	ぱ: "a",
+	ぴ: "i",
+	ぷ: "u",
+	ぺ: "e",
+	ぽ: "o",
+} as const;
+
+/**
+ * 音素からリップシンク用の表情重みへの変換設定
+ * テキストベースリップシンクのフォールバック用
+ */
+const PHONEME_WEIGHT_CONFIG = {
+	a: { weight: 0.8, duration: 120 },
+	i: { weight: 0.6, duration: 100 },
+	u: { weight: 0.7, duration: 110 },
+	e: { weight: 0.5, duration: 100 },
+	o: { weight: 0.9, duration: 130 },
+	n: { weight: 0.3, duration: 80 },
+} as const;
+
+/**
+ * リップシンクモード
+ */
+type LipSyncMode = "acoustic" | "text" | "hybrid";
 
 /**
  * VRMモデルのリップシンク制御を行うフック
+ * 音響データベースのリアルタイムリップシンクとテキストベースのフォールバックを提供
+ * @param vrm VRMモデルインスタンス
+ * @param isMuted 音声ミュート状態
+ * @returns リップシンク制御のための関数と状態
  */
 export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 	const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+	const [lipSyncMode, setLipSyncMode] = useState<LipSyncMode>("acoustic");
 	const lipSyncRef = useRef<LipSync | null>(null);
-	const [lipSyncResult, setLipSyncResult] = useState<LipSyncAnalyzeResult>({
-		volume: 0,
-	});
-	const frameRef = useRef<number | null>(null);
+	const isPlayingAudioRef = useRef<boolean>(false);
+	const lastPhonemeRef = useRef<string>("");
+	const smoothingBufferRef = useRef<number[]>([]);
+
+	// ExpressionManagerのインスタンスを作成・管理
+	const expressionManager = useMemo(() => new ExpressionManager(vrm), [vrm]);
+
+	// VRMが変更された時にExpressionManagerを更新
+	useEffect(() => {
+		expressionManager.setVRM(vrm);
+	}, [vrm, expressionManager]);
 
 	// AudioContextの初期化
+	// ユーザーのインタラクション後に初期化される
 	useEffect(() => {
 		const initializeAudioContext = () => {
 			if (!audioContext) {
@@ -25,10 +134,8 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 			}
 		};
 
-		// ページ内のクリックやタッチでAudioContextを初期化する
 		const handleUserInteraction = () => {
 			initializeAudioContext();
-
 			window.removeEventListener("click", handleUserInteraction);
 			window.removeEventListener("touchstart", handleUserInteraction);
 		};
@@ -39,275 +146,287 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 		return () => {
 			window.removeEventListener("click", handleUserInteraction);
 			window.removeEventListener("touchstart", handleUserInteraction);
-			if (frameRef.current) {
-				cancelAnimationFrame(frameRef.current);
-			}
-			// AudioContextがあれば閉じる
 			if (audioContext) {
 				audioContext.close();
 			}
 		};
 	}, [audioContext]);
 
-	// アニメーションフレームでリップシンク更新
-	useEffect(() => {
-		if (!lipSyncRef.current || isMuted) {
-			return;
+	/**
+	 * 音量の平滑化処理
+	 * 急激な音量変化を抑制し、自然な表情変化を実現
+	 * @param volume - 現在の音量
+	 * @returns 平滑化された音量
+	 */
+	const smoothVolume = useCallback((volume: number): number => {
+		const bufferSize = 2; // 2フレーム分の平均でより敏感に
+		smoothingBufferRef.current.push(volume);
+
+		if (smoothingBufferRef.current.length > bufferSize) {
+			smoothingBufferRef.current.shift();
 		}
 
-		// リップシンク更新用フレーム処理関数
-		const updateLipSyncFrame = () => {
-			if (!lipSyncRef.current || isMuted) {
+		// 重み付き平均で最新の値により重みを置く
+		const weights = [0.3, 0.7]; // 最新の値により大きな重み
+		let weightedSum = 0;
+		let totalWeight = 0;
+
+		for (let i = 0; i < smoothingBufferRef.current.length; i++) {
+			const weight = weights[i] || 0.5;
+			weightedSum += smoothingBufferRef.current[i] * weight;
+			totalWeight += weight;
+		}
+
+		return totalWeight > 0 ? weightedSum / totalWeight : volume;
+	}, []);
+
+	/**
+	 * 音響データに基づくリアルタイムリップシンクコールバック
+	 * 50ms間隔で実行され、音響データを表情制御に反映する
+	 * @param result - 音響解析結果
+	 */
+	const handleAcousticAnalysis = useCallback(
+		(result: LipSyncAnalyzeResult): void => {
+			if (!expressionManager || !isPlayingAudioRef.current) {
 				return;
 			}
 
-			const result = lipSyncRef.current.update();
-			setLipSyncResult(result);
+			const { volume, phoneme, confidence } = result;
 
-			// VRMモデルのタイプを確認してリップシンクを適用
-			if (vrm && result.volume > 0.01) {
-				// 表情をすべてリセット（口以外）
-				// biome-ignore lint/complexity/noForEach: <explanation>
-				["sad", "angry", "surprised"].forEach((exp) => {
-					safeSetExpression(vrm, exp, 0);
-				});
+			if (lipSyncMode === "acoustic" || lipSyncMode === "hybrid") {
+				// 音量の平滑化（より細かい変化に対応）
+				const smoothedVolume = smoothVolume(volume);
 
-				// VRM1.0モデル
-				if (vrm.expressionManager) {
-					try {
-						// 音量に応じて複数の口関連表情を組み合わせる
-						const volume = Math.min(result.volume * 5, 1.0);
+				// 音量閾値の設定（より低い閾値でぱくぱく動作を実現）
+				const volumeThreshold = 0.05; // 非常に小さな音量でも反応
+				const maxVolume = 0.8; // 最大音量の制限
 
-						// 口関連の表情をすべてリセット
-						// biome-ignore lint/complexity/noForEach: <explanation>
-						["aa", "ee", "ih", "oh", "ou"].forEach((exp) => {
-							safeSetExpression(vrm, exp, 0);
-						});
+				if (smoothedVolume > volumeThreshold) {
+					// 音量を0-1の範囲に正規化（ぱくぱく動作のため非線形調整）
+					const normalizedVolume = Math.min(smoothedVolume / maxVolume, 1.0);
 
-						// 音量レベルに応じて異なる表情の組み合わせを使用
-						if (volume > 0.7) {
-							// 大きな音量 - 大きく口を開ける「あ」の形
-							safeSetExpression(vrm, "aa", volume);
-						} else if (volume > 0.4) {
-							// 中程度の音量 - 「お」と「あ」の混合
-							safeSetExpression(vrm, "aa", volume * 0.7);
-							safeSetExpression(vrm, "oh", volume * 0.3);
-						} else if (volume > 0.1) {
-							// 小さな音量 - 小さく「い」か「う」
-							safeSetExpression(vrm, "ih", volume * 0.8);
-							safeSetExpression(vrm, "ou", volume * 0.2);
-						}
-					} catch (e) {
-						console.error("リップシンクエラー:", e);
+					// ぱくぱく効果のための音量調整（より動的な変化）
+					const pulsedVolume =
+						Math.sin(Date.now() * 0.01) * 0.1 + normalizedVolume;
+					const clampedVolume = Math.max(0.1, Math.min(1.0, pulsedVolume));
+
+					if (phoneme && confidence !== undefined) {
+						// 音響データが利用可能な場合はリアルタイム制御
+						expressionManager.setLipSyncByAcousticData(
+							clampedVolume,
+							phoneme,
+							confidence,
+						);
+						lastPhonemeRef.current = phoneme;
+					} else if (normalizedVolume > 0.1) {
+						// 音響データがない場合は音量ベースの制御
+						expressionManager.setLipSyncByAcousticData(
+							clampedVolume,
+							lastPhonemeRef.current || "a", // 最後の音素またはデフォルト
+							0.5, // 中程度の信頼度
+						);
+					} else {
+						// 低音量時は軽く口を開ける
+						expressionManager.setLipSyncByAcousticData(0.2, "a", 0.3);
 					}
-				}
-			} else {
-				// 音量が小さい場合、口を閉じる
-				if (vrm) {
-					safeSetExpression(vrm, "a", 0);
-					safeSetExpression(vrm, "aa", 0);
-					safeSetExpression(vrm, "oh", 0);
+				} else {
+					// 無音時は段階的に口を閉じる
+					expressionManager.setLipSyncActive(false);
 				}
 			}
+		},
+		[expressionManager, lipSyncMode, smoothVolume],
+	);
 
-			// 次のフレームで再度実行
-			frameRef.current = requestAnimationFrame(updateLipSyncFrame);
-		};
+	/**
+	 * テキストから音素配列への変換
+	 * ひらがな・カタカナから対応する音素を抽出する
+	 * @param text - 変換するテキスト
+	 * @returns 音素の配列
+	 */
+	const convertTextToPhonemes = useCallback((text: string): string[] => {
+		return Array.from(text)
+			.map((character) => KANA_TO_PHONEME_MAP[character] || "")
+			.filter(Boolean);
+	}, []);
 
-		// 初回実行
-		frameRef.current = requestAnimationFrame(updateLipSyncFrame);
-
-		return () => {
-			if (frameRef.current) {
-				cancelAnimationFrame(frameRef.current);
+	/**
+	 * テキストベースのリップシンクアニメーション（フォールバック用）
+	 * @param text - リップシンクに使用するテキスト
+	 * @param baseDuration - 基本的な音素あたりの時間（ミリ秒）
+	 */
+	const executeTextLipSync = useCallback(
+		async (text: string, baseDuration: number): Promise<void> => {
+			if (!expressionManager || !text || lipSyncMode === "acoustic") {
+				return;
 			}
-		};
-	}, [isMuted, vrm]);
+
+			const phonemes = convertTextToPhonemes(text);
+
+			for (
+				let index = 0;
+				index < phonemes.length && isPlayingAudioRef.current;
+				index++
+			) {
+				const phoneme = phonemes[index];
+				const config =
+					PHONEME_WEIGHT_CONFIG[phoneme as keyof typeof PHONEME_WEIGHT_CONFIG];
+
+				if (config) {
+					// acousticモード以外でテキストベースのリップシンクを実行
+					const shouldUseTextSync =
+						lipSyncMode === "text" || lipSyncMode === "hybrid";
+
+					if (shouldUseTextSync) {
+						// テキストベースのリップシンク
+						if (lipSyncMode === "text") {
+							expressionManager.setLipSyncByPhoneme(
+								phoneme,
+								VRM_EXPRESSION_CONFIG.WEIGHTS.LIP_SYNC * config.weight,
+							);
+						}
+					}
+
+					// 音素の持続時間だけ待機
+					await new Promise((resolve) => setTimeout(resolve, config.duration));
+				} else {
+					// 設定のない音素は短時間の休止
+					await new Promise((resolve) =>
+						setTimeout(resolve, baseDuration * 0.5),
+					);
+				}
+
+				if (!isPlayingAudioRef.current) {
+					break;
+				}
+
+				// 音素間の小休止
+				await new Promise((resolve) => setTimeout(resolve, baseDuration * 0.1));
+			}
+		},
+		[expressionManager, convertTextToPhonemes, lipSyncMode],
+	);
 
 	/**
-	 * リップシンク処理の更新
+	 * 音声再生とリップシンクの実行
+	 * 音響データベースのリアルタイム制御を優先し、テキストベースをフォールバックとして使用
+	 * @param audioUrl - 再生する音声のURL
+	 * @param lipSyncText - リップシンクに使用するテキスト（オプション）
+	 * @param onAudioEnded - 音声再生終了時のコールバック
 	 */
-	const updateLipSync = () => {
-		if (!lipSyncRef.current || isMuted) {
-			// ミュート時はボリュームを0に設定
-			setLipSyncResult({ volume: 0 });
-			return;
-		}
 
-		const result = lipSyncRef.current.update();
-		setLipSyncResult(result);
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	const playAudioWithLipSync = useCallback(
+		async (
+			audioUrl: string,
+			lipSyncText?: string,
+			onAudioEnded?: () => void,
+		): Promise<void> => {
+			if (!lipSyncRef.current || isMuted) {
+				onAudioEnded?.();
+				return;
+			}
 
-		// リップシンクの結果を表情に反映
-		if (vrm) {
-			safeSetExpression(vrm, "aa", result.volume); // "a"の口の形をボリュームに合わせる
-		}
-	};
+			try {
+				isPlayingAudioRef.current = true;
+				lastPhonemeRef.current = "";
+				smoothingBufferRef.current = [];
 
-	// テキスト→音素変換
-	function textToPhonemes(text: string): string[] {
-		const kanaToVowel: Record<string, string> = {
-			あ: "a",
-			い: "i",
-			う: "u",
-			え: "e",
-			お: "o",
-			か: "a",
-			き: "i",
-			く: "u",
-			け: "e",
-			こ: "o",
-			さ: "a",
-			し: "i",
-			す: "u",
-			せ: "e",
-			そ: "o",
-			た: "a",
-			ち: "i",
-			つ: "u",
-			て: "e",
-			と: "o",
-			な: "a",
-			に: "i",
-			ぬ: "u",
-			ね: "e",
-			の: "o",
-			は: "a",
-			ひ: "i",
-			ふ: "u",
-			へ: "e",
-			ほ: "o",
-			ま: "a",
-			み: "i",
-			む: "u",
-			め: "e",
-			も: "o",
-			や: "a",
-			ゆ: "u",
-			よ: "o",
-			ら: "a",
-			り: "i",
-			る: "u",
-			れ: "e",
-			ろ: "o",
-			わ: "a",
-			を: "o",
-			ん: "n",
-			が: "a",
-			ぎ: "i",
-			ぐ: "u",
-			げ: "e",
-			ご: "o",
-			ざ: "a",
-			じ: "i",
-			ず: "u",
-			ぜ: "e",
-			ぞ: "o",
-			だ: "a",
-			ぢ: "i",
-			づ: "u",
-			で: "e",
-			ど: "o",
-			ば: "a",
-			び: "i",
-			ぶ: "u",
-			べ: "e",
-			ぼ: "o",
-			ぱ: "a",
-			ぴ: "i",
-			ぷ: "u",
-			ぺ: "e",
-			ぽ: "o",
-		};
-		return Array.from(text).map((c) => kanaToVowel[c] || "");
-	}
-	function phonemeToBlendShape(phoneme: string): string {
-		switch (phoneme) {
-			case "a":
-				return "aa";
-			case "i":
-				return "ih";
-			case "u":
-				return "ou";
-			case "e":
-				return "ee";
-			case "o":
-				return "oh";
-			default:
-				return "";
-		}
-	}
+				// 音声終了時のクリーンアップ
+				const handleAudioEnd = () => {
+					isPlayingAudioRef.current = false;
+					expressionManager?.setLipSyncActive(false);
+					smoothingBufferRef.current = [];
+					onAudioEnded?.();
+				};
 
-	/**
-	 * 音声再生関数
-	 */
-	const playAudio = async (
-		url: string,
-		text?: string,
-		onEnded?: () => void,
-	) => {
-		if (!lipSyncRef.current || isMuted) {
-			if (onEnded) onEnded();
-			return;
-		}
-		let stopLipSync = false;
-		try {
-			if (text && vrm) {
-				const phonemes = textToPhonemes(text).filter(Boolean);
-				const phonemeDuration = Math.max(
-					(text.length * 60) / (phonemes.length || 1),
-					80,
-				);
-				lipSyncRef.current.playFromURL(url, undefined, () => {
-					stopLipSync = true;
-					if (vrm) {
-						// biome-ignore lint/complexity/noForEach: <explanation>
-						["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
-							safeSetExpression(vrm, k, 0),
+				if (lipSyncMode === "acoustic" || lipSyncMode === "hybrid") {
+					// 音響データベースのリアルタイムリップシンク
+					const audioPlayPromise = lipSyncRef.current.playFromURL(
+						audioUrl,
+						handleAcousticAnalysis, // リアルタイム音響解析コールバック
+						handleAudioEnd,
+					);
+
+					if (lipSyncText && lipSyncMode === "hybrid") {
+						// ハイブリッドモード：音響データとテキストデータを併用
+						const baseDurationPerCharacter = Math.max(
+							(lipSyncText.length * 60) /
+								(convertTextToPhonemes(lipSyncText).length || 1),
+							80,
+						);
+
+						await Promise.all([
+							audioPlayPromise,
+							executeTextLipSync(lipSyncText, baseDurationPerCharacter),
+						]);
+					} else {
+						await audioPlayPromise;
+					}
+				} else {
+					// テキストベースのみ
+					if (lipSyncText) {
+						const baseDurationPerCharacter = Math.max(
+							(lipSyncText.length * 60) /
+								(convertTextToPhonemes(lipSyncText).length || 1),
+							80,
+						);
+
+						const audioPlayPromise = lipSyncRef.current.playFromURL(
+							audioUrl,
+							undefined,
+							handleAudioEnd,
+						);
+
+						await Promise.all([
+							audioPlayPromise,
+							executeTextLipSync(lipSyncText, baseDurationPerCharacter),
+						]);
+					} else {
+						await lipSyncRef.current.playFromURL(
+							audioUrl,
+							undefined,
+							handleAudioEnd,
 						);
 					}
-					if (onEnded) onEnded();
-				});
-				(async () => {
-					for (let i = 0; i < phonemes.length; i++) {
-						if (stopLipSync) break;
-						const shape = phonemeToBlendShape(phonemes[i]);
-						if (shape) {
-							// biome-ignore lint/complexity/noForEach: <explanation>
-							["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
-								safeSetExpression(vrm, k, 0),
-							);
-							// 口の開き具合を0.5に抑える
-							safeSetExpression(vrm, shape, 0.2);
-						}
-						await new Promise((res) => setTimeout(res, phonemeDuration));
-						if (stopLipSync) break;
-						if (vrm) {
-							// biome-ignore lint/complexity/noForEach: <explanation>
-							["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
-								safeSetExpression(vrm, k, 0),
-							);
-						}
-					}
-				})();
-				return;
+				}
+			} catch (error) {
+				console.error("音声再生またはリップシンクに失敗しました:", error);
+				isPlayingAudioRef.current = false;
+				expressionManager?.setLipSyncActive(false);
+				onAudioEnded?.();
 			}
-			await lipSyncRef.current.playFromURL(url, undefined, onEnded);
-			if (vrm) {
-				// biome-ignore lint/complexity/noForEach: <explanation>
-				["aa", "ih", "ou", "ee", "oh"].forEach((k) =>
-					safeSetExpression(vrm, k, 0),
-				);
-			}
-		} catch (e) {
-			console.error("音声再生に失敗しました", e);
-			if (onEnded) onEnded();
-		}
-	};
+		},
+		[
+			lipSyncRef,
+			isMuted,
+			expressionManager,
+			lipSyncMode,
+			handleAcousticAnalysis,
+			executeTextLipSync,
+			convertTextToPhonemes,
+		],
+	);
+
+	/**
+	 * デバッグ情報の取得
+	 */
+	const getDebugInfo = useCallback(() => {
+		return {
+			audioInitialized: !!audioContext,
+			lipSyncMode,
+			isPlaying: isPlayingAudioRef.current,
+			lastPhoneme: lastPhonemeRef.current,
+			expressionManagerState: expressionManager?.getAcousticLipSyncDebugInfo(),
+		};
+	}, [audioContext, lipSyncMode, expressionManager]);
 
 	return {
-		updateLipSync,
-		playAudio,
+		playAudio: playAudioWithLipSync,
 		isAudioInitialized: !!audioContext,
-		lipSyncResult,
+		expressionManager,
+		lipSyncMode,
+		setLipSyncMode,
+		getDebugInfo,
 	};
 };

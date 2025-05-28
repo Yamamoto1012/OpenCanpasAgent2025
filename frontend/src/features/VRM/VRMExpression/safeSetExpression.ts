@@ -1,36 +1,37 @@
 import type { VRM } from "@pixiv/three-vrm";
+import type { VRMExpressionName } from "../constants/vrmExpressions";
 
 /**
- * 表情の値を安全に設定する（VRM1.0モデル専用）
+ * VRMモデルの表情を安全に設定する関数
+ * @param vrm - VRMモデルインスタンス
+ * @param expressionName - 設定する表情名
+ * @param weight - 表情の重み（0-1）
+ * @returns 設定が成功したかどうか
  */
 export const safeSetExpression = (
-	vrm: VRM | null,
-	expressionName: string,
-	value: number,
+	vrm: VRM,
+	expressionName: VRMExpressionName,
+	weight: number,
 ): boolean => {
-	if (!vrm) return false;
-
-	// VRM1.0 モデルの場合のみ対応
-	if (vrm.expressionManager) {
-		try {
-			const expressionManager = vrm.expressionManager as {
-				getValue: (name: string) => number | undefined;
-				setValue: (name: string, value: number) => void;
-			};
-
-			// 指定された表情が存在するか確認
-			if (
-				typeof expressionManager.getValue === "function" &&
-				expressionManager.getValue(expressionName) !== undefined
-			) {
-				expressionManager.setValue(expressionName, value);
-				return true;
-			}
-		} catch (error) {
-			// エラーは無視
-			return false;
-		}
+	if (!vrm?.expressionManager) {
+		console.warn(`ExpressionManagerが見つかりません: ${expressionName}`);
+		return false;
 	}
 
-	return false;
+	try {
+		const expression = vrm.expressionManager.getExpression(expressionName);
+		if (!expression) {
+			console.warn(`表情が見つかりません: ${expressionName}`);
+			return false;
+		}
+
+		expression.weight = Math.max(0, Math.min(1, weight));
+		return true;
+	} catch {
+		// エラーハンドリング：予期しないエラーをキャッチして継続実行
+		console.warn(
+			`表情設定中にエラーが発生しました: ${expressionName}, weight: ${weight}`,
+		);
+		return false;
+	}
 };

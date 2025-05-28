@@ -6,28 +6,23 @@ import {
 	type KeyboardEvent,
 	type ChangeEvent,
 	useCallback,
+	useState,
 } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { ChatInterfaceView } from "./ChatInterfaceView";
-import {
-	messagesAtom,
-	inputValueAtom,
-	isThinkingAtom,
-	addMessageAtom,
-	resetChatAtom,
-} from "@/store/chatAtoms";
+import { messagesAtom, addMessageAtom, resetChatAtom } from "@/store/chatAtoms";
 import { isRecordingAtom, toggleRecordingAtom } from "@/store/recordingAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { generateText } from "@/services/llmService";
-import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
-
-export type ChatInterfaceHandle = {
-	addMessage: (text: string, isUser?: boolean, speakText?: string) => void;
-};
+import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 
 export type ChatInterfaceProps = {
-	onSendQuestion?: (question: string) => void;
 	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
+};
+
+export type ChatInterfaceHandle = {
+	sendMessage: (message: string) => void;
+	stopGeneration: () => void;
 };
 
 export const ChatInterface = forwardRef<
@@ -35,15 +30,17 @@ export const ChatInterface = forwardRef<
 	React.PropsWithChildren<ChatInterfaceProps>
 >((props, ref) => {
 	const [messages] = useAtom(messagesAtom);
-	const [inputValue, setInputValue] = useAtom(inputValueAtom);
-	const [isThinking, setIsThinking] = useAtom(isThinkingAtom);
+	const [input, setInput] = useState("");
+	const [isLoading, setIsLoading] = useState(false);
 	const [isRecording] = useAtom(isRecordingAtom);
 	const toggleRecording = useSetAtom(toggleRecordingAtom);
 	const addMessage = useSetAtom(addMessageAtom);
 	const resetChat = useSetAtom(resetChatAtom);
 
-	// 音声合成フックを使用
-	const { speak, stop } = useTextToSpeech(props.vrmWrapperRef);
+	// TTS関連フック
+	const { speak, stop } = useTextToSpeech({
+		vrmWrapperRef: props.vrmWrapperRef,
+	});
 
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -67,8 +64,12 @@ export const ChatInterface = forwardRef<
 	// 外部から呼び出し可能なメソッドを定義
 	useImperativeHandle(ref, () => ({
 		// biome-ignore lint/style/useDefaultParameterLast: <explanation>
-		addMessage: (text, isUser = false, speakText) =>
-			pushMessage({ text, isUser, speakText }),
+		sendMessage: (text) => pushMessage({ text, isUser: true }),
+		stopGeneration: () => {
+			abortRef.current?.abort();
+			stop();
+			setIsLoading(false);
+		},
 	}));
 
 	// メッセージ更新時のスクロール処理
@@ -80,7 +81,7 @@ export const ChatInterface = forwardRef<
 
 	// 入力欄の値が変わったとき
 	const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-		setInputValue(e.target.value);
+		setInput(e.target.value);
 	};
 
 	// メッセージ送信中断用のref
@@ -88,7 +89,7 @@ export const ChatInterface = forwardRef<
 
 	// メッセージ送信処理
 	const handleSend = async () => {
-		const trimmed = inputValue.trim();
+		const trimmed = input.trim();
 		if (!trimmed) return;
 
 		// ユーザーメッセージを追加
@@ -99,24 +100,30 @@ export const ChatInterface = forwardRef<
 		abortRef.current = controller;
 
 		// 思考中状態に設定
-		setIsThinking(true);
+		setIsLoading(true);
 
 		try {
-			const answer = await generateText(trimmed, undefined, controller.signal, undefined, "/voice_mode_answer");
-			setIsThinking(false);
+			const answer = await generateText(
+				trimmed,
+				undefined,
+				controller.signal,
+				undefined,
+				"/query",
+			);
+			setIsLoading(false);
 			pushMessage({ text: answer, isUser: false, speakText: answer });
 		} catch (err) {
 			if (err instanceof Error && err.name === "AbortError") {
 				pushMessage({ text: "（生成を停止しました）", isUser: false });
 			} else {
-				setIsThinking(false);
+				setIsLoading(false);
 				pushMessage({
 					text: "すみません、応答の生成中にエラーが発生しました。もう一度お試しください。",
 					isUser: false,
 				});
 			}
 		}
-		setInputValue("");
+		setInput("");
 	};
 
 	// Enter キー送信
@@ -129,7 +136,7 @@ export const ChatInterface = forwardRef<
 
 	// 候補テキスト選択時の処理
 	const handleSelect = (value: string) => {
-		setInputValue((prev) => prev + value);
+		setInput((prev) => prev + value);
 	};
 
 	// チャットリセット処理
@@ -139,25 +146,18 @@ export const ChatInterface = forwardRef<
 
 	// 音声録音のトグル
 	const handleToggleRecording = () => {
-		toggleRecording((text) => {
-			if (text) {
-				setInputValue(text);
+		toggleRecording((recognizedText: string) => {
+			if (recognizedText) {
+				setInput(recognizedText);
 			}
 		});
-	};
-
-	// 停止ボタンが押されたとき
-	const handleStop = () => {
-		abortRef.current?.abort(); // fetch を即キャンセル
-		stop(); // TTS も停止
-		setIsThinking(false); // UI を通常状態へ
 	};
 
 	return (
 		<ChatInterfaceView
 			messages={messages}
-			inputValue={inputValue}
-			isThinking={isThinking}
+			inputValue={input}
+			isThinking={isLoading}
 			isRecording={isRecording}
 			onInputChange={handleInputChange}
 			onKeyDown={handleKeyDown}
@@ -165,7 +165,11 @@ export const ChatInterface = forwardRef<
 			onSelect={handleSelect}
 			onReset={handleReset}
 			onToggleRecording={handleToggleRecording}
-			onStop={handleStop}
+			onStop={() => {
+				abortRef.current?.abort();
+				stop();
+				setIsLoading(false);
+			}}
 			messagesEndRef={messagesEndRef}
 		/>
 	);

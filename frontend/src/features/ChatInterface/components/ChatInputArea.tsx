@@ -36,7 +36,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
 	// valueが変わるたびに高さを再計算
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-		useEffect(() => {
+	useEffect(() => {
 		const textarea = textareaRef.current;
 		if (textarea) {
 			textarea.style.height = "auto";
@@ -63,7 +63,12 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 					disabled={isThinking || isRecording}
 					rows={1}
 					className={`resize-none w-full rounded-md border-0 px-3 py-2 text-base bg-white focus-visible:ring-2 focus-visible:ring-[#9f9579] focus-visible:outline-none transition-all ${isRecording ? "bg-red-50" : ""}`}
-					style={{ minHeight: 40, maxHeight: 200, lineHeight: 1.5, overflow: "hidden" }}
+					style={{
+						minHeight: 40,
+						maxHeight: 200,
+						lineHeight: 1.5,
+						overflow: "hidden",
+					}}
 				/>
 
 				{/* マイクボタン */}
