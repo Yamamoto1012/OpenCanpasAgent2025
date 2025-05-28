@@ -8,13 +8,13 @@ export type TTSRequest = {
 	text: string;
 	speakerId: number;
 	format: AudioFormat;
-}
+};
 
 export type AudioPlayerOptions = {
 	autoplay?: boolean;
 	volume?: number;
 	loop?: boolean;
-}
+};
 
 /**
  * TTS APIリクエストのバリデーション

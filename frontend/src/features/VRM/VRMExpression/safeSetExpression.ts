@@ -14,18 +14,14 @@ export const safeSetExpression = (
 	weight: number,
 ): boolean => {
 	if (!vrm?.expressionManager) {
-		console.warn(
-			`ExpressionManagerが見つかりません: ${expressionName}`,
-		);
+		console.warn(`ExpressionManagerが見つかりません: ${expressionName}`);
 		return false;
 	}
 
 	try {
 		const expression = vrm.expressionManager.getExpression(expressionName);
 		if (!expression) {
-			console.warn(
-				`表情が見つかりません: ${expressionName}`,
-			);
+			console.warn(`表情が見つかりません: ${expressionName}`);
 			return false;
 		}
 

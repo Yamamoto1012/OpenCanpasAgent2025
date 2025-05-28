@@ -27,8 +27,10 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 	// 各サブシステムのフック
 	const { updateBlink } = useBlinking(vrm);
 	const { updateBreath } = useBreathing(vrm);
-	const { updateLipSync, playAudio, isAudioInitialized, expressionManager } =
-		useLipSync(vrm, isMuted);
+	const { playAudio, isAudioInitialized, expressionManager } = useLipSync(
+		vrm,
+		isMuted,
+	);
 
 	// ExpressionManagerが更新された時の処理
 	useEffect(() => {
@@ -58,13 +60,15 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 
 	/**
 	 * フレーム更新時の処理
+	 * 基本的なアニメーション（瞬き、呼吸）のみを更新
 	 * @param deltaTime - 前フレームからの経過時間（秒）
 	 */
 	const update = (deltaTime: number) => {
-		// 基本的なアニメーション（瞬き、呼吸）のみ更新
+		// 基本的なアニメーション（瞬き、呼吸）を更新
 		updateBlink(deltaTime);
 		updateBreath(deltaTime);
-		updateLipSync();
+
+		// リップシンクはテキストベースのみなので、ここでの更新は不要
 	};
 
 	/**
