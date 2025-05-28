@@ -29,7 +29,7 @@ export const VRM_EXPRESSION_CONFIG = {
 	WEIGHTS: {
 		BLINK: 1.0,
 		BREATHING: 0.2,
-		LIP_SYNC: 0.5,
+		LIP_SYNC: 0.6,
 		EMOTION_LIGHT: 0.3,
 		EMOTION_NORMAL: 0.7,
 		EMOTION_STRONG: 0.8,
@@ -37,14 +37,6 @@ export const VRM_EXPRESSION_CONFIG = {
 
 	// アニメーション時間（秒）
 	TRANSITION_DURATION: 0.3,
-
-	// リップシンク用の閾値
-	LIP_SYNC_THRESHOLDS: {
-		MIN_VOLUME: 0.01,
-		SMALL_VOLUME: 0.1,
-		MEDIUM_VOLUME: 0.4,
-		LARGE_VOLUME: 0.7,
-	},
 } as const;
 
 // 基本表情のリスト
@@ -90,11 +82,11 @@ export const MOTION_TO_EXPRESSION: Record<
 	{ preset: ExpressionPreset; weight: number }
 > = {
 	Walking: {
-		preset: "happy",
+		preset: "neutral",
 		weight: VRM_EXPRESSION_CONFIG.WEIGHTS.EMOTION_LIGHT,
 	},
 	StandingIdle: {
-		preset: "relaxed",
+		preset: "neutral",
 		weight: VRM_EXPRESSION_CONFIG.WEIGHTS.EMOTION_LIGHT,
 	},
 	Thinking: {
@@ -102,7 +94,7 @@ export const MOTION_TO_EXPRESSION: Record<
 		weight: VRM_EXPRESSION_CONFIG.WEIGHTS.EMOTION_NORMAL,
 	},
 	VRMA_01: {
-		preset: "happy",
+		preset: "neutral",
 		weight: VRM_EXPRESSION_CONFIG.WEIGHTS.EMOTION_LIGHT,
 	},
 	VRMA_02: {

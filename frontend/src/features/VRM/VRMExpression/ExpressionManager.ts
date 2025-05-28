@@ -17,10 +17,14 @@ export class ExpressionManager {
 	private vrm: VRM | null = null;
 	private currentExpression: ExpressionPreset = "neutral";
 	private currentWeight = 0;
-	private isLipSyncActive= false;
+	private isLipSyncActive = false;
 
 	constructor(vrm: VRM | null = null) {
 		this.vrm = vrm;
+		// 初期表情をneutralに設定
+		if (vrm) {
+			this.setExpression("neutral", 0);
+		}
 	}
 
 	/**
@@ -121,53 +125,16 @@ export class ExpressionManager {
 			return this.setExpression(motionConfig.preset, motionConfig.weight);
 		}
 
-		// デフォルトの表情（軽い笑顔）
+		// デフォルトの表情（neutral）
 		return this.setExpression(
-			"happy",
+			"neutral",
 			VRM_EXPRESSION_CONFIG.WEIGHTS.EMOTION_LIGHT,
 		);
 	}
 
 	/**
-	 * 音量レベルに基づくリップシンクを設定する
-	 */
-	setLipSyncByVolume(volume: number): void {
-		if (!this.vrm) return;
-
-		const { LIP_SYNC_THRESHOLDS, WEIGHTS } = VRM_EXPRESSION_CONFIG;
-
-		// 音量が閾値以下の場合はリップシンクをリセット
-		if (volume <= LIP_SYNC_THRESHOLDS.MIN_VOLUME) {
-			this.resetLipSyncExpressions();
-			this.isLipSyncActive = false;
-			return;
-		}
-
-		this.isLipSyncActive = true;
-
-		// 音量レベルに応じて異なる表情の組み合わせを使用
-		if (volume > LIP_SYNC_THRESHOLDS.LARGE_VOLUME) {
-			// 大きな音量 - 大きく口を開ける「あ」の形
-			this.setMultipleLipSyncExpressions([
-				{ name: "aa", weight: volume * WEIGHTS.LIP_SYNC },
-			]);
-		} else if (volume > LIP_SYNC_THRESHOLDS.MEDIUM_VOLUME) {
-			// 中程度の音量 - 「お」と「あ」の混合
-			this.setMultipleLipSyncExpressions([
-				{ name: "aa", weight: volume * WEIGHTS.LIP_SYNC * 0.7 },
-				{ name: "oh", weight: volume * WEIGHTS.LIP_SYNC * 0.3 },
-			]);
-		} else if (volume > LIP_SYNC_THRESHOLDS.SMALL_VOLUME) {
-			// 小さな音量 - 小さく「い」か「う」
-			this.setMultipleLipSyncExpressions([
-				{ name: "ih", weight: volume * WEIGHTS.LIP_SYNC * 0.8 },
-				{ name: "ou", weight: volume * WEIGHTS.LIP_SYNC * 0.2 },
-			]);
-		}
-	}
-
-	/**
 	 * 音素に基づくリップシンクを設定する
+	 * テキストベースのリップシンクで使用される
 	 */
 	setLipSyncByPhoneme(
 		phoneme: string,
