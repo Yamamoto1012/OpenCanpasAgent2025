@@ -8,12 +8,12 @@ const RETRY_DELAY = 1000; // 再試行間隔（ミリ秒）
 
 type QueryRequest = {
 	query: string;
-	context?: Record<string, any>;
+	context?: Record<string, unknown>;
 };
 
 type QueryResponse = {
 	answer: string;
-	metadata?: Record<string, any>;
+	metadata?: Record<string, unknown>;
 };
 
 /**
@@ -26,15 +26,17 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * LLM APIにテキストクエリを送信し、生成されたテキストを取得する
  * @param query ユーザーからの入力テキスト
  * @param context 必要に応じて追加のコンテキスト情報
+ * @param signal APIリクエストを中止するためのAbortSingal
  * @param retries 残りの再試行回数（内部使用）
+ * @param endpoint APIのエンドポイント
  * @returns 生成されたテキスト応答
  */
 export const generateText = async (
 	query: string,
-	context?: Record<string, any>,
+	context?: Record<string, unknown>,
 	signal?: AbortSignal,
 	retries = MAX_RETRIES,
-	endpoint: string = "/query"
+	endpoint = "/query",
 ): Promise<string> => {
 	try {
 		const response = await fetch(`${API_BASE_URL}/llm${endpoint}`, {
