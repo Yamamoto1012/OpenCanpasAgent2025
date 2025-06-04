@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, MessageCircle, Mic, Info } from "lucide-react";
+import { MessageCircle, Mic, Info } from "lucide-react";
 import type { NavigationScreen } from "@/store/navigationAtoms";
 
 export type BottomNavigationViewProps = {
