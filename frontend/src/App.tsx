@@ -3,7 +3,10 @@ import "./App.css";
 import { useAtom, useSetAtom } from "jotai";
 import { showVoiceChatAtom } from "./store/appStateAtoms";
 import { addMessageAtom } from "./store/chatAtoms";
-import { showBottomNavigationAtom, currentScreenAtom } from "./store/navigationAtoms";
+import {
+	showBottomNavigationAtom,
+	currentScreenAtom,
+} from "./store/navigationAtoms";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";

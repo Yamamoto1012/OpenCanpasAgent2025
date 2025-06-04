@@ -28,7 +28,6 @@ export const CategoryNavigatorView: React.FC<CategoryNavigatorViewProps> = ({
 	onCategoryClick,
 	onBackClick,
 }) => {
-
 	return (
 		<div className="w-full h-full">
 			{/* モバイル・デスクトップ共通ヘッダー */}
