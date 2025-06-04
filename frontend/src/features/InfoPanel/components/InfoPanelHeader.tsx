@@ -16,7 +16,8 @@ export const InfoPanelHeader: React.FC<InfoPanelHeaderProps> = ({
 				variant="ghost"
 				size="icon"
 				onClick={onClose}
-				className="text-white hover:bg-white/10"
+				className="text-white hover:bg-white/10 h-10 w-10 sm:h-8 sm:w-8"
+				aria-label="情報パネルを閉じる"
 			>
 				<X className="h-5 w-5" />
 			</Button>

@@ -30,7 +30,7 @@ export const InfoPanelView: FC<InfoPanelViewProps> = ({
 	if (isMobile) {
 		// モバイル版：全画面表示
 		return (
-			<div className="fixed inset-0 bg-black/95 backdrop-blur-xl text-white z-20">
+			<div className="fixed inset-0 bg-black/95 backdrop-blur-xl text-white z-[60]">
 				<div className="h-full flex flex-col">
 					<div className="flex-shrink-0 p-4">
 						<InfoPanelHeader onClose={onClose} />

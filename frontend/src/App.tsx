@@ -3,7 +3,7 @@ import "./App.css";
 import { useAtom, useSetAtom } from "jotai";
 import { showVoiceChatAtom } from "./store/appStateAtoms";
 import { addMessageAtom } from "./store/chatAtoms";
-import { showBottomNavigationAtom } from "./store/navigationAtoms";
+import { showBottomNavigationAtom, currentScreenAtom } from "./store/navigationAtoms";
 import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";
@@ -20,6 +20,7 @@ export default function App() {
 	const [showVoiceChat] = useAtom(showVoiceChatAtom);
 	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
 	const addMessage = useSetAtom(addMessageAtom);
+	const setCurrentScreen = useSetAtom(currentScreenAtom);
 
 	// カスタムフックの利用
 	const { vrmWrapperRef } = useAudioContext();
@@ -49,7 +50,8 @@ export default function App() {
 	};
 
 	const handleCloseInfo = () => {
-		// 情報パネルを閉じる処理
+		// 情報パネルを閉じて、ホーム画面に戻る
+		setCurrentScreen("home");
 	};
 
 	return (
