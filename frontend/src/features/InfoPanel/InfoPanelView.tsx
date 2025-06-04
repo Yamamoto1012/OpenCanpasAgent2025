@@ -32,14 +32,23 @@ export const InfoPanelView: FC<InfoPanelViewProps> = ({
 		return (
 			<div className="fixed inset-0 bg-black/95 backdrop-blur-xl text-white z-[60]">
 				<div className="h-full flex flex-col">
-					<div className="flex-shrink-0 p-4">
+					{/* ヘッダー部分（固定） */}
+					<div className="flex-shrink-0 p-4 border-b border-white/10">
 						<InfoPanelHeader onClose={onClose} />
 					</div>
 
-					<ScrollArea className="flex-1 px-4 pb-20">
-						{" "}
-						{/* ボトムナビゲーション分の余白 */}
-						<div className="space-y-6">
+					{/* スクロール可能なコンテンツ部分 */}
+					<div
+						className="flex-1 overflow-y-auto overscroll-y-contain px-4 pb-24"
+						style={{
+							WebkitOverflowScrolling: "touch",
+							scrollbarWidth: "thin",
+							scrollbarColor: "rgba(255, 255, 255, 0.3) transparent",
+							transform: "translateZ(0)",
+							willChange: "scroll-position",
+						}}
+					>
+						<div className="space-y-6 py-4">
 							<InfoSection
 								iconType="info"
 								title="KIT Virtual Navigatorについて"
@@ -54,7 +63,7 @@ export const InfoPanelView: FC<InfoPanelViewProps> = ({
 							<UsageSection />
 							<ContentSection />
 						</div>
-					</ScrollArea>
+					</div>
 				</div>
 			</div>
 		);
