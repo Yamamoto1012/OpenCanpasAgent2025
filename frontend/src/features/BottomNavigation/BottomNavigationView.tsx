@@ -25,11 +25,6 @@ export type BottomNavigationViewProps = {
  */
 const navigationItems = [
 	{
-		id: "home" as NavigationScreen,
-		label: "ホーム",
-		icon: Home,
-	},
-	{
 		id: "chat" as NavigationScreen,
 		label: "チャット",
 		icon: MessageCircle,

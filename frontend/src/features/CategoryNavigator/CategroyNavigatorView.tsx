@@ -13,6 +13,14 @@ export type CategoryNavigatorViewProps = {
 	onBackClick: () => void;
 };
 
+/**
+ * カテゴリーナビゲーターの表示コンポーネント
+ * @param breadcrumbs - カテゴリーナビゲーションのパンくずリスト
+ * @param displayedCategories - 現在表示中のカテゴリーリスト
+ * @param showBackButton - 戻るボタンを表示するかどうか
+ * @param onCategoryClick - カテゴリーがクリックされたときのハンドラ
+ * @param onBackClick - 戻るボタンがクリックされたときのハンドラ
+ */
 export const CategoryNavigatorView: React.FC<CategoryNavigatorViewProps> = ({
 	breadcrumbs,
 	displayedCategories,
@@ -20,6 +28,7 @@ export const CategoryNavigatorView: React.FC<CategoryNavigatorViewProps> = ({
 	onCategoryClick,
 	onBackClick,
 }) => {
+
 	return (
 		<div className="w-full h-full">
 			{/* モバイル・デスクトップ共通ヘッダー */}
@@ -54,10 +63,10 @@ export const CategoryNavigatorView: React.FC<CategoryNavigatorViewProps> = ({
 
 			{/* カテゴリーグリッド */}
 			<div
-				className="
-				px-2 md:px-4
-				h-[calc(100vh-180px)] md:h-[384px]
-			"
+				className={`
+					px-2 md:px-4
+					}
+				`}
 			>
 				<ScrollArea className="h-full">
 					<div className="h-full">

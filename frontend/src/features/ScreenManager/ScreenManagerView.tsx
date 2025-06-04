@@ -111,7 +111,7 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 							exit={{ opacity: 0 }}
 							transition={{ duration: 0.2 }}
 						>
-							<div className="flex-1 pb-20">
+							<div className="flex-1 pb-4">
 								<CategorySection
 									categoryDepth={categoryDepth}
 									selectedCategory={selectedCategory}

@@ -1,8 +1,10 @@
 import type { FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAtom } from "jotai";
 import { CategoryNavigator } from "../CategoryNavigator/CategoryNavigator";
 import { ActionPrompt } from "../ActionPromt/ActionPromt";
 import { SearchResults } from "../SearchResult/SearchResult";
+import { showBottomNavigationAtom } from "@/store/navigationAtoms";
 import type { Category } from "../CategoryNavigator/components/CategoryCard";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
@@ -60,6 +62,16 @@ export type CategorySectionViewProps = {
 
 /**
  * カテゴリナビゲーションと検索結果表示を担当するプレゼンテーションコンポーネント
+ * @param selectedCategory - 現在選択されているカテゴリ
+ * @param showActionPrompt - アクションプロンプトの表示状態
+ * @param shouldShowSearchResults - 検索結果を表示するかどうか
+ * @param searchQuery - 検索キーワード
+ * @param isQuestion - 質問形式かどうか
+ * @param onCategorySelect - カテゴリ選択時のハンドラー
+ * @param onSearch - 検索処理のハンドラー
+ * @param onAskQuestion - 質問処理のハンドラー
+ * @param onBackFromSearch - 検索結果からの戻るボタン処理のハンドラー
+ * @param vrmWrapperRef - VRMWrapperの参照
  */
 export const CategorySectionView: FC<CategorySectionViewProps> = ({
 	selectedCategory,
@@ -73,14 +85,27 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 	onBackFromSearch,
 	vrmWrapperRef,
 }) => {
+	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
+
 	return (
 		<div
-			className="absolute 
-			top-16 left-2 right-2 md:top-1/7 md:right-2 md:left-auto 
-			flex flex-col items-center md:items-end 
-			z-10"
+			className={`
+			${
+				showBottomNavigation
+					? "w-full h-full flex flex-col"
+					: "absolute top-16 left-2 right-2 md:top-1/7 md:right-2 md:left-auto flex flex-col items-center md:items-end z-10" // デスクトップ：絶対位置
+			}
+		`}
 		>
-			<div className="relative w-full md:w-auto min-h-[300px] md:min-h-[400px] flex justify-center md:justify-end">
+			<div
+				className={`
+				${
+					showBottomNavigation
+						? "flex-1 w-full"
+						: "relative w-full md:w-auto min-h-[300px] md:min-h-[400px] flex justify-center md:justify-end" // デスクトップ：従来通り
+				}
+			`}
+			>
 				<AnimatePresence mode="wait">
 					{shouldShowSearchResults ? (
 						<motion.div
@@ -119,10 +144,16 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 			<AnimatePresence>
 				{showActionPrompt && selectedCategory && (
 					<motion.div
-						className="mt-4 w-full max-w-lg md:max-w-none flex items-center justify-center md:justify-end"
-						initial={{ opacity: 0, y: -20 }}
+						className={`
+							${
+								showBottomNavigation
+									? "fixed bottom-20 left-4 right-4 z-50"
+									: "mt-4 w-full max-w-lg md:max-w-none flex items-center justify-center md:justify-end" // デスクトップ：従来通り
+							}
+						`}
+						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: -20 }}
+						exit={{ opacity: 0, y: 20 }}
 						transition={{ duration: 0.3 }}
 					>
 						<ActionPrompt

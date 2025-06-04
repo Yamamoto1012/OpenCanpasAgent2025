@@ -17,8 +17,9 @@ export type CategoryCardProps = {
 };
 
 /**
- *
- * @param category - カテゴリ情報
+ * デスクトップ専用カテゴリーカード
+ * モバイル環境（showBottomNavigation=true）では使用されません
+ * @param category - カテゴリー情報
  * @param delay - アニメーションの遅延時間
  * @param onClick - カードクリック時のハンドラ
  */

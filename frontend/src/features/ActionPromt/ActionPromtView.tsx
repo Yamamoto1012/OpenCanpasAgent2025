@@ -3,6 +3,8 @@ import { MessageCircle, Search, Send, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
+import { useAtom } from "jotai";
+import { showBottomNavigationAtom } from "@/store/navigationAtoms";
 import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
 
 export type ActionPromptViewProps = {
@@ -17,6 +19,18 @@ export type ActionPromptViewProps = {
 	onSearch: () => void;
 };
 
+/**
+ * アクションプロンプトの表示コンポーネント
+ * @param categoryTitle - カテゴリーのタイトル
+ * @param showQuestionInput - 質問入力フィールドを表示するかどうか
+ * @param question - 現在の質問内容
+ * @param isRecording - 音声認識が録音中かどうか
+ * @param onQuestionClick - 質問入力フィールドを表示するためのハンドラ
+ * @param onQuestionChange - 質問内容が変更されたときのハンドラ
+ * @param onSendQuestion - 質問を送信するためのハンドラ
+ * @param onToggleRecording - 音声認識の録音開始/停止を切り替えるためのハンドラ
+ * @param onSearch - カテゴリー内で検索するためのハンドラ
+ */
 export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 	categoryTitle,
 	showQuestionInput,
@@ -28,37 +42,77 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 	onToggleRecording,
 	onSearch,
 }) => {
+	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
+
 	return (
 		<motion.div
-			className="w-xl z-40"
-			initial={{ y: 100, opacity: 0 }}
+			className={`w-full z-40 ${showBottomNavigation ? "max-w-none" : "max-w-xl"}`}
+			initial={{ y: showBottomNavigation ? 10 : 100, opacity: 0 }}
 			animate={{ y: 0, opacity: 1 }}
-			exit={{ y: 100, opacity: 0 }}
-			transition={{ type: "spring", damping: 25, stiffness: 300 }}
+			exit={{ y: showBottomNavigation ? 10 : 100, opacity: 0 }}
+			transition={
+				showBottomNavigation
+					? { duration: 0.2 }
+					: { type: "spring", damping: 25, stiffness: 300 }
+			}
 		>
-			<div className="bg-white rounded-lg shadow-lg overflow-hidden">
-				<div className="bg-[#b3cfad] text-[#333333] p-3">
-					<h3 className="font-bold text-center">「{categoryTitle}」について</h3>
+			<div
+				className={`
+				bg-white rounded-lg shadow-lg overflow-hidden
+				${showBottomNavigation ? "shadow-md" : "shadow-lg"}
+			`}
+			>
+				<div
+					className={`
+					bg-[#b3cfad] text-[#333333] 
+					${showBottomNavigation ? "p-3" : "p-3"}
+				`}
+				>
+					<h3
+						className={`
+						font-bold text-center
+						${showBottomNavigation ? "text-sm" : "text-base"}
+					`}
+					>
+						「{categoryTitle}」について
+					</h3>
 				</div>
 
-				<div className="p-3 space-y-2">
+				<div
+					className={`
+					space-y-2
+					${showBottomNavigation ? "p-3" : "p-3"}
+				`}
+				>
 					{!showQuestionInput ? (
 						<>
 							<Button
 								variant="outline"
-								className="w-full flex items-center text-center hover:bg-[#d9ca77]/20 hover:text-[#9f9579] hover:border-[#9f9579]"
+								className={`
+									w-full flex items-center justify-center gap-2 
+									hover:bg-[#d9ca77]/20 hover:text-[#9f9579] hover:border-[#9f9579]
+									${showBottomNavigation ? "text-sm py-2.5" : ""}
+								`}
 								onClick={onSearch}
 							>
-								<Search className="w-4 h-4" />
+								<Search
+									className={`${showBottomNavigation ? "w-4 h-4" : "w-4 h-4"}`}
+								/>
 								このカテゴリで検索する
 							</Button>
 
 							<Button
 								variant="outline"
-								className="w-full flex items-center text-center hover:bg-[#d9ca77]/20 hover:text-[#9f9579] hover:border-[#9f9579]"
+								className={`
+									w-full flex items-center justify-center gap-2 
+									hover:bg-[#d9ca77]/20 hover:text-[#9f9579] hover:border-[#9f9579]
+									${showBottomNavigation ? "text-sm py-2.5" : ""}
+								`}
 								onClick={onQuestionClick}
 							>
-								<MessageCircle className="w-2 h-2" />
+								<MessageCircle
+									className={`${showBottomNavigation ? "w-4 h-4" : "w-4 h-4"}`}
+								/>
 								質問を入力して検索する
 							</Button>
 						</>
@@ -76,9 +130,10 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 											? "音声を認識しています..."
 											: `${categoryTitle}について質問...`
 									}
-									className={
-										isRecording ? "bg-red-50 border-0" : "bg-white border-0"
-									}
+									className={`
+										${isRecording ? "bg-red-50 border-0" : "bg-white border-0"}
+										${showBottomNavigation ? "text-sm" : ""}
+									`}
 									autoFocus
 									onKeyDown={(e) => {
 										if (e.nativeEvent.isComposing) return;
@@ -91,7 +146,7 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 								{/* マイクボタン */}
 								<Button
 									variant={isRecording ? "destructive" : "outline"}
-									size="icon"
+									size={showBottomNavigation ? "sm" : "icon"}
 									onClick={onToggleRecording}
 									className={`flex-shrink-0 ${isRecording ? "animate-pulse" : ""}`}
 									title={isRecording ? "録音を停止" : "音声で質問"}
@@ -106,7 +161,8 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 								<Button
 									onClick={onSendQuestion}
 									disabled={!question.trim() || isRecording}
-									className="bg-[#9f9579] hover:bg-[#9f9579]/90 text-white"
+									size={showBottomNavigation ? "sm" : "default"}
+									className="bg-[#9f9579] hover:bg-[#9f9579]/90 text-white flex-shrink-0"
 								>
 									<Send className="h-4 w-4" />
 								</Button>
