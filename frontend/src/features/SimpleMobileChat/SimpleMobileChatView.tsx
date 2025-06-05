@@ -86,11 +86,16 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 								{!message.isUser && (
 									<div className="flex-shrink-0">
 										<div className="w-8 h-8 bg-gradient-to-br from-[#b3cfad] to-[#9bb896] rounded-full flex items-center justify-center">
-											<img src="/chatIcon.png" width={32} height={32} className=" rounded-full" />
+											<img
+												src="/chatIcon.png"
+												width={32}
+												height={32}
+												className=" rounded-full"
+											/>
 										</div>
 									</div>
 								)}
-								
+
 								<div
 									className={`
 										group relative max-w-[85%] px-4 py-3 rounded-2xl
@@ -120,10 +125,15 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 									{/* 思考中のアバターアイコン */}
 									<div className="flex-shrink-0">
 										<div className="w-8 h-8 bg-gradient-to-br from-[#b3cfad] to-[#9bb896] rounded-full flex items-center justify-center">
-											<img src="/chatIcon.png" width={32} height={32} className=" rounded-full" />
+											<img
+												src="/chatIcon.png"
+												width={32}
+												height={32}
+												className=" rounded-full"
+											/>
 										</div>
 									</div>
-									
+
 									<div className="bg-gray-100 text-gray-900 rounded-2xl rounded-bl-md px-4 py-3 relative before:content-[''] before:absolute before:left-[-8px] before:top-2 before:border-8 before:border-transparent before:border-r-gray-100">
 										<div className="flex items-center gap-1">
 											<div className="flex space-x-1">
@@ -151,7 +161,12 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 					>
 						<div className="text-center max-w-sm">
 							<div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-								<img src="/chatIcon.png" width={64} height={64} className=" rounded-full" />
+								<img
+									src="/chatIcon.png"
+									width={64}
+									height={64}
+									className=" rounded-full"
+								/>
 							</div>
 							<h2 className="text-xl font-semibold text-gray-900 mb-2">
 								大学に関することを質問してみましょう
