@@ -1,6 +1,6 @@
-import { useAtom } from "jotai";
 import { showVoiceChatAtom } from "@/store/appStateAtoms";
-import { useEffect, type FC, type RefObject } from "react";
+import { useAtom } from "jotai";
+import { type FC, type RefObject, useEffect } from "react";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatDialogView } from "./VoiceChatDialogView";
 

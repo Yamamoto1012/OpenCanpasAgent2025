@@ -1,13 +1,13 @@
-import { useState, useCallback, useRef, useEffect } from "react";
 import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 import {
-	requestTTS,
-	createAudioURL,
-	revokeObjectURL,
-	estimateAudioDuration,
-	type TTSRequest,
 	type AudioFormat,
+	type TTSRequest,
+	createAudioURL,
+	estimateAudioDuration,
+	requestTTS,
+	revokeObjectURL,
 } from "@/lib/utils/audio";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * TTS フックの設定オプション

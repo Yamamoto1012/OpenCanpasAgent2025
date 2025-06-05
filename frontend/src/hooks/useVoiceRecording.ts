@@ -1,12 +1,12 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useCallback } from "react";
 import {
 	isRecordingAtom,
-	recordingTimerAtom,
-	updateRecordingTimerAtom,
 	recordingIntervalAtom,
+	recordingTimerAtom,
 	toggleRecordingAtom,
+	updateRecordingTimerAtom,
 } from "@/store/recordingAtoms";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useCallback, useEffect } from "react";
 
 /**
  * 音声録音フックのプロパティの型

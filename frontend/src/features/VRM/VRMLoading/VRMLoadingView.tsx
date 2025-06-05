@@ -1,6 +1,6 @@
-import type { FC } from "react";
-import { Loader2, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { Loader2, MessageCircle } from "lucide-react";
+import type { FC } from "react";
 
 export type VRMLoadingViewProps = {
 	/**

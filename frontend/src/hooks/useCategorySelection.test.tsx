@@ -1,8 +1,8 @@
-import { renderHook, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { act, renderHook } from "@testing-library/react";
 import { Provider } from "jotai";
-import { useCategorySelection } from "./useCategorySelection";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Category } from "../features/CategoryNavigator/components/CategoryCard";
+import { useCategorySelection } from "./useCategorySelection";
 
 // テスト用のカテゴリデータ
 const mockCategory: Category = {

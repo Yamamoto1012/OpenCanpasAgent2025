@@ -1,7 +1,7 @@
-import { useCallback, useRef, useEffect } from "react";
 import type { ChatInterfaceHandle } from "@/features/ChatInterface/ChatInterface";
 import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 import { generateText } from "@/services/llmService";
+import { useCallback, useEffect, useRef } from "react";
 
 type UseQuestionHandlerProps = {
 	vrmWrapperRef: React.RefObject<VRMWrapperHandle | null>;
@@ -28,7 +28,6 @@ export const useQuestionHandler = ({
 	}, []);
 
 	// 質問処理ハンドラー
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	const handleAskQuestion = useCallback(
 		(question: string) => {
 			try {

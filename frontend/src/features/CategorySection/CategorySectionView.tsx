@@ -1,11 +1,11 @@
-import type { FC } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useAtom } from "jotai";
-import { CategoryNavigator } from "../CategoryNavigator/CategoryNavigator";
-import { ActionPrompt } from "../ActionPromt/ActionPromt";
-import { SearchResults } from "../SearchResult/SearchResult";
 import { showBottomNavigationAtom } from "@/store/navigationAtoms";
+import { AnimatePresence, motion } from "framer-motion";
+import { useAtom } from "jotai";
+import type { FC } from "react";
+import { ActionPrompt } from "../ActionPromt/ActionPromt";
+import { CategoryNavigator } from "../CategoryNavigator/CategoryNavigator";
 import type { Category } from "../CategoryNavigator/components/CategoryCard";
+import { SearchResults } from "../SearchResult/SearchResult";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type CategorySectionViewProps = {

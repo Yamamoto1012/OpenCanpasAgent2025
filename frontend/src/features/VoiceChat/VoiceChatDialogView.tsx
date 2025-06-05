@@ -1,12 +1,12 @@
-import type { FC, RefObject } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
-import { X } from "lucide-react";
-import { useAtom } from "jotai";
-import { VoiceChat } from "./VoiceChat";
 import { useResponsive } from "@/hooks/useResponsive";
 import { currentScreenAtom } from "@/store/navigationAtoms";
+import { AnimatePresence, motion } from "framer-motion";
+import { useAtom } from "jotai";
+import { X } from "lucide-react";
+import type { FC, RefObject } from "react";
+import { useEffect } from "react";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
+import { VoiceChat } from "./VoiceChat";
 
 export type VoiceChatDialogViewProps = {
 	/**

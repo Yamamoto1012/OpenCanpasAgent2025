@@ -1,13 +1,13 @@
-import type { FC, RefObject } from "react";
-import { useAtom } from "jotai";
-import { ScreenManagerView } from "./ScreenManagerView";
+import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
+import type { ChatInterfaceHandle } from "@/features/ChatInterface/ChatInterface";
+import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 import {
 	currentScreenAtom,
 	showBottomNavigationAtom,
 } from "@/store/navigationAtoms";
-import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
-import type { ChatInterfaceHandle } from "@/features/ChatInterface/ChatInterface";
-import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
+import { useAtom } from "jotai";
+import type { FC, RefObject } from "react";
+import { ScreenManagerView } from "./ScreenManagerView";
 
 export type ScreenManagerProps = {
 	categoryDepth: number;

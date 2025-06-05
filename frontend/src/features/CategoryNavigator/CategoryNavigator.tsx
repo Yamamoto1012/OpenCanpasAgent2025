@@ -1,19 +1,19 @@
-import { useEffect } from "react";
-import { ChevronRight } from "lucide-react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { CategoryNavigatorView } from "./CategroyNavigatorView";
-import type { Category } from "./components/CategoryCard";
 import {
 	categoryDepthAtom,
+	categoryPathAtom,
 	currentCategoriesAtom,
+	navigateBackAtom,
+	selectCategoryAtom,
 	selectedMainCategoryIdAtom,
 	selectedSubCategoryIdAtom,
-	categoryPathAtom,
-	selectCategoryAtom,
-	navigateBackAtom,
 	selectedSubSubCategoryIdAtom,
 } from "@/store/categoryAtoms";
 import { showBottomNavigationAtom } from "@/store/navigationAtoms";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { ChevronRight } from "lucide-react";
+import { useEffect } from "react";
+import { CategoryNavigatorView } from "./CategroyNavigatorView";
+import type { Category } from "./components/CategoryCard";
 import { mainCategories, subCategories, subSubCategories } from "./constants";
 
 type CategoryNavigatorProps = {

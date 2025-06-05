@@ -1,8 +1,8 @@
-import type React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useAtom } from "jotai";
-import { CategoryCard } from "./CategoryCard";
 import { showBottomNavigationAtom } from "@/store/navigationAtoms";
+import { AnimatePresence, motion } from "framer-motion";
+import { useAtom } from "jotai";
+import type React from "react";
+import { CategoryCard } from "./CategoryCard";
 import type { Category } from "./CategoryCard";
 
 export type CategoryGridProps = {

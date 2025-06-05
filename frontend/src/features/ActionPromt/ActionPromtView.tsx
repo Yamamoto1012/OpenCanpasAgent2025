@@ -1,11 +1,11 @@
-import type React from "react";
-import { MessageCircle, Search, Send, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
+import { showBottomNavigationAtom } from "@/store/navigationAtoms";
 import { motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { showBottomNavigationAtom } from "@/store/navigationAtoms";
-import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
+import { MessageCircle, Mic, MicOff, Search, Send } from "lucide-react";
+import type React from "react";
 
 export type ActionPromptViewProps = {
 	categoryTitle: string;

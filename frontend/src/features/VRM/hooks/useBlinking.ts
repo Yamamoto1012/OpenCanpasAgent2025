@@ -1,5 +1,5 @@
-import { useRef } from "react";
 import type { VRM } from "@pixiv/three-vrm";
+import { useRef } from "react";
 import { safeSetExpression } from "../VRMExpression/safeSetExpression";
 import { VRM_EXPRESSION_CONFIG } from "../constants/vrmExpressions";
 

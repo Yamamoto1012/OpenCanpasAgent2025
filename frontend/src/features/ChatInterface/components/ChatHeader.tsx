@@ -1,6 +1,6 @@
-import type React from "react";
-import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import type React from "react";
 
 export type ChatHeaderProps = {
 	onReset: () => void;

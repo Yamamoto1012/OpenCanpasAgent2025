@@ -1,10 +1,10 @@
-import type React from "react";
 import type { Message } from "@/store/chatAtoms";
+import type React from "react";
 import { ChatHeader } from "./components/ChatHeader";
 
-import { ChatSelectButtons } from "./components/ChatSelectButtons";
 import { ChatInputArea } from "./components/ChatInputArea";
 import { ChatMessages } from "./components/ChatMessages";
+import { ChatSelectButtons } from "./components/ChatSelectButtons";
 
 export type ChatInterfaceViewProps = {
 	messages: Message[];

@@ -1,6 +1,6 @@
+import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useAtom } from "jotai";
 import { ActionPromptView } from "./ActionPromtView";
-import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { actionPromptStateAtom } from "./store/actionPromptAtoms";
 
 type ActionPromptProps = {

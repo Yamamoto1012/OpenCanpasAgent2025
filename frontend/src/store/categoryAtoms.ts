@@ -1,10 +1,10 @@
-import { atom } from "jotai";
+import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
 import {
 	mainCategories,
 	subCategories,
 	subSubCategories,
 } from "@/features/CategoryNavigator/constants";
-import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
+import { atom } from "jotai";
 
 /**
  * 選択されたメインカテゴリーのIDを管理するアトム

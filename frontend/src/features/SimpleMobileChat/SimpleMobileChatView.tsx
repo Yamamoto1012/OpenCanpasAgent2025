@@ -1,7 +1,7 @@
-import type React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, MoreVertical, MessageSquare } from "lucide-react";
 import type { SimpleChatMessage } from "@/store/simpleChatAtoms";
+import { AnimatePresence, motion } from "framer-motion";
+import { MessageSquare, MoreVertical, Send } from "lucide-react";
+import type React from "react";
 
 export type SimpleMobileChatViewProps = {
 	messages: SimpleChatMessage[];
@@ -64,7 +64,10 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 							</p>
 						</div>
 					</div>
-					<button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+					<button
+						type="button"
+						className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+					>
 						<MoreVertical className="w-5 h-5 text-gray-600" />
 					</button>
 				</div>
@@ -88,6 +91,7 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 										<div className="w-8 h-8 bg-gradient-to-br from-[#b3cfad] to-[#9bb896] rounded-full flex items-center justify-center">
 											<img
 												src="/chatIcon.png"
+												alt="AI Chat Avatar"
 												width={32}
 												height={32}
 												className=" rounded-full"
@@ -127,6 +131,7 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 										<div className="w-8 h-8 bg-gradient-to-br from-[#b3cfad] to-[#9bb896] rounded-full flex items-center justify-center">
 											<img
 												src="/chatIcon.png"
+												alt="AI Thinking Avatar"
 												width={32}
 												height={32}
 												className=" rounded-full"
@@ -163,6 +168,7 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 							<div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
 								<img
 									src="/chatIcon.png"
+									alt="AI Assistant Welcome"
 									width={64}
 									height={64}
 									className=" rounded-full"

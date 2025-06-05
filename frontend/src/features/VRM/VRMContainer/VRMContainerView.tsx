@@ -1,8 +1,8 @@
-import type { FC, RefObject } from "react";
 import { Canvas } from "@react-three/fiber";
 import { AnimatePresence } from "framer-motion";
-import { VRMWrapper } from "../VRMWrapper/VRMWrapper";
+import type { FC, RefObject } from "react";
 import { ThinkingIndicator } from "../../ThinkingIndicator/ThinkingIndicator";
+import { VRMWrapper } from "../VRMWrapper/VRMWrapper";
 import type { VRMWrapperHandle } from "../VRMWrapper/VRMWrapper";
 
 /**

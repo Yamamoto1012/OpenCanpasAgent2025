@@ -1,9 +1,9 @@
-import type { FC, RefObject } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useAtom } from "jotai";
-import { ChatInterface, type ChatInterfaceHandle } from "./ChatInterface";
 import { showBottomNavigationAtom } from "@/store/navigationAtoms";
+import { AnimatePresence, motion } from "framer-motion";
+import { useAtom } from "jotai";
+import type { FC, RefObject } from "react";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
+import { ChatInterface, type ChatInterfaceHandle } from "./ChatInterface";
 
 export type ChatSectionViewProps = {
 	isVisible: boolean;

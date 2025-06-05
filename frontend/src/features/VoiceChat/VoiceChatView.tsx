@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-import { Mic, Info, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -9,8 +7,10 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import type { ChatMessage, ProcessingState } from "@/store/voiceChatAtoms";
+import { motion } from "framer-motion";
+import { Info, Mic, StopCircle } from "lucide-react";
 import { useEffect, useRef } from "react";
-import type { ProcessingState, ChatMessage } from "@/store/voiceChatAtoms";
 
 export type VoiceChatViewProps = {
 	isListening: boolean;

@@ -1,22 +1,22 @@
+import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
+import { useResponsive } from "@/hooks/useResponsive";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import { generateText } from "@/services/llmService";
+import { addMessageAtom, messagesAtom, resetChatAtom } from "@/store/chatAtoms";
+import { isRecordingAtom, toggleRecordingAtom } from "@/store/recordingAtoms";
+import { useAtom, useSetAtom } from "jotai";
 import {
+	type ChangeEvent,
+	type KeyboardEvent,
 	forwardRef,
+	useCallback,
 	useEffect,
 	useImperativeHandle,
 	useRef,
-	type KeyboardEvent,
-	type ChangeEvent,
-	useCallback,
 	useState,
 } from "react";
-import { useAtom, useSetAtom } from "jotai";
 import { ChatInterfaceView } from "./ChatInterfaceView";
 import { ChatMobileView } from "./ChatMobileView";
-import { useResponsive } from "@/hooks/useResponsive";
-import { messagesAtom, addMessageAtom, resetChatAtom } from "@/store/chatAtoms";
-import { isRecordingAtom, toggleRecordingAtom } from "@/store/recordingAtoms";
-import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { generateText } from "@/services/llmService";
-import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 
 export type ChatInterfaceProps = {
 	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;

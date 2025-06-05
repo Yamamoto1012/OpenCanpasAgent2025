@@ -1,7 +1,7 @@
-import type React from "react";
-import { motion } from "framer-motion";
-import { Send, Mic, MicOff } from "lucide-react";
 import type { Message } from "@/store/chatAtoms";
+import { motion } from "framer-motion";
+import { Mic, MicOff, Send } from "lucide-react";
+import type React from "react";
 
 export type ChatMobileViewProps = {
 	messages: Message[];

@@ -1,21 +1,21 @@
-import { useEffect, useRef, useState } from "react";
-import { useAtom, useSetAtom } from "jotai";
-import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
-import { VoiceChatView } from "./VoiceChatView";
-import { useVoiceChat } from "./useVoiceChat";
-import { useAudioContext } from "../VRM/hooks/useAudioContext";
-import {
-	aiResponseAtom,
-	processingStateAtom,
-	chatHistoryAtom,
-	vrmIsThinkingAtom,
-	addUserMessageAtom,
-	addAiMessageAtom,
-	setProcessingStateAtom,
-	setVrmThinkingStateAtom,
-} from "@/store/voiceChatAtoms";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { generateText } from "@/services/llmService";
+import {
+	addAiMessageAtom,
+	addUserMessageAtom,
+	aiResponseAtom,
+	chatHistoryAtom,
+	processingStateAtom,
+	setProcessingStateAtom,
+	setVrmThinkingStateAtom,
+	vrmIsThinkingAtom,
+} from "@/store/voiceChatAtoms";
+import { useAtom, useSetAtom } from "jotai";
+import { useEffect, useRef, useState } from "react";
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
+import { useAudioContext } from "../VRM/hooks/useAudioContext";
+import { VoiceChatView } from "./VoiceChatView";
+import { useVoiceChat } from "./useVoiceChat";
 
 type VoiceChatProps = {
 	onClose?: () => void;

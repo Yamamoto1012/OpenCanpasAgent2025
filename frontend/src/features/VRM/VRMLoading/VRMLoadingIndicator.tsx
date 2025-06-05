@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
-import { useAtomValue } from "jotai";
 import {
-	vrmLoadingStateAtom,
-	vrmLoadProgressAtom,
-	vrmLoadingTextAtom,
 	vrmLoadErrorMessageAtom,
+	vrmLoadProgressAtom,
+	vrmLoadingStateAtom,
+	vrmLoadingTextAtom,
 } from "@/store/vrmLoadingAtoms";
+import { useAtomValue } from "jotai";
+import { useCallback, useEffect, useState } from "react";
 
 // ローディング状態に基づくアニメーションテキストを生成するカスタムフック
 const useLoadingAnimation = (isLoading: boolean) => {

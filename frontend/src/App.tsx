@@ -1,20 +1,20 @@
 import { useRef } from "react";
 import "./App.css";
 import { useAtom, useSetAtom } from "jotai";
+import { AppLayout } from "./components/AppLayout";
+import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";
+import { ControlButtons } from "./features/ControlButtons/ControlButtons";
+import { ScreenManager } from "./features/ScreenManager/ScreenManager";
+import { VRMContainer } from "./features/VRM/VRMContainer/VRMContainer";
+import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
+import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
+import { useCategorySelection } from "./hooks/useCategorySelection";
 import { showVoiceChatAtom } from "./store/appStateAtoms";
 import { addMessageAtom } from "./store/chatAtoms";
 import {
-	showBottomNavigationAtom,
 	currentScreenAtom,
+	showBottomNavigationAtom,
 } from "./store/navigationAtoms";
-import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
-import { useCategorySelection } from "./hooks/useCategorySelection";
-import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";
-import { AppLayout } from "./components/AppLayout";
-import { VRMContainer } from "./features/VRM/VRMContainer/VRMContainer";
-import { ScreenManager } from "./features/ScreenManager/ScreenManager";
-import { ControlButtons } from "./features/ControlButtons/ControlButtons";
-import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
 
 /**
  * アプリケーションのメインコンポーネント

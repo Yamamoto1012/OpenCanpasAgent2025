@@ -1,12 +1,12 @@
-import type { FC } from "react";
-import { useAtom } from "jotai";
 import {
-	isDirectChatQuestionAtom,
 	isActionPromptQuestionAtom,
+	isDirectChatQuestionAtom,
 } from "@/store/appStateAtoms";
+import { useAtom } from "jotai";
+import type { FC } from "react";
 import type { Category } from "../CategoryNavigator/components/CategoryCard";
-import { CategorySectionView } from "./CategorySectionView";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
+import { CategorySectionView } from "./CategorySectionView";
 
 type CategorySectionProps = {
 	/**

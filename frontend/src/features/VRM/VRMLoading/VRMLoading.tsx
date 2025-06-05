@@ -1,11 +1,11 @@
-import { type FC, useEffect } from "react";
-import { useAtom } from "jotai";
 import {
-	vrmLoadingStateAtom,
-	vrmLoadProgressAtom,
-	vrmLoadingTextAtom,
 	vrmLoadErrorMessageAtom,
+	vrmLoadProgressAtom,
+	vrmLoadingStateAtom,
+	vrmLoadingTextAtom,
 } from "@/store/vrmLoadingAtoms";
+import { useAtom } from "jotai";
+import { type FC, useEffect } from "react";
 import { VRMLoadingView } from "./VRMLoadingView";
 
 /**

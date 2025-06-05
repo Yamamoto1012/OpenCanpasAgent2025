@@ -1,8 +1,8 @@
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { useTextToSpeech } from "./useTextToSpeech";
-import * as audioUtils from "@/lib/utils/audio";
 import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
+import * as audioUtils from "@/lib/utils/audio";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useTextToSpeech } from "./useTextToSpeech";
 
 // モック設定
 vi.mock("@/lib/utils/audio", () => ({

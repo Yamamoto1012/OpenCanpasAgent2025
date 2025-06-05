@@ -1,7 +1,7 @@
-import type { FC } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Mic, Info, MessageSquare } from "lucide-react";
 import type { NavigationScreen } from "@/store/navigationAtoms";
+import { AnimatePresence, motion } from "framer-motion";
+import { Info, MessageCircle, MessageSquare, Mic } from "lucide-react";
+import type { FC } from "react";
 
 export type BottomNavigationViewProps = {
 	/**

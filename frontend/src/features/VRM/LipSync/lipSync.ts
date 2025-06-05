@@ -1,5 +1,5 @@
-import type { LipSyncAnalyzeResult } from "./types";
 import { FrequencyAnalyzer } from "./frequencyAnalyzer";
+import type { LipSyncAnalyzeResult } from "./types";
 
 const TIME_DOMAIN_DATA_LENGTH = 2048;
 

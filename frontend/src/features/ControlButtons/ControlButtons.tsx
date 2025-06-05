@@ -1,10 +1,10 @@
-import type { FC } from "react";
-import { useAtom } from "jotai";
 import {
-	showInfoAtom,
 	isMutedAtom,
+	showInfoAtom,
 	showVoiceChatAtom,
 } from "@/store/appStateAtoms";
+import { useAtom } from "jotai";
+import type { FC } from "react";
 import { ControlButtonsView } from "./ControlButtonsView";
 
 /**

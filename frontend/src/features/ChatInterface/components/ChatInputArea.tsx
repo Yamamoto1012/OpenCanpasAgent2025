@@ -1,8 +1,8 @@
-import { useRef, useEffect } from "react";
-import type React from "react";
-import { Mic, MicOff, Send, SquareSlash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
+import { Mic, MicOff, Send, SquareSlash } from "lucide-react";
+import { useEffect, useRef } from "react";
+import type React from "react";
 
 export type ChatInputAreaProps = {
 	inputValue: string;

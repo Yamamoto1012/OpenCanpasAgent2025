@@ -1,5 +1,5 @@
-import type { FC } from "react";
 import { Info, Mic2, Volume2, VolumeX } from "lucide-react";
+import type { FC } from "react";
 import { IconButton } from "../IconButton/IconButton";
 import { InfoPanel } from "../InfoPanel/InfoPanel";
 

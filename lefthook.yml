@@ -1,0 +1,128 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+# pre-push:
+#   jobs:
+#     - name: packages audit
+#       tags:
+#         - frontend
+#         - security
+#       run: yarn audit
+#
+#     - name: gems audit
+#       tags:
+#         - backend
+#         - security
+#       run: bundle audit
+#
+# pre-commit:
+#   parallel: true
+#   jobs:
+#     - run: yarn eslint {staged_files}
+#       glob: "*.{js,ts,jsx,tsx}"
+#
+#     - name: rubocop
+#       glob: "*.rb"
+#       exclude:
+#         - config/application.rb
+#         - config/routes.rb
+#       run: bundle exec rubocop --force-exclusion {all_files}
+#
+#     - name: govet
+#       files: git ls-files -m
+#       glob: "*.go"
+#       run: go vet {files}
+#
+#     - script: "hello.js"
+#       runner: node
+#
+#     - script: "hello.go"
+#       runner: go run
+
+# Lefthook configuration for safe commit management
+# https://github.com/evilmartians/lefthook
+
+# 共通設定
+colors: true
+no_tty: false
+
+# pre-commit hook: コミット前のコード品質チェック
+pre-commit:
+  parallel: true
+  commands:
+    # biomeによるlint・formatチェック（frontendディレクトリ）
+    biome-check:
+      root: "frontend/"
+      glob: "*.{js,jsx,ts,tsx,json,jsonc}"
+      run: npx biome check --write --unsafe {staged_files}
+      stage_fixed: true
+      fail_text: "❌ Biome check failed. Please fix the issues and try again."
+    
+    # TypeScriptの型チェック（frontendディレクトリ）
+    typescript-check:
+      root: "frontend/"
+      glob: "*.{ts,tsx}"
+      run: npx tsc --noEmit --project tsconfig.json
+      fail_text: "❌ TypeScript check failed. Please fix type errors and try again."
+
+# pre-push hook: プッシュ前のテスト実行
+pre-push:
+  commands:
+    # フロントエンドのテスト実行
+    frontend-tests:
+      root: "frontend/"
+      run: pnpm test --run
+      fail_text: "❌ Tests failed. Please fix failing tests before pushing."
+    
+    # フロントエンドのビルドチェック
+    frontend-build:
+      root: "frontend/"
+      run: pnpm build
+      fail_text: "❌ Build failed. Please fix build errors before pushing."
+
+# commit-msg hook: コミットメッセージの規約チェック
+commit-msg:
+  commands:
+    # Conventional Commitsの規約チェック
+    commitlint:
+      run: |
+        # Conventional Commitsの基本パターンをチェック
+        if ! grep -qE "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,50}" "$1"; then
+          echo "❌ Invalid commit message format!"
+          echo ""
+          echo "📝 Commit message should follow Conventional Commits format:"
+          echo "   <type>[optional scope]: <description>"
+          echo ""
+          echo "🔹 Available types:"
+          echo "   feat:     新機能"
+          echo "   fix:      バグ修正"
+          echo "   docs:     ドキュメント"
+          echo "   style:    コードスタイル（機能に影響しない変更）"
+          echo "   refactor: リファクタリング"
+          echo "   perf:     パフォーマンス改善"
+          echo "   test:     テスト追加・修正"
+          echo "   build:    ビルドシステム・外部依存関係"
+          echo "   ci:       CI設定ファイル・スクリプト"
+          echo "   chore:    その他のメンテナンス"
+          echo "   revert:   コミットの取り消し"
+          echo ""
+          echo "✅ Example: feat(auth): ユーザー認証機能を追加"
+          echo "✅ Example: fix: ログイン時のバリデーションエラーを修正"
+          echo ""
+          exit 1
+        fi
+
+# リポジトリ固有の設定
+skip_output:
+  - meta
+  - summary
+
+output:
+  - meta
+  - summary
+
+# 環境変数
+env:
+  LEFTHOOK: 1

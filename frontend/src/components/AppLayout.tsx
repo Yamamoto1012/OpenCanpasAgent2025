@@ -1,13 +1,13 @@
-import type { FC, ReactNode } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
-import { useAtom, useSetAtom } from "jotai";
+import { BottomNavigation } from "@/features/BottomNavigation/BottomNavigation";
 import { useResponsive } from "@/hooks/useResponsive";
 import {
-	showBottomNavigationAtom,
 	currentScreenAtom,
+	showBottomNavigationAtom,
 } from "@/store/navigationAtoms";
-import { BottomNavigation } from "@/features/BottomNavigation/BottomNavigation";
+import { AnimatePresence, motion } from "framer-motion";
+import { useAtom, useSetAtom } from "jotai";
+import type { FC, ReactNode } from "react";
+import { useEffect } from "react";
 
 type AppLayoutProps = {
 	/**

@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { showBottomNavigationAtom } from "@/store/navigationAtoms";
 import { render, screen } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
+import { describe, expect, it, vi } from "vitest";
 import { CategoryNavigator } from "../CategoryNavigator";
-import { showBottomNavigationAtom } from "@/store/navigationAtoms";
 
 describe("CategoryNavigator", () => {
 	const mockOnCategoryDepthChange = vi.fn();

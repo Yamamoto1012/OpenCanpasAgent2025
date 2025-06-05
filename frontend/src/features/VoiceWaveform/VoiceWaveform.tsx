@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { useVoiceWaveform } from "./useVoiceWaveform";
 import { VoiceWaveformView } from "./VoiceWaveformView";
+import { useVoiceWaveform } from "./useVoiceWaveform";
 
 export type VoiceWaveformProps = {
 	isRecording: boolean;

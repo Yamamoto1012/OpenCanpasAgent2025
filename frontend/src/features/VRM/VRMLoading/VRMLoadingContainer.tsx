@@ -1,9 +1,9 @@
+import { vrmLoadErrorMessageAtom } from "@/store/vrmLoadingAtoms";
+import type { VRM } from "@pixiv/three-vrm";
+import { useAtom } from "jotai";
 import { useCallback, useState } from "react";
 import { useVRM } from "../hooks/useVRM";
 import { VRMLoadingOverlay } from "./VRMLoadingOverlay";
-import { useAtom } from "jotai";
-import { vrmLoadErrorMessageAtom } from "@/store/vrmLoadingAtoms";
-import type { VRM } from "@pixiv/three-vrm";
 
 type VRMLoadingContainerProps = {
 	/** VRMモデルのURL */

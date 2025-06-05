@@ -3,12 +3,12 @@ import { useCallback } from "react";
 import type { Category } from "../features/CategoryNavigator/components/CategoryCard";
 import {
 	categoryDepthAtom,
+	isQuestionAtom,
+	searchQueryAtom,
 	selectedCategoryAtom,
 	showActionPromptAtom,
 	showChatAtom,
 	showSearchResultAtom,
-	searchQueryAtom,
-	isQuestionAtom,
 } from "../store/categorySelectionAtoms";
 
 /**

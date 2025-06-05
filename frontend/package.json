@@ -9,7 +9,14 @@
 		"lint": "eslint .",
 		"preview": "vite preview",
 		"test": "vitest",
-		"format": "biome format"
+		"format": "biome format",
+		"format:write": "biome format --write",
+		"lint:biome": "biome lint",
+		"lint:biome:fix": "biome lint --write",
+		"check": "biome check",
+		"check:write": "biome check --write",
+		"setup-hooks": "lefthook install",
+		"prepare": "lefthook install"
 	},
 	"dependencies": {
 		"@pixiv/three-vrm": "^3.3.6",
@@ -59,6 +66,7 @@
 		"eslint-plugin-react-refresh": "^0.4.19",
 		"globals": "^15.15.0",
 		"jsdom": "^26.1.0",
+		"lefthook": "^1.11.13",
 		"typescript": "~5.7.2",
 		"typescript-eslint": "^8.24.1",
 		"vite": "^6.2.0",
