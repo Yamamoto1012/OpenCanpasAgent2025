@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Mic, Info } from "lucide-react";
+import { MessageCircle, Mic, Info, MessageSquare } from "lucide-react";
 import type { NavigationScreen } from "@/store/navigationAtoms";
 
 export type BottomNavigationViewProps = {
@@ -28,6 +28,11 @@ const navigationItems = [
 		id: "chat" as NavigationScreen,
 		label: "チャット",
 		icon: MessageCircle,
+	},
+	{
+		id: "simple-chat" as NavigationScreen,
+		label: "AIチャット",
+		icon: MessageSquare,
 	},
 	{
 		id: "voice" as NavigationScreen,
@@ -62,8 +67,8 @@ export const BottomNavigationView: FC<BottomNavigationViewProps> = ({
 					exit={{ y: 20, opacity: 0 }}
 					transition={{ duration: 0.2 }}
 				>
-					<div className="bg-white border-t border-gray-200 px-4 pb-2 pt-2">
-						<div className="flex justify-around items-center">
+					<div className="bg-white border-t border-gray-200 px-2 pb-2 pt-2">
+						<div className="flex justify-around items-center max-w-md mx-auto">
 							{navigationItems.map((item) => {
 								const Icon = item.icon;
 								const isActive = currentScreen === item.id;
@@ -73,12 +78,12 @@ export const BottomNavigationView: FC<BottomNavigationViewProps> = ({
 									<button
 										key={item.id}
 										onClick={() => onScreenChange(item.id)}
-										className="flex flex-col items-center justify-center p-2 min-w-[60px]"
+										className="flex flex-col items-center justify-center p-2 min-w-[70px] flex-1"
 										aria-label={item.label}
 									>
 										<div className="flex flex-col items-center">
 											<Icon
-												className={`h-6 w-6 mb-1 ${
+												className={`h-5 w-5 mb-1 ${
 													isActive ? "text-[#b3cfad]" : "text-gray-500"
 												}`}
 											/>
