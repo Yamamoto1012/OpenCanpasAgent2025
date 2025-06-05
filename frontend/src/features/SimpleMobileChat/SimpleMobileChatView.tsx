@@ -9,6 +9,8 @@ export type SimpleMobileChatViewProps = {
 	isThinking: boolean;
 	onInputChange: React.ChangeEventHandler<HTMLTextAreaElement>;
 	onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>;
+	onCompositionStart: React.CompositionEventHandler<HTMLTextAreaElement>;
+	onCompositionEnd: React.CompositionEventHandler<HTMLTextAreaElement>;
 	onSend: () => void;
 	messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
@@ -20,6 +22,8 @@ export type SimpleMobileChatViewProps = {
  * @param isThinking - AI応答中フラグ
  * @param onInputChange - 入力値変更ハンドラ
  * @param onKeyDown - キー入力ハンドラ
+ * @param onCompositionStart - 漢字変換開始ハンドラ
+ * @param onCompositionEnd - 漢字変換終了ハンドラ
  * @param onSend - 送信ボタンハンドラ
  * @param messagesEndRef - メッセージ末尾参照Ref
  */
@@ -29,6 +33,8 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 	isThinking,
 	onInputChange,
 	onKeyDown,
+	onCompositionStart,
+	onCompositionEnd,
 	onSend,
 	messagesEndRef,
 }) => {
@@ -144,11 +150,11 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 						className="h-full flex items-center justify-center px-4 pb-32"
 					>
 						<div className="text-center max-w-sm">
-							<div className="w-16 h-16 bg-gradient-to-br from-[#b3cfad] to-[#9bb896] rounded-full flex items-center justify-center mx-auto mb-4">
-								<MessageSquare className="w-8 h-8 text-white" />
+							<div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+								<img src="/chatIcon.png" width={64} height={64} className=" rounded-full" />
 							</div>
 							<h2 className="text-xl font-semibold text-gray-900 mb-2">
-								AIとチャットを始めましょう
+								大学に関することを質問してみましょう
 							</h2>
 							<p className="text-gray-600 text-sm leading-relaxed">
 								何でもお気軽にお聞きください。
@@ -172,6 +178,8 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 							value={inputValue}
 							onChange={onInputChange}
 							onKeyDown={onKeyDown}
+							onCompositionStart={onCompositionStart}
+							onCompositionEnd={onCompositionEnd}
 							placeholder="メッセージを入力..."
 							disabled={isThinking}
 							rows={1}

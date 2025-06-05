@@ -10,6 +10,8 @@ const mockProps = {
 	isThinking: false,
 	onInputChange: vi.fn(),
 	onKeyDown: vi.fn(),
+	onCompositionStart: vi.fn(),
+	onCompositionEnd: vi.fn(),
 	onSend: vi.fn(),
 	messagesEndRef: { current: null },
 };

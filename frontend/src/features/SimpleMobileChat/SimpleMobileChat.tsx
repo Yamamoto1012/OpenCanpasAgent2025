@@ -27,6 +27,7 @@ export const SimpleMobileChat: React.FC = () => {
 
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 	const abortRef = useRef<AbortController | null>(null);
+	const isComposingRef = useRef(false); // 漢字変換状態を管理
 
 	// メッセージ末尾へのスクロール
 	const scrollToBottom = useCallback(() => {
@@ -106,10 +107,21 @@ export const SimpleMobileChat: React.FC = () => {
 		[setInputValue],
 	);
 
-	// キーボード入力ハンドラ（Enterで送信）
+	// 漢字変換開始ハンドラ
+	const handleCompositionStart = useCallback(() => {
+		isComposingRef.current = true;
+	}, []);
+
+	// 漢字変換終了ハンドラ
+	const handleCompositionEnd = useCallback(() => {
+		isComposingRef.current = false;
+	}, []);
+
+	// キーボード入力ハンドラ（Enterで送信、ただし漢字変換中は除外）
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent<HTMLTextAreaElement>) => {
-			if (e.key === "Enter" && !e.shiftKey) {
+			// 漢字変換中はEnter送信を無効化
+			if (e.key === "Enter" && !e.shiftKey && !isComposingRef.current) {
 				e.preventDefault();
 				handleSend();
 			}
@@ -131,6 +143,8 @@ export const SimpleMobileChat: React.FC = () => {
 			isThinking={isThinking}
 			onInputChange={handleInputChange}
 			onKeyDown={handleKeyDown}
+			onCompositionStart={handleCompositionStart}
+			onCompositionEnd={handleCompositionEnd}
 			onSend={handleSend}
 			messagesEndRef={messagesEndRef}
 		/>
