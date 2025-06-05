@@ -26,9 +26,12 @@ export const ActionPrompt: React.FC<ActionPromptProps> = ({
 	const [state, setState] = useAtom(actionPromptStateAtom);
 
 	// 録音カスタムフックの使用
-	const { isRecording, toggleRecording } = useVoiceRecording({
-		onRecognizedText: (text) => setState({ question: text }),
-	});
+	const { state: recordingState, actions: recordingActions } =
+		useVoiceRecording({
+			onRecognizedText: (text) => setState({ question: text }),
+		});
+	const { isRecording } = recordingState;
+	const { toggleRecording } = recordingActions;
 
 	// 質問入力フォームの表示切り替え
 	const handleQuestionClick = () => {

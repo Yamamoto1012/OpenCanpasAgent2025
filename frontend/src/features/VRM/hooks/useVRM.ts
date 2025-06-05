@@ -44,7 +44,7 @@ export const useVRM = (
 	const [hasError, setHasError] = useState<boolean>(false);
 
 	// ローディング状態管理用のアトム
-	const [loadingState, setLoadingState] = useAtom(vrmLoadingStateAtom);
+	const [, setLoadingState] = useAtom(vrmLoadingStateAtom);
 	const [, setProgress] = useAtom(vrmLoadProgressAtom);
 	const [, setLoadingText] = useAtom(vrmLoadingTextAtom);
 	const [, setErrorMessage] = useAtom(vrmLoadErrorMessageAtom);

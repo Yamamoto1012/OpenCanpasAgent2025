@@ -1,7 +1,7 @@
 import { vrmLoadErrorMessageAtom } from "@/store/vrmLoadingAtoms";
 import type { VRM } from "@pixiv/three-vrm";
 import { useAtom } from "jotai";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useVRM } from "../hooks/useVRM";
 import { VRMLoadingOverlay } from "./VRMLoadingOverlay";
 
@@ -35,14 +35,12 @@ export const VRMLoadingContainer = ({
 	children,
 }: VRMLoadingContainerProps) => {
 	const [, setErrorMessage] = useAtom(vrmLoadErrorMessageAtom);
-	const [modelSource] = useState(modelUrl);
-
 	// カスタムフックを使用してVRMモデルをロード
 	const {
 		vrm,
 		scene,
-		mixer,
-		crossFadeAnimation,
+		mixer: _mixer, // eslint-disable-line @typescript-eslint/no-unused-vars
+		crossFadeAnimation: _crossFadeAnimation, // eslint-disable-line @typescript-eslint/no-unused-vars
 		isLoaded,
 		hasError,
 		retryLoading,

@@ -13,7 +13,6 @@ import {
 import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
-import { useAudioContext } from "../VRM/hooks/useAudioContext";
 import { VoiceChatView } from "./VoiceChatView";
 import { useVoiceChat } from "./useVoiceChat";
 
@@ -26,8 +25,7 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	// カスタムフックから音声認識機能を取得
 	const { isListening, transcript, startListening, stopListening } =
 		useVoiceChat();
-	const { playAudio } = useAudioContext();
-	const { speak } = useTextToSpeech(vrmWrapperRef);
+	const { speak } = useTextToSpeech({ vrmWrapperRef });
 
 	const [aiResponse] = useAtom(aiResponseAtom);
 	const [processingState] = useAtom(processingStateAtom);

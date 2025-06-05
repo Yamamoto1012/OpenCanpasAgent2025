@@ -33,9 +33,8 @@ export const useQuestionHandler = ({
 			try {
 				// まずChatInterfaceにメッセージを追加（信頼性重視）
 				if (chatInterfaceRef.current) {
-					chatInterfaceRef.current.addMessage(
+					chatInterfaceRef.current.sendMessage(
 						"検索しますね！少々お待ちください。",
-						false,
 					);
 				} else {
 					console.warn(
@@ -82,11 +81,7 @@ export const useQuestionHandler = ({
 
 						// API応答をChatInterfaceに追加
 						if (chatInterfaceRef.current) {
-							chatInterfaceRef.current.addMessage(
-								apiResponse,
-								false,
-								apiResponse, // 音声合成用のテキストも同じものを使用
-							);
+							chatInterfaceRef.current.sendMessage(apiResponse);
 						}
 
 						// 思考状態を明示的に終了
@@ -105,7 +100,7 @@ export const useQuestionHandler = ({
 						if (chatInterfaceRef.current) {
 							const errorMessage =
 								"申し訳ありません、応答の取得中に問題が発生しました。もう一度お試しください。";
-							chatInterfaceRef.current.addMessage(errorMessage, false);
+							chatInterfaceRef.current.sendMessage(errorMessage);
 						}
 
 						// エラー発生時も必ず思考状態を解除

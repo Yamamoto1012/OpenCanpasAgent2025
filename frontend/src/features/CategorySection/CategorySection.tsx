@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	isActionPromptQuestionAtom,
 	isDirectChatQuestionAtom,
@@ -71,7 +72,6 @@ type CategorySectionProps = {
  * ユーザーの操作に応じたロジックと状態管理を担当
  */
 export const CategorySection: FC<CategorySectionProps> = ({
-	categoryDepth,
 	selectedCategory,
 	showActionPrompt,
 	showSearchResult,
