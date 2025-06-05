@@ -73,7 +73,7 @@ pre-push:
     # フロントエンドのテスト実行
     frontend-tests:
       root: "frontend/"
-      run: pnpm test --run
+      run: pnpm vitest run
       fail_text: "❌ Tests failed. Please fix failing tests before pushing."
     
     # フロントエンドのビルドチェック

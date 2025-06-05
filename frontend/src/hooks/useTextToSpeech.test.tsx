@@ -237,11 +237,21 @@ describe("useTextToSpeech", () => {
 	});
 
 	describe("クリーンアップ", () => {
-		it("コンポーネントアンマウント時にリソースをクリーンアップする", () => {
-			const { unmount } = renderHook(() => useTextToSpeech());
+		it("コンポーネントアンマウント時にリソースをクリーンアップする", async () => {
+			const { result, unmount } = renderHook(() => useTextToSpeech());
 
+			// まず音声を開始してURLを作成する
+			await act(async () => {
+				await result.current.speak("クリーンアップテスト");
+			});
+
+			// 音声が作成されたことを確認
+			expect(mockCreateAudioURL).toHaveBeenCalled();
+
+			// アンマウント
 			unmount();
 
+			// クリーンアップでrevokeObjectURLが呼ばれることを確認
 			expect(mockRevokeObjectURL).toHaveBeenCalled();
 		});
 	});
