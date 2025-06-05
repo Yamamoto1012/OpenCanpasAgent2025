@@ -89,7 +89,7 @@ commit-msg:
     commitlint:
       run: |
         # Conventional Commitsの基本パターンをチェック
-        if ! grep -qE "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,50}" "$1"; then
+        if ! head -n1 "{1}" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,50}"; then
           echo "❌ Invalid commit message format!"
           echo ""
           echo "📝 Commit message should follow Conventional Commits format:"
