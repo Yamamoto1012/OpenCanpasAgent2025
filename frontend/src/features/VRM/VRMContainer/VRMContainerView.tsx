@@ -36,8 +36,44 @@ export type VRMContainerViewProps = {
 	onThinkingStateChange: (isThinking: boolean) => void;
 };
 
+// レスポンシブカメラ設定を計算する関数
+const getCameraSettings = (categoryDepth: number, isMobile = false) => {
+	if (isMobile) {
+		// モバイル用カメラ設定
+		return {
+			fov: 40,
+			position: [0.04, 1.35, categoryDepth >= 2 ? -0.3 : 1.2] as [
+				number,
+				number,
+				number,
+			],
+			rotation: [0, categoryDepth >= 2 ? Math.PI / 8 : 0, 0] as [
+				number,
+				number,
+				number,
+			],
+		};
+	}
+
+	// デスクトップ用カメラ設定（従来通り）
+	return {
+		fov: 40,
+		position: [0.04, 1.45, categoryDepth >= 2 ? -0.5 : 1] as [
+			number,
+			number,
+			number,
+		],
+		rotation: [0, categoryDepth >= 2 ? Math.PI / 8 : 0, 0] as [
+			number,
+			number,
+			number,
+		],
+	};
+};
+
 /**
  * VRMモデルを表示するためのプレゼンテーションコンポーネント
+ * レスポンシブデザインに対応し、モバイルとデスクトップで適切なカメラ設定を適用
  */
 export const VRMContainerView: FC<VRMContainerViewProps> = ({
 	categoryDepth,
@@ -46,6 +82,11 @@ export const VRMContainerView: FC<VRMContainerViewProps> = ({
 	isMuted,
 	onThinkingStateChange,
 }) => {
+	// 画面サイズを動的に検出（簡易版）
+	// より正確にはuseMediaQueryなどのフックを使用することもできます
+	const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+	const cameraSettings = getCameraSettings(categoryDepth, isMobile);
+
 	return (
 		<>
 			{/* 3Dモデル表示エリア */}
@@ -53,11 +94,11 @@ export const VRMContainerView: FC<VRMContainerViewProps> = ({
 				<Canvas
 					flat
 					camera={{
-						fov: 40,
+						fov: cameraSettings.fov,
 						near: 0.01,
 						far: 2000,
-						position: [0.04, 1.45, categoryDepth >= 2 ? -0.5 : 1],
-						rotation: [0, categoryDepth >= 2 ? Math.PI / 8 : 0, 0],
+						position: cameraSettings.position,
+						rotation: cameraSettings.rotation,
 					}}
 				>
 					<gridHelper />

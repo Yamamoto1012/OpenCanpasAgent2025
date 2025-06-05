@@ -1,6 +1,8 @@
 import type React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAtom } from "jotai";
 import { CategoryCard } from "./CategoryCard";
+import { showBottomNavigationAtom } from "@/store/navigationAtoms";
 import type { Category } from "./CategoryCard";
 
 export type CategoryGridProps = {
@@ -8,10 +10,23 @@ export type CategoryGridProps = {
 	onCategoryClick: (category: Category) => void;
 };
 
+/**
+ * カテゴリーグリッドコンポーネント
+ * モバイル環境（showBottomNavigation=true）では何も表示しません
+ * @param categories - カテゴリー
+ * @param onCategoryClick - カテゴリーがクリックされたときのハンドラ
+ */
 export const CategoryGrid: React.FC<CategoryGridProps> = ({
 	categories,
 	onCategoryClick,
 }) => {
+	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
+
+	// モバイル環境では何も表示しない
+	if (showBottomNavigation) {
+		return null;
+	}
+
 	// コンテナのバリアント設定
 	const containerVariants = {
 		hidden: { opacity: 0 },
@@ -35,20 +50,22 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
 		<AnimatePresence mode="wait">
 			<motion.div
 				key="category-grid"
-				className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-4"
 				variants={containerVariants}
 				initial="hidden"
 				animate="visible"
 				exit="exit"
 			>
-				{categories.map((category, index) => (
-					<CategoryCard
-						key={category.title}
-						category={category}
-						delay={index * 0.05}
-						onClick={() => onCategoryClick(category)}
-					/>
-				))}
+				{categories.map((category, index) => {
+					return (
+						<CategoryCard
+							key={category.title}
+							category={category}
+							delay={index * 0.03}
+							onClick={() => onCategoryClick(category)}
+						/>
+					);
+				})}
 			</motion.div>
 		</AnimatePresence>
 	);
