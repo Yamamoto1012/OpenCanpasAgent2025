@@ -1,19 +1,19 @@
+import { generateText } from "@/services/llmService";
 import {
-	useEffect,
-	useRef,
-	useCallback,
-	type KeyboardEvent,
-	type ChangeEvent,
-} from "react";
-import { useAtom, useSetAtom } from "jotai";
-import { SimpleMobileChatView } from "./SimpleMobileChatView";
-import {
-	simpleChatMessagesAtom,
+	addSimpleChatMessageAtom,
 	simpleChatInputAtom,
 	simpleChatIsThinkingAtom,
-	addSimpleChatMessageAtom,
+	simpleChatMessagesAtom,
 } from "@/store/simpleChatAtoms";
-import { generateText } from "@/services/llmService";
+import { useAtom, useSetAtom } from "jotai";
+import {
+	type ChangeEvent,
+	type KeyboardEvent,
+	useCallback,
+	useEffect,
+	useRef,
+} from "react";
+import { SimpleMobileChatView } from "./SimpleMobileChatView";
 
 /**
  * SimpleMobileChatのコンテナコンポーネント
@@ -40,7 +40,7 @@ export const SimpleMobileChat: React.FC = () => {
 	// メッセージ追加時に自動スクロール
 	useEffect(() => {
 		scrollToBottom();
-	}, [messages, isThinking, scrollToBottom]);
+	}, [scrollToBottom]);
 
 	// AI応答の処理
 	const handleAIResponse = useCallback(

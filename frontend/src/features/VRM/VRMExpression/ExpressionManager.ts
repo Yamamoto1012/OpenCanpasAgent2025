@@ -1,13 +1,13 @@
 import type { VRM } from "@pixiv/three-vrm";
-import { safeSetExpression } from "./safeSetExpression";
 import {
-	type ExpressionPreset,
-	type LipSyncExpression,
-	VRM_EXPRESSION_CONFIG,
 	BASIC_EXPRESSIONS,
+	type ExpressionPreset,
 	LIP_SYNC_EXPRESSIONS,
+	type LipSyncExpression,
 	MOTION_TO_EXPRESSION,
+	VRM_EXPRESSION_CONFIG,
 } from "../constants/vrmExpressions";
+import { safeSetExpression } from "./safeSetExpression";
 
 /**
  * VRM表情制御を一元管理するクラス

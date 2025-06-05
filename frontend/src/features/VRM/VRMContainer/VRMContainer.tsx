@@ -1,6 +1,6 @@
-import type { FC } from "react";
+import { isMutedAtom, isThinkingAtom } from "@/store/appStateAtoms";
 import { useAtom } from "jotai";
-import { isThinkingAtom, isMutedAtom } from "@/store/appStateAtoms";
+import type { FC } from "react";
 import type { RefObject } from "react";
 import type { VRMWrapperHandle } from "../VRMWrapper/VRMWrapper";
 import { VRMContainerView } from "./VRMContainerView";

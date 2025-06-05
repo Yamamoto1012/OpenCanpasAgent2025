@@ -1,20 +1,20 @@
-import { useState, useEffect, useRef } from "react";
-import * as THREE from "three";
-import type { Scene, Group } from "three";
+import {
+	vrmLoadErrorMessageAtom,
+	vrmLoadProgressAtom,
+	vrmLoadingStateAtom,
+	vrmLoadingTextAtom,
+} from "@/store/vrmLoadingAtoms";
 import type { VRM } from "@pixiv/three-vrm";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
 	VRMAnimationLoaderPlugin,
 	createVRMAnimationClip,
 } from "@pixiv/three-vrm-animation";
 import { useAtom } from "jotai";
-import {
-	vrmLoadingStateAtom,
-	vrmLoadProgressAtom,
-	vrmLoadingTextAtom,
-	vrmLoadErrorMessageAtom,
-} from "@/store/vrmLoadingAtoms";
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import type { Group, Scene } from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 type UseVRMReturn = {
 	vrm: VRM | null; // ロードされたVRMモデル
@@ -44,7 +44,7 @@ export const useVRM = (
 	const [hasError, setHasError] = useState<boolean>(false);
 
 	// ローディング状態管理用のアトム
-	const [loadingState, setLoadingState] = useAtom(vrmLoadingStateAtom);
+	const [, setLoadingState] = useAtom(vrmLoadingStateAtom);
 	const [, setProgress] = useAtom(vrmLoadProgressAtom);
 	const [, setLoadingText] = useAtom(vrmLoadingTextAtom);
 	const [, setErrorMessage] = useAtom(vrmLoadErrorMessageAtom);

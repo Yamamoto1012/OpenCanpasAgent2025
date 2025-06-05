@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import type { VRM } from "@pixiv/three-vrm";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LipSync } from "../LipSync/lipSync";
 import type { LipSyncAnalyzeResult } from "../LipSync/types";
 import { ExpressionManager } from "../VRMExpression/ExpressionManager";

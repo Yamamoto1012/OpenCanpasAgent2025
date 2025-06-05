@@ -1,12 +1,13 @@
-import type { FC } from "react";
-import { useAtom } from "jotai";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-	isDirectChatQuestionAtom,
 	isActionPromptQuestionAtom,
+	isDirectChatQuestionAtom,
 } from "@/store/appStateAtoms";
+import { useAtom } from "jotai";
+import type { FC } from "react";
 import type { Category } from "../CategoryNavigator/components/CategoryCard";
-import { CategorySectionView } from "./CategorySectionView";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
+import { CategorySectionView } from "./CategorySectionView";
 
 type CategorySectionProps = {
 	/**
@@ -71,7 +72,6 @@ type CategorySectionProps = {
  * ユーザーの操作に応じたロジックと状態管理を担当
  */
 export const CategorySection: FC<CategorySectionProps> = ({
-	categoryDepth,
 	selectedCategory,
 	showActionPrompt,
 	showSearchResult,

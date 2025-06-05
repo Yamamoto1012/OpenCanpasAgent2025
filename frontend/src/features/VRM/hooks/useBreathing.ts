@@ -1,5 +1,5 @@
-import { useRef } from "react";
 import type { VRM } from "@pixiv/three-vrm";
+import { useRef } from "react";
 
 /**
  * VRMモデルの呼吸制御を行うフック

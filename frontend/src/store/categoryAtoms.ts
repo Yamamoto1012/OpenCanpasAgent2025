@@ -1,10 +1,10 @@
-import { atom } from "jotai";
+import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
 import {
 	mainCategories,
 	subCategories,
 	subSubCategories,
 } from "@/features/CategoryNavigator/constants";
-import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
+import { atom } from "jotai";
 
 /**
  * 選択されたメインカテゴリーのIDを管理するアトム
@@ -118,7 +118,7 @@ export const categoryPathAtom = atom<
  */
 export const selectCategoryAtom = atom(
 	null,
-	(get, set, payload: { categoryId: string; depth: number }) => {
+	(_get, set, payload: { categoryId: string; depth: number }) => {
 		const { categoryId, depth } = payload;
 
 		switch (depth) {

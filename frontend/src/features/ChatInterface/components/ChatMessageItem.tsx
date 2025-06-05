@@ -1,6 +1,6 @@
-import type React from "react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Message } from "@/store/chatAtoms";
+import type React from "react";
 
 export type ChatMessageItemProps = {
 	message: Message;

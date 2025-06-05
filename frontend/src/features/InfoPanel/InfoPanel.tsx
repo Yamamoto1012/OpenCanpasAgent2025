@@ -1,6 +1,6 @@
-import type { FC } from "react";
-import { useAtom } from "jotai";
 import { showBottomNavigationAtom } from "@/store/navigationAtoms";
+import { useAtom } from "jotai";
+import type { FC } from "react";
 import { InfoPanelView } from "./InfoPanelView";
 
 type InfoPanelProps = {

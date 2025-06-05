@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import { SimpleMobileChatView } from "../SimpleMobileChatView";
 import type { SimpleChatMessage } from "@/store/simpleChatAtoms";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { SimpleMobileChatView } from "../SimpleMobileChatView";
 
 // モックのprops
 const mockProps = {
@@ -20,7 +20,7 @@ describe("SimpleMobileChatView", () => {
 	it("初期状態でヘッダーと入力欄が表示される", () => {
 		render(<SimpleMobileChatView {...mockProps} />);
 
-		expect(screen.getByText("AI チャット")).toBeInTheDocument();
+		expect(screen.getByText("AI沢みのり")).toBeInTheDocument();
 		expect(screen.getByText("いつでもお話しできます")).toBeInTheDocument();
 		expect(
 			screen.getByPlaceholderText("メッセージを入力..."),
@@ -30,7 +30,9 @@ describe("SimpleMobileChatView", () => {
 	it("メッセージがない場合は初期メッセージが表示される", () => {
 		render(<SimpleMobileChatView {...mockProps} />);
 
-		expect(screen.getByText("AIとチャットを始めましょう")).toBeInTheDocument();
+		expect(
+			screen.getByText("大学に関することを質問してみましょう"),
+		).toBeInTheDocument();
 		expect(
 			screen.getByText(/何でもお気軽にお聞きください/),
 		).toBeInTheDocument();
@@ -63,7 +65,14 @@ describe("SimpleMobileChatView", () => {
 
 	it("送信ボタンクリック時にonSendが呼ばれる", () => {
 		const mockOnSend = vi.fn();
-		render(<SimpleMobileChatView {...mockProps} onSend={mockOnSend} />);
+		// 送信ボタンが有効になるように入力値を設定
+		render(
+			<SimpleMobileChatView
+				{...mockProps}
+				onSend={mockOnSend}
+				inputValue="テストメッセージ"
+			/>,
+		);
 
 		const sendButton = screen.getByLabelText("メッセージを送信");
 		fireEvent.click(sendButton);
@@ -72,7 +81,22 @@ describe("SimpleMobileChatView", () => {
 	});
 
 	it("思考中はローディングインジケーターが表示される", () => {
-		render(<SimpleMobileChatView {...mockProps} isThinking={true} />);
+		const messagesWithData = [
+			{
+				id: "1",
+				text: "こんにちは",
+				isUser: true,
+				timestamp: new Date("2025-01-01T12:00:00"),
+			},
+		];
+
+		render(
+			<SimpleMobileChatView
+				{...mockProps}
+				messages={messagesWithData}
+				isThinking={true}
+			/>,
+		);
 
 		expect(screen.getByText("AIが考えています...")).toBeInTheDocument();
 	});
@@ -90,7 +114,13 @@ describe("SimpleMobileChatView", () => {
 	});
 
 	it("思考中は送信ボタンが無効化される", () => {
-		render(<SimpleMobileChatView {...mockProps} isThinking={true} />);
+		render(
+			<SimpleMobileChatView
+				{...mockProps}
+				isThinking={true}
+				inputValue="テストメッセージ"
+			/>,
+		);
 
 		const sendButton = screen.getByLabelText("メッセージを送信");
 		expect(sendButton).toBeDisabled();

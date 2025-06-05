@@ -1,8 +1,8 @@
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { useTextToSpeech } from "./useTextToSpeech";
-import * as audioUtils from "@/lib/utils/audio";
 import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
+import * as audioUtils from "@/lib/utils/audio";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useTextToSpeech } from "./useTextToSpeech";
 
 // モック設定
 vi.mock("@/lib/utils/audio", () => ({
@@ -237,11 +237,21 @@ describe("useTextToSpeech", () => {
 	});
 
 	describe("クリーンアップ", () => {
-		it("コンポーネントアンマウント時にリソースをクリーンアップする", () => {
-			const { unmount } = renderHook(() => useTextToSpeech());
+		it("コンポーネントアンマウント時にリソースをクリーンアップする", async () => {
+			const { result, unmount } = renderHook(() => useTextToSpeech());
 
+			// まず音声を開始してURLを作成する
+			await act(async () => {
+				await result.current.speak("クリーンアップテスト");
+			});
+
+			// 音声が作成されたことを確認
+			expect(mockCreateAudioURL).toHaveBeenCalled();
+
+			// アンマウント
 			unmount();
 
+			// クリーンアップでrevokeObjectURLが呼ばれることを確認
 			expect(mockRevokeObjectURL).toHaveBeenCalled();
 		});
 	});

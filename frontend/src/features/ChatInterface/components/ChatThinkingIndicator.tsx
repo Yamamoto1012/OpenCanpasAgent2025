@@ -1,6 +1,6 @@
-import type React from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import type React from "react";
 
 export const ChatThinkingIndicator: React.FC = () => {
 	return (

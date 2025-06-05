@@ -1,5 +1,5 @@
+import { Cpu, Database, Info, Volume2 } from "lucide-react";
 import type React from "react";
-import { Info, Cpu, Database, Volume2 } from "lucide-react";
 
 type InfoSectionProps = {
 	iconType: "info" | "cpu" | "database" | "volume2";

@@ -1,5 +1,5 @@
 import type { VRM } from "@pixiv/three-vrm";
-import { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useBlinking } from "./useBlinking";
 import { useBreathing } from "./useBreathing";
 import { useLipSync } from "./useLipSync";

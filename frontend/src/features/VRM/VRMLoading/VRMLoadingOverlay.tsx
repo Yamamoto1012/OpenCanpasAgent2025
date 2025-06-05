@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useAtomValue } from "jotai";
 import { vrmLoadingStateAtom } from "@/store/vrmLoadingAtoms";
+import { useAtomValue } from "jotai";
+import { useEffect, useState } from "react";
 import { VRMLoadingIndicator } from "./VRMLoadingIndicator";
 
 type VRMLoadingOverlayProps = {

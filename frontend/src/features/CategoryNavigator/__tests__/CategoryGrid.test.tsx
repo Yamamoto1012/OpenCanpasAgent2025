@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { Provider, createStore } from "jotai";
-import { CategoryGrid } from "../components/CategoryGrid";
 import { showBottomNavigationAtom } from "@/store/navigationAtoms";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { Provider, createStore } from "jotai";
+import { describe, expect, it, vi } from "vitest";
 import type { Category } from "../components/CategoryCard";
+import { CategoryGrid } from "../components/CategoryGrid";
 
 // モックアイコンコンポーネント
 const MockIcon = () => <div data-testid="mock-icon">📱</div>;

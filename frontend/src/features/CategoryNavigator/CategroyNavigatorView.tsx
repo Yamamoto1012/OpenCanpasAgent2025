@@ -1,9 +1,9 @@
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { IconButton } from "../IconButton/IconButton";
 import type { Category } from "./components/CategoryCard";
 import { CategoryGrid } from "./components/CategoryGrid";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export type CategoryNavigatorViewProps = {
 	breadcrumbs: React.ReactNode;

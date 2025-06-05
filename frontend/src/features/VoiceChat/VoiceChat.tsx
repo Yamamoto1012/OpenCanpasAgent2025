@@ -1,21 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import { generateText } from "@/services/llmService";
+import {
+	addAiMessageAtom,
+	addUserMessageAtom,
+	aiResponseAtom,
+	chatHistoryAtom,
+	processingStateAtom,
+	setProcessingStateAtom,
+	setVrmThinkingStateAtom,
+	vrmIsThinkingAtom,
+} from "@/store/voiceChatAtoms";
 import { useAtom, useSetAtom } from "jotai";
+import { useEffect, useRef, useState } from "react";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatView } from "./VoiceChatView";
 import { useVoiceChat } from "./useVoiceChat";
-import { useAudioContext } from "../VRM/hooks/useAudioContext";
-import {
-	aiResponseAtom,
-	processingStateAtom,
-	chatHistoryAtom,
-	vrmIsThinkingAtom,
-	addUserMessageAtom,
-	addAiMessageAtom,
-	setProcessingStateAtom,
-	setVrmThinkingStateAtom,
-} from "@/store/voiceChatAtoms";
-import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { generateText } from "@/services/llmService";
 
 type VoiceChatProps = {
 	onClose?: () => void;
@@ -26,8 +25,7 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	// カスタムフックから音声認識機能を取得
 	const { isListening, transcript, startListening, stopListening } =
 		useVoiceChat();
-	const { playAudio } = useAudioContext();
-	const { speak } = useTextToSpeech(vrmWrapperRef);
+	const { speak } = useTextToSpeech({ vrmWrapperRef });
 
 	const [aiResponse] = useAtom(aiResponseAtom);
 	const [processingState] = useAtom(processingStateAtom);

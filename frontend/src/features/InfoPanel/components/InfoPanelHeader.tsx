@@ -1,6 +1,6 @@
-import type React from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import type React from "react";
 
 type InfoPanelHeaderProps = {
 	onClose: () => void;

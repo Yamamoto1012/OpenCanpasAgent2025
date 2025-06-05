@@ -1,7 +1,7 @@
 import type { FC, RefObject } from "react";
-import { ChatSectionView } from "./ChatSectionView";
-import type { ChatInterfaceHandle } from "./ChatInterface";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
+import type { ChatInterfaceHandle } from "./ChatInterface";
+import { ChatSectionView } from "./ChatSectionView";
 
 type ChatSectionProps = {
 	isVisible: boolean;

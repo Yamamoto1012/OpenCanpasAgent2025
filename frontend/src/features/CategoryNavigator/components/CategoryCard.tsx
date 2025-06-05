@@ -1,6 +1,6 @@
-import type React from "react";
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import type React from "react";
 
 export type Category = {
 	id?: string;

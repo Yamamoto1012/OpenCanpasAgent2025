@@ -1,3 +1,8 @@
+import type {
+	WebSpeechRecognition,
+	WebSpeechRecognitionErrorEvent,
+	WebSpeechRecognitionEvent,
+} from "@/types/speech-recognition";
 import { atom } from "jotai";
 
 /**
@@ -37,77 +42,8 @@ export const randomTextGeneratorAtom = atom<((text?: string) => string) | null>(
 	null,
 );
 
-// Web Speech APIの型定義
-interface SpeechRecognitionErrorEvent extends Event {
-	error: string;
-	message?: string;
-}
-
-interface SpeechRecognitionEvent extends Event {
-	results: SpeechRecognitionResultList;
-	resultIndex: number;
-	interpretation?: any;
-}
-
-interface SpeechRecognitionResultList {
-	length: number;
-	item(index: number): SpeechRecognitionResult;
-	[index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionResult {
-	length: number;
-	item(index: number): SpeechRecognitionAlternative;
-	[index: number]: SpeechRecognitionAlternative;
-	isFinal: boolean;
-}
-
-interface SpeechRecognitionAlternative {
-	transcript: string;
-	confidence: number;
-}
-
-interface SpeechRecognition extends EventTarget {
-	continuous: boolean;
-	grammars: any;
-	interimResults: boolean;
-	lang: string;
-	maxAlternatives: number;
-	onaudioend: ((this: SpeechRecognition, ev: Event) => any) | null;
-	onaudiostart: ((this: SpeechRecognition, ev: Event) => any) | null;
-	onend: ((this: SpeechRecognition, ev: Event) => any) | null;
-	onerror:
-		| ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any)
-		| null;
-	onnomatch: ((this: SpeechRecognition, ev: Event) => any) | null;
-	onresult:
-		| ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any)
-		| null;
-	onsoundend: ((this: SpeechRecognition, ev: Event) => any) | null;
-	onsoundstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-	onspeechend: ((this: SpeechRecognition, ev: Event) => any) | null;
-	onspeechstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-	onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-	abort(): void;
-	start(): void;
-	stop(): void;
-}
-
-interface SpeechRecognitionConstructor {
-	new (): SpeechRecognition;
-	prototype: SpeechRecognition;
-}
-
-// SpeechRecognition APIのグローバル変数
-declare global {
-	interface Window {
-		SpeechRecognition?: SpeechRecognitionConstructor;
-		webkitSpeechRecognition?: SpeechRecognitionConstructor;
-	}
-}
-
 // 音声認識インスタンスの保持用変数
-let speechRecognition: SpeechRecognition | null = null;
+let speechRecognition: WebSpeechRecognition | null = null;
 
 /**
  * 録音の開始/停止を切り替えるアクション
@@ -137,8 +73,14 @@ export const toggleRecordingAtom = atom(
 
 			// Web Speech APIのセットアップ
 			// ブラウザの互換性に対応
+			const extendedWindow = window as Window & {
+				SpeechRecognition?: new () => WebSpeechRecognition;
+				webkitSpeechRecognition?: new () => WebSpeechRecognition;
+			};
+
 			const SpeechRecognition =
-				window.SpeechRecognition || window.webkitSpeechRecognition;
+				extendedWindow.SpeechRecognition ||
+				extendedWindow.webkitSpeechRecognition;
 
 			if (!SpeechRecognition) {
 				throw new Error("このブラウザは音声認識に対応していません");
@@ -152,7 +94,7 @@ export const toggleRecordingAtom = atom(
 			speechRecognition.continuous = true; // 連続的な認識を有効に
 
 			// 認識結果イベント
-			speechRecognition.onresult = (event) => {
+			speechRecognition.onresult = (event: WebSpeechRecognitionEvent) => {
 				const results = event.results;
 				let finalText = "";
 				let interimText = "";
@@ -180,7 +122,7 @@ export const toggleRecordingAtom = atom(
 			};
 
 			// エラーハンドリング
-			speechRecognition.onerror = (event) => {
+			speechRecognition.onerror = (event: WebSpeechRecognitionErrorEvent) => {
 				console.error("音声認識エラー:", event.error);
 				set(isRecordingAtom, false);
 				set(recordingTimerAtom, 0);

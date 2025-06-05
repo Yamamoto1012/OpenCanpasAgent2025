@@ -1,12 +1,12 @@
-import { VRMRender } from "../VRMRender/VRMRender";
 import {
+	forwardRef,
+	useCallback,
+	useEffect,
+	useImperativeHandle,
 	useRef,
 	useState,
-	useEffect,
-	forwardRef,
-	useImperativeHandle,
-	useCallback,
 } from "react";
+import { VRMRender } from "../VRMRender/VRMRender";
 
 export type VRMWrapperHandle = {
 	playAudio: (audioUrl: string, text?: string) => void; // 音声再生（リップシンク含む）

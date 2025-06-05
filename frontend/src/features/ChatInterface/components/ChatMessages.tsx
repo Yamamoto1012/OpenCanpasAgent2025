@@ -1,7 +1,7 @@
+import type { Message } from "@/store/chatAtoms";
 import type React from "react";
 import { ChatMessageItem } from "./ChatMessageItem";
 import { ChatThinkingIndicator } from "./ChatThinkingIndicator";
-import type { Message } from "@/store/chatAtoms";
 
 export type ChatMessagesProps = {
 	messages: Message[];

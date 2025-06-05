@@ -1,5 +1,5 @@
-import type React from "react";
 import { Button } from "@/components/ui/button";
+import type React from "react";
 
 export type IconComponent = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 

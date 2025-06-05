@@ -1,15 +1,15 @@
+import { useFrame } from "@react-three/fiber";
 import {
-	useMemo,
-	useEffect,
 	forwardRef,
+	useEffect,
 	useImperativeHandle,
+	useMemo,
 	useRef,
 } from "react";
-import { useFrame } from "@react-three/fiber";
-import { Clock, Object3D, Vector3, Euler } from "three";
+import { Clock, Euler, Object3D, Vector3 } from "three";
+import { VRM_EXPRESSION_CONFIG } from "../constants/vrmExpressions";
 import { useVRM } from "../hooks/useVRM";
 import { useVRMExpression } from "../hooks/useVRMExpression";
-import { VRM_EXPRESSION_CONFIG } from "../constants/vrmExpressions";
 
 type VRMRenderProps = {
 	vrmUrl: string; // VRMモデルのURL

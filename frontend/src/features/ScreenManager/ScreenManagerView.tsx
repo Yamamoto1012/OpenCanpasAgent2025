@@ -1,16 +1,16 @@
-import type { FC, RefObject } from "react";
-import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSetAtom } from "jotai";
+import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
 import { CategorySection } from "@/features/CategorySection/CategorySection";
+import type { ChatInterfaceHandle } from "@/features/ChatInterface/ChatInterface";
 import { ChatSection } from "@/features/ChatInterface/ChatSection";
 import { InfoPanel } from "@/features/InfoPanel/InfoPanel";
 import { SimpleMobileChat } from "@/features/SimpleMobileChat/SimpleMobileChat";
+import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 import { showVoiceChatAtom } from "@/store/appStateAtoms";
 import type { NavigationScreen } from "@/store/navigationAtoms";
-import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
-import type { ChatInterfaceHandle } from "@/features/ChatInterface/ChatInterface";
-import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
+import { AnimatePresence, motion } from "framer-motion";
+import { useSetAtom } from "jotai";
+import type { FC, RefObject } from "react";
+import { useEffect } from "react";
 
 export type ScreenManagerViewProps = {
 	/**

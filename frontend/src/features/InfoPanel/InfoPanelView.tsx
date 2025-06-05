@@ -1,10 +1,10 @@
-import type { FC } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { FC } from "react";
+import { ContentSection } from "./components/ContentSection";
 import { InfoPanelHeader } from "./components/InfoPanelHeader";
 import { InfoSection } from "./components/InfoSection";
 import { TechSection } from "./components/TechSection";
 import { UsageSection } from "./components/UsageSection";
-import { ContentSection } from "./components/ContentSection";
 
 export type InfoPanelViewProps = {
 	/**
