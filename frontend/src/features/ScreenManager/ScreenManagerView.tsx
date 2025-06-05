@@ -5,6 +5,7 @@ import { useSetAtom } from "jotai";
 import { CategorySection } from "@/features/CategorySection/CategorySection";
 import { ChatSection } from "@/features/ChatInterface/ChatSection";
 import { InfoPanel } from "@/features/InfoPanel/InfoPanel";
+import { SimpleMobileChat } from "@/features/SimpleMobileChat/SimpleMobileChat";
 import { showVoiceChatAtom } from "@/store/appStateAtoms";
 import type { NavigationScreen } from "@/store/navigationAtoms";
 import type { Category } from "@/features/CategoryNavigator/components/CategoryCard";
@@ -145,6 +146,19 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 									vrmWrapperRef={vrmWrapperRef}
 								/>
 							</div>
+						</motion.div>
+					)}
+
+					{currentScreen === "simple-chat" && (
+						<motion.div
+							key="simple-chat"
+							className="absolute inset-0"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.2 }}
+						>
+							<SimpleMobileChat />
 						</motion.div>
 					)}
 

@@ -3,7 +3,12 @@ import { atom } from "jotai";
 /**
  * ボトムナビゲーションで利用可能な画面タイプ
  */
-export type NavigationScreen = "home" | "chat" | "voice" | "info";
+export type NavigationScreen =
+	| "home"
+	| "chat"
+	| "voice"
+	| "info"
+	| "simple-chat";
 
 /**
  * 現在アクティブな画面を管理するAtom
