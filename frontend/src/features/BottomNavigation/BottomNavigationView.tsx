@@ -26,12 +26,12 @@ export type BottomNavigationViewProps = {
 const navigationItems = [
 	{
 		id: "chat" as NavigationScreen,
-		label: "チャット",
+		label: "対話",
 		icon: MessageCircle,
 	},
 	{
 		id: "simple-chat" as NavigationScreen,
-		label: "AIチャット",
+		label: "チャット",
 		icon: MessageSquare,
 	},
 	{
