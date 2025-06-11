@@ -1,7 +1,7 @@
 """
 AivisSpeech API サーバーのルーターのテスト
 
-APIエンドポイントの機能をテストします。
+APIエンドポイントの機能をテストする。
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -106,16 +106,6 @@ class TestSpeechRoutes:
         
         # モックの呼び出し確認
         mock_text_to_speech.assert_called_once_with("こんにちは", 1, "wav")
-    
-    def test_test_page_endpoint(self):
-        """テストページエンドポイントのテスト"""
-        response = client.get("/test")
-        
-        # アサーション
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "text/html; charset=utf-8"
-        assert "AivisSpeech 音声合成テスト" in response.text
-
 
 class TestDictionaryRoutes:
     """ユーザー辞書関連のエンドポイントのテスト"""

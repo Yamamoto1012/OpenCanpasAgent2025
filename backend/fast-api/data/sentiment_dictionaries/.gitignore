@@ -1,0 +1,13 @@
+# 感情分析辞書ファイル
+
+# 辞書ファイル
+*.dic
+*.txt
+
+# 一時ファイルやキャッシュファイル
+!README.md
+!.gitignore
+
+# サンプルファイル
+!sample_*.dic
+!sample_*.txt

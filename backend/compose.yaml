@@ -28,6 +28,8 @@ services:
         condition: service_healthy
     volumes:
       - ./fast-api:/app
+      - ./toukou_pn.txt:/app/../toukou_pn.txt:ro
+      - ./pn_ja.dic:/app/../pn_ja.dic:ro
 
 volumes:
   aivis-data:

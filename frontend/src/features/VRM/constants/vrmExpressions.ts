@@ -15,7 +15,22 @@ export type ExpressionPreset =
 	| "blinkRight";
 
 // 口形素（リップシンク）用の表情名
-export type LipSyncExpression = "aa" | "ih" | "ou" | "ee" | "oh" | "a" | "o";
+export type LipSyncExpression =
+	| "aa"
+	| "ih"
+	| "ou"
+	| "ee"
+	| "oh"
+	| "a"
+	| "i"
+	| "u"
+	| "e"
+	| "o"
+	| "A"
+	| "I"
+	| "U"
+	| "E"
+	| "O";
 
 // すべての表情名を統合した型
 export type VRMExpressionName = ExpressionPreset | LipSyncExpression;
@@ -64,7 +79,15 @@ export const LIP_SYNC_EXPRESSIONS: readonly LipSyncExpression[] = [
 	"ee",
 	"oh",
 	"a",
+	"i",
+	"u",
+	"e",
 	"o",
+	"A",
+	"I",
+	"U",
+	"E",
+	"O",
 ] as const;
 
 // 音素から表情へのマッピング
@@ -102,3 +125,57 @@ export const MOTION_TO_EXPRESSION: Record<
 		weight: VRM_EXPRESSION_CONFIG.WEIGHTS.EMOTION_LIGHT,
 	},
 } as const;
+
+// 感情カテゴリから表情プリセットへのマッピング
+export const SENTIMENT_TO_EXPRESSION: Record<
+	string,
+	{
+		preset: ExpressionPreset; // 表情プリセット名
+		weight: number; // 表情の強度（0.0〜1.0）
+		duration?: number; // 表情の持続時間（ミリ秒）
+		randomVariations?: ExpressionPreset[]; // ランダムなバリエーションの表情
+		autoResetToNeutral?: boolean; // 自動的にneutralに戻すかどうか
+	}
+> = {
+	// 感情の強さに応じた表情設定
+	strong_positive: {
+		preset: "happy",
+		weight: 0.6,
+		duration: 5000, // 5秒後にリセット
+		autoResetToNeutral: true,
+		randomVariations: ["happy", "surprised", "relaxed"],
+	},
+	mild_positive: {
+		preset: "happy",
+		weight: 0.4,
+		duration: 5000, // 5秒後にリセット
+		autoResetToNeutral: true,
+		randomVariations: ["happy", "relaxed"],
+	},
+	neutral: {
+		preset: "neutral",
+		weight: VRM_EXPRESSION_CONFIG.WEIGHTS.EMOTION_LIGHT,
+		randomVariations: ["neutral", "relaxed", "blink"],
+	},
+	mild_negative: {
+		preset: "sad",
+		weight: 0.4,
+		duration: 5000, // 5秒後にリセット
+		autoResetToNeutral: true,
+		randomVariations: ["sad"],
+	},
+	strong_negative: {
+		preset: "sad",
+		weight: 0.6,
+		duration: 5000, // 5秒後にリセット
+		autoResetToNeutral: true,
+		randomVariations: ["sad", "angry"],
+	},
+} as const;
+
+// ニュートラル時の微表情
+export const NEUTRAL_MICRO_EXPRESSIONS = [
+	{ preset: "blink" as ExpressionPreset, weight: 0.8, duration: 150 },
+	{ preset: "relaxed" as ExpressionPreset, weight: 0.2, duration: 2000 },
+	{ preset: "neutral" as ExpressionPreset, weight: 0.3, duration: 1000 },
+] as const;

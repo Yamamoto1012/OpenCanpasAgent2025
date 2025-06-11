@@ -15,22 +15,23 @@ router = APIRouter(
 
 class QueryRequest(BaseModel):
     """ユーザークエリのリクエストモデル"""
-    query: str
-    context: Optional[Dict[str, Any]] = None
+    query: str # 質問の文字列
+    context: Optional[Dict[str, Any]] = None # 追加のコンテキスト情報（オプション）
 
 class QueryResponse(BaseModel):
     """LLMからの応答モデル"""
-    answer: str
-    metadata: Optional[Dict[str, Any]] = None
+    answer: str # LLMからの回答
+    metadata: Optional[Dict[str, Any]] = None # 回答に関する追加情報（オプション）
 
 @router.post("/query", response_model=QueryResponse) # Path remains relative to the prefix set in app.py
 async def process_query(request: QueryRequest):
     """
-    ユーザークエリを外部LLMサービスに転送して回答を取得します
+    ユーザークエリを外部LLMサービスに転送して回答を取得する
     """
     try:
         payload = {"user_input": request.query}
 
+        # LLMサービスに通信するための準備
         async with httpx.AsyncClient(timeout=settings.llm_timeout) as client:
             response = await client.post(
                 f"{settings.llm_api_url}{settings.llm_endpoint}",

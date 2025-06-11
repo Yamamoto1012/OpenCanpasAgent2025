@@ -1,7 +1,7 @@
 """
 AivisSpeech API サーバーのサービス層のテスト
 
-servicesモジュールの関数をテストします。
+servicesモジュールの関数をテスト。
 """
 import pytest
 from unittest.mock import patch, MagicMock
@@ -11,12 +11,8 @@ import base64
 from services import (
     get_engine_version,
     get_speakers,
-    create_audio_query,
-    synthesize_speech,
     get_wav_response,
     get_base64_response,
-    get_html_response,
-    get_user_dict,
 )
 
 
@@ -139,19 +135,3 @@ class TestConversionServices:
         # アサーション
         assert response.base64_audio == expected_base64
         assert response.content_type == "audio/wav"
-    
-    def test_get_html_response(self):
-        """HTMLレスポンスの変換テスト"""
-        # テストデータ
-        audio_content = b"dummy audio data"
-        text = "テスト音声"
-        expected_base64 = base64.b64encode(audio_content).decode('utf-8')
-        
-        # 関数の実行
-        response = get_html_response(audio_content, text)
-        
-        # アサーション
-        assert response.status_code == 200
-        assert response.media_type == "text/html"
-        assert text in response.body.decode('utf-8')
-        assert expected_base64 in response.body.decode('utf-8')

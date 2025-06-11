@@ -1,18 +1,18 @@
 """
 AivisSpeech API サーバーのエントリーポイント
 
-FastAPIアプリケーションを初期化し、各種ルーターを登録します。
+FastAPIアプリケーションを初期化し、各種ルーターを登録する
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings, logger
-from routers import health, speech, dictionary, llm
+from routers import health, speech, dictionary, llm, sentiment
 
 
 def create_application() -> FastAPI:
     """
-    FastAPIアプリケーションを作成し、設定を適用します。
+    FastAPIアプリケーションを作成し、設定を適用する。
     
     Returns:
         FastAPI: 設定済みのFastAPIアプリケーション
@@ -41,11 +41,12 @@ def create_application() -> FastAPI:
     app.include_router(speech.router, prefix="", tags=["speech"])
     app.include_router(dictionary.router, prefix="", tags=["dictionary"])
     app.include_router(llm.router, prefix="/llm", tags=["llm"])
+    app.include_router(sentiment.router, prefix="", tags=["sentiment"])
     
     logger.info("AivisSpeech API サーバーを初期化しました")
     return app
 
-
+# アプリケーションのインスタンスを作成
 app = create_application()
 
 

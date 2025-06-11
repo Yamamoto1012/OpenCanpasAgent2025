@@ -63,6 +63,7 @@ export const VRMRender = forwardRef(
 			crossFadeAnimation,
 			setExpression: expressions.setExpression,
 			setExpressionForMotion: expressions.setExpressionForMotion,
+			setExpressionBySentiment: expressions.setExpressionBySentiment,
 			playAudio: expressions.playAudio,
 			isAudioInitialized: expressions.isAudioInitialized,
 		}));
