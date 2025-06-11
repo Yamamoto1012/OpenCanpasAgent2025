@@ -9,3 +9,6 @@ pydantic==2.3.0
 onnxruntime==1.15.1
 httpx==0.24.1
 python-dotenv==1.0.0
+spacy>=3.4.0
+ginza>=5.1.0
+ja_ginza_electra>=5.1.0

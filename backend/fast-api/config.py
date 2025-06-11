@@ -14,11 +14,12 @@ load_dotenv()
 # ロギングの設定
 def setup_logging() -> logging.Logger:
     """
-    アプリケーションのロギング設定を行い、ロガーを返します。
+    アプリケーションのロギング設定を行い、ロガーを返す。
     
     Returns:
         logging.Logger: 設定済みのロガーインスタンス
     """
+    # ロギングの基本設定
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -32,7 +33,7 @@ class Settings:
     
     def __init__(self) -> None:
         """
-        環境変数から設定を読み込み、デフォルト値がある場合は適用します。
+        環境変数から設定を読み込み、デフォルト値がある場合は適用する。
         """
         # AivisSpeech EngineのベースURL
         self.aivis_base_url: str = os.getenv("AIVIS_ENGINE_URL", "http://aivis:10101")
@@ -52,7 +53,7 @@ class Settings:
         self.openapi_url: str = os.getenv("OPENAPI_URL", "/openapi.json")
 
         # LLM API設定
-        self.llm_api_url: str = os.getenv("LLM_API_URL", "https://dbca-202-13-165-80.ngrok-free.app")
+        self.llm_api_url: str = os.getenv("LLM_API_URL")
         self.llm_endpoint: str = os.getenv("LLM_ENDPOINT", "/answer_query")
         self.llm_timeout: float = float(os.getenv("LLM_TIMEOUT", "30.0"))
 
