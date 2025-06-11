@@ -2,8 +2,10 @@ import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { generateText } from "@/services/llmService";
+import { sentimentService } from "@/services/sentimentService";
 import { addMessageAtom, messagesAtom, resetChatAtom } from "@/store/chatAtoms";
 import { isRecordingAtom, toggleRecordingAtom } from "@/store/recordingAtoms";
+import { addSentimentAnalysisAtom } from "@/store/sentimentDebugStore";
 import { useAtom, useSetAtom } from "jotai";
 import {
 	type ChangeEvent,
@@ -44,6 +46,7 @@ export const ChatInterface = forwardRef<
 	const toggleRecording = useSetAtom(toggleRecordingAtom);
 	const addMessage = useSetAtom(addMessageAtom);
 	const resetChat = useSetAtom(resetChatAtom);
+	const addSentimentAnalysis = useSetAtom(addSentimentAnalysisAtom);
 
 	// TTS関連フック
 	const { speak, stop } = useTextToSpeech({
@@ -55,18 +58,46 @@ export const ChatInterface = forwardRef<
 	// メッセージIDを採番
 	const createId = () => Date.now() + Math.random();
 
+	// 感情分析を実行する関数
+	const performSentimentAnalysis = useCallback(
+		async (text: string) => {
+			if (!text.trim() || text.length < 3) {
+				return;
+			}
+
+			try {
+				const response = await sentimentService.analyzeSentiment(text);
+				// 感情分析結果をストアに追加
+				addSentimentAnalysis({
+					score: response.score,
+					category: response.category,
+					timestamp: Date.now(),
+				});
+			} catch (error) {
+				console.warn("感情分析実行中にエラーが発生しました:", error);
+			}
+		},
+		[addSentimentAnalysis],
+	);
+
 	// メッセージを入れる
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	const pushMessage = useCallback(
 		(msg: { text: string; isUser: boolean; speakText?: string }) => {
 			const enriched = { ...msg, id: createId() };
 			addMessage(enriched);
+
+			// AIの返答の場合は感情分析を実行
+			if (!enriched.isUser && enriched.text) {
+				performSentimentAnalysis(enriched.text);
+			}
+
 			if (!enriched.isUser && enriched.speakText) {
 				stop();
 				speak(enriched.speakText);
 			}
 		},
-		[addMessage, speak, stop],
+		[addMessage, speak, stop, performSentimentAnalysis],
 	);
 
 	// 外部から呼び出し可能なメソッドを定義

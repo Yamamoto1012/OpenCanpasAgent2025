@@ -4,6 +4,7 @@ import { useBlinking } from "./useBlinking";
 import { useBreathing } from "./useBreathing";
 import { useLipSync } from "./useLipSync";
 
+import type { SentimentCategory } from "../../../types/sentiment";
 import type { ExpressionPreset } from "../constants/vrmExpressions";
 
 /**
@@ -59,6 +60,23 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 	};
 
 	/**
+	 * 感情に基づいて表情を設定する
+	 * @param category - 感情カテゴリ
+	 * @param options - 表情設定のオプション
+	 */
+	const setExpressionBySentiment = (
+		category: SentimentCategory,
+		options?: {
+			enableRandomVariation?: boolean;
+			forceUpdate?: boolean;
+		},
+	) => {
+		// ExpressionManagerが未初期化の場合は何もしない
+		if (!expressionManager) return;
+		expressionManager.setExpressionBySentiment(category, options);
+	};
+
+	/**
 	 * フレーム更新時の処理
 	 * 基本的なアニメーション（瞬き、呼吸）のみを更新
 	 * @param deltaTime - 前フレームからの経過時間（秒）
@@ -90,6 +108,7 @@ export const useVRMExpression = (vrm: VRM | null, isMuted: boolean) => {
 		update,
 		setExpression,
 		setExpressionForMotion,
+		setExpressionBySentiment,
 		currentExpression: getCurrentExpression(),
 		playAudio,
 		isAudioInitialized,

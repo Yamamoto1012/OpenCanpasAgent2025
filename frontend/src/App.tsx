@@ -2,6 +2,10 @@ import { useRef } from "react";
 import "./App.css";
 import { useAtom, useSetAtom } from "jotai";
 import { AppLayout } from "./components/AppLayout";
+import {
+	SentimentDebugToggle,
+	SentimentDebugView,
+} from "./components/debug/SentimentDebugView";
 import type { ChatInterfaceHandle } from "./features/ChatInterface/ChatInterface";
 import { ControlButtons } from "./features/ControlButtons/ControlButtons";
 import { ScreenManager } from "./features/ScreenManager/ScreenManager";
@@ -93,6 +97,10 @@ export default function App() {
 
 			{/* 音声チャットダイアログ */}
 			<VoiceChatDialog vrmWrapperRef={vrmWrapperRef} />
+
+			{/* 感情分析デバッグ機能 */}
+			<SentimentDebugToggle />
+			<SentimentDebugView />
 		</AppLayout>
 	);
 }

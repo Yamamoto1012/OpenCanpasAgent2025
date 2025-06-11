@@ -25,6 +25,7 @@ https://www.aizawaminori.com/
 - **RAG + LLM** による高品質な日本語 Q&A
 - **3D アバター (Three.js + VRM)** & リップシンクで臨場感ある応答
 - **音声対話**: Web Speech API と Aivis Speech Engine を組み合わせた双方向ボイス
+- **感情分析＆表情制御**: ginza+spacyによる日本語感情分析とVRM表情の自動連携
 - **Docker Compose 一発起動**: バックエンド（FastAPI + Aivis Speech Engine）をまとめて立ち上げ
 - **GPU／CPU 切替**: `compose.yaml` のイメージタグを `nvidia-latest` ↔︎ `cpu-latest` で簡単に変更可能
 
