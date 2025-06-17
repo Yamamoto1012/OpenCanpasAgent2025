@@ -1,4 +1,4 @@
-# OpenCanpasAgent2025
+# KIT-VRM-ChatAgent
 
 金沢工業大学 情報工学科 **中沢研究室** が春のオープンキャンパス 2025 で展示する、3D 美少女 AI エージェント・デモアプリケーションです。Retrieval‑Augmented Generation (RAG) と LLM による日本語 Q&A を、Three.js + VRM で動くアバター＆音声合成を通してリアルタイムに体験できます。
 今後は、AWS等のクラウドに移行予定です。
