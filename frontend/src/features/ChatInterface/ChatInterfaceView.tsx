@@ -53,10 +53,10 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 	return (
 		<div
 			className="
-			w-full h-full 
-			md:max-w-sm md:h-[70vh] 
-			lg:max-w-md lg:h-[75vh] 
-			xl:max-w-lg xl:h-[80vh] 
+			w-md h-full 
+			md:max-w-lg md:h-[70vh] 
+			lg:h-[75vh] 
+			xl:h-[80vh] 
 			md:max-h-[600px] lg:max-h-[650px] xl:max-h-[700px] 
 			flex flex-col 
 			rounded-none md:rounded-lg 
