@@ -1,5 +1,6 @@
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { generateText } from "@/services/llmService";
+import { currentLanguageAtom } from "@/store/languageAtoms";
 import { useAtom } from "jotai";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -93,6 +94,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	vrmWrapperRef,
 }) => {
 	const [inputValue, setInputValue] = useAtom(inputValueAtom);
+	const [currentLanguage] = useAtom(currentLanguageAtom);
 	const inputRef = useRef<HTMLInputElement>(
 		null,
 	) as React.RefObject<HTMLInputElement>;
@@ -128,7 +130,14 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			return;
 		}
 		if (isQuestion && query) {
-			generateText(query, category ? { category: category.title } : undefined)
+			generateText(
+				query,
+				category ? { category: category.title } : undefined,
+				undefined,
+				undefined,
+				"/query",
+				currentLanguage,
+			)
 				.then((res) => {
 					setDetailText(res || "回答が取得できませんでした。");
 					setResponseText(guideMessage);
@@ -136,7 +145,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 				})
 				.finally(() => setLoading(false));
 		}
-	}, [query, category, isQuestion, guideMessage, speak]);
+	}, [query, category, isQuestion, guideMessage, speak, currentLanguage]);
 
 	// 新しい質問を送信する処理
 	const handleSendQuestion = async () => {
@@ -146,6 +155,10 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			const res = await generateText(
 				newQuestion,
 				category ? { category: category.title } : undefined,
+				undefined,
+				undefined,
+				"/query",
+				currentLanguage,
 			);
 			setDetailText(res || "回答が取得できませんでした。");
 			setResponseText(guideMessage);

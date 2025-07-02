@@ -1,5 +1,6 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { ContentSection } from "./components/ContentSection";
 import { InfoPanelHeader } from "./components/InfoPanelHeader";
 import { InfoSection } from "./components/InfoSection";
@@ -27,6 +28,7 @@ export const InfoPanelView: FC<InfoPanelViewProps> = ({
 	onClose,
 	isMobile = false,
 }) => {
+	const { t } = useTranslation();
 	if (isMobile) {
 		// モバイル版：全画面表示
 		return (
@@ -51,12 +53,11 @@ export const InfoPanelView: FC<InfoPanelViewProps> = ({
 						<div className="space-y-6 py-4">
 							<InfoSection
 								iconType="info"
-								title="KIT Virtual Navigatorについて"
+								title={t("info.title")}
 								iconColor="text-blue-400"
 							>
 								<p className="text-white/80 leading-relaxed text-sm">
-									KIT Virtual
-									Navigatorは、AIを活用した次世代型の検索システムです。テキストで質問すると、AIアシスタントがリアルタイムで回答し、3DキャラクターがAI音声で応答します。金沢工業大学に関するPDFやドキュメントをベクトルデータベース化し、RAG（検索拡張生成）を活用しています。
+									{t("info.description")}
 								</p>
 							</InfoSection>
 							<TechSection />
@@ -77,12 +78,11 @@ export const InfoPanelView: FC<InfoPanelViewProps> = ({
 				<div className="space-y-8">
 					<InfoSection
 						iconType="info"
-						title="KIT Virtual Navigatorについて"
+						title={t("info.title")}
 						iconColor="text-blue-400"
 					>
 						<p className="text-white/80 leading-relaxed">
-							KIT Virtual
-							Navigatorは、AIを活用した次世代型の検索システムです。テキストで質問すると、AIアシスタントがリアルタイムで回答し、3DキャラクターがAI音声で応答します。金沢工業大学に関するPDFやドキュメントをベクトルデータベース化し、RAG（検索拡張生成）を活用しています。
+							{t("info.description")}
 						</p>
 					</InfoSection>
 					<TechSection />

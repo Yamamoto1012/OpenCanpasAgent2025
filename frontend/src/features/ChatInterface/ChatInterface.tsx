@@ -4,6 +4,7 @@ import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { generateText } from "@/services/llmService";
 import { sentimentService } from "@/services/sentimentService";
 import { addMessageAtom, messagesAtom, resetChatAtom } from "@/store/chatAtoms";
+import { currentLanguageAtom } from "@/store/languageAtoms";
 import { isRecordingAtom, toggleRecordingAtom } from "@/store/recordingAtoms";
 import { addSentimentAnalysisAtom } from "@/store/sentimentDebugStore";
 import { useAtom, useSetAtom } from "jotai";
@@ -40,6 +41,7 @@ export const ChatInterface = forwardRef<
 >((props, ref) => {
 	const { isMobile } = useResponsive();
 	const [messages] = useAtom(messagesAtom);
+	const [currentLanguage] = useAtom(currentLanguageAtom);
 	const [input, setInput] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [isRecording] = useAtom(isRecordingAtom);
@@ -147,6 +149,7 @@ export const ChatInterface = forwardRef<
 				controller.signal,
 				undefined,
 				"/query",
+				currentLanguage,
 			);
 			setIsLoading(false);
 			pushMessage({ text: answer, isUser: false, speakText: answer });

@@ -1,4 +1,5 @@
 import { generateText } from "@/services/llmService";
+import { currentLanguageAtom } from "@/store/languageAtoms";
 import {
 	addSimpleChatMessageAtom,
 	simpleChatInputAtom,
@@ -23,6 +24,7 @@ export const SimpleMobileChat: React.FC = () => {
 	const [messages] = useAtom(simpleChatMessagesAtom);
 	const [inputValue, setInputValue] = useAtom(simpleChatInputAtom);
 	const [isThinking, setIsThinking] = useAtom(simpleChatIsThinkingAtom);
+	const [currentLanguage] = useAtom(currentLanguageAtom);
 	const addMessage = useSetAtom(addSimpleChatMessageAtom);
 
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -55,6 +57,9 @@ export const SimpleMobileChat: React.FC = () => {
 					userMessage,
 					{}, // 空のcontextオブジェクト
 					abortRef.current.signal,
+					undefined,
+					"/query",
+					currentLanguage,
 				);
 
 				if (!abortRef.current.signal.aborted) {
@@ -78,7 +83,7 @@ export const SimpleMobileChat: React.FC = () => {
 				abortRef.current = null;
 			}
 		},
-		[addMessage, setIsThinking],
+		[addMessage, setIsThinking, currentLanguage],
 	);
 
 	// メッセージ送信処理
