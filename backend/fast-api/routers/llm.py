@@ -17,6 +17,7 @@ class QueryRequest(BaseModel):
     """ユーザークエリのリクエストモデル"""
     query: str # 質問の文字列
     context: Optional[Dict[str, Any]] = None # 追加のコンテキスト情報（オプション）
+    language: Optional[str] = None # 応答言語
 
 class QueryResponse(BaseModel):
     """LLMからの応答モデル"""
@@ -30,6 +31,10 @@ async def process_query(request: QueryRequest):
     """
     try:
         payload = {"user_input": request.query}
+        
+        # 言語が指定されている場合はpayloadに追加
+        if request.language:
+            payload["language"] = request.language
 
         # LLMサービスに通信するための準備
         async with httpx.AsyncClient(timeout=settings.llm_timeout) as client:
@@ -66,6 +71,10 @@ async def process_voice_mode_answer(request: QueryRequest):
     """
     try:
         payload = {"user_input": request.query}
+        
+        # 言語が指定されている場合はpayloadに追加
+        if request.language:
+            payload["language"] = request.language
 
         async with httpx.AsyncClient(timeout=settings.llm_timeout) as client:
             response = await client.post(
