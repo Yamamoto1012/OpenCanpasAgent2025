@@ -1,4 +1,4 @@
-import { Info, Mic2, Volume2, VolumeX } from "lucide-react";
+import { Languages, Mic2, Volume2, VolumeX } from "lucide-react";
 import type { FC } from "react";
 import { IconButton } from "../IconButton/IconButton";
 import { InfoPanel } from "../InfoPanel/InfoPanel";
@@ -13,6 +13,11 @@ export type ControlButtonsViewProps = {
 	 * ミュート状態
 	 */
 	isMuted: boolean;
+
+	/**
+	 * 言語選択ボタンを押した際のハンドラー
+	 */
+	onOpenLanguageSelector: () => void;
 
 	/**
 	 * 情報パネル表示切替のハンドラー
@@ -47,7 +52,8 @@ export type ControlButtonsViewProps = {
 export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 	showInfo,
 	isMuted,
-	onToggleInfo,
+	// onToggleInfo,
+	onOpenLanguageSelector,
 	onToggleMute,
 	onOpenVoiceChat,
 	onCloseInfo,
@@ -81,15 +87,25 @@ export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 					/>
 				</div>
 
-				{/* 情報ボタン */}
+				{/* 言語選択ボタン */}
 				<div className="order-1 md:order-3">
+					<IconButton
+						icon={Languages}
+						onClick={onOpenLanguageSelector}
+						aria-label="言語を選択する"
+						className="h-11 w-11 md:h-12 md:w-12"
+					/>
+				</div>
+
+				{/* 情報ボタン */}
+				{/* <div className="order-1 md:order-3">
 					<IconButton
 						icon={Info}
 						onClick={onToggleInfo}
 						aria-label="情報を表示"
 						className="h-11 w-11 md:h-12 md:w-12"
 					/>
-				</div>
+				</div> */}
 			</div>
 
 			{/* 情報パネル */}
