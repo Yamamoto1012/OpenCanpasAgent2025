@@ -33,7 +33,7 @@ export const LanguageSelectorView: FC<LanguageSelectorViewProps> = ({
 	onLanguageChange,
 	isChanging,
 }) => {
-	const { t } = useTranslation();
+	const { t } = useTranslation("language");
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -41,17 +41,14 @@ export const LanguageSelectorView: FC<LanguageSelectorViewProps> = ({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Languages className="h-5 w-5" />
-						{t("language.selector.title")}
+						{t("selector.title")}
 					</DialogTitle>
-					<DialogDescription>
-						{t("language.selector.description")}
-					</DialogDescription>
+					<DialogDescription>{t("selector.description")}</DialogDescription>
 				</DialogHeader>
 
 				<div className="grid gap-3 py-4">
 					<div className="text-sm font-medium text-muted-foreground">
-						{t("language.selector.current")}:{" "}
-						{t(`language.names.${currentLanguage}`)}
+						{t("selector.current")}: {t(`names.${currentLanguage}`)}
 					</div>
 
 					<div className="grid gap-2">
