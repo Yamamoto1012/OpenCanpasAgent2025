@@ -21,6 +21,7 @@ pnpm-debug.log*
 # ドキュメント
 docs/
 .docs/
+CLAUDE.md
 
 # その他
 node_modules/
@@ -29,6 +30,7 @@ build/
 coverage/
 .next/
 .turbo/
+
 
 # サブディレクトリの.gitignoreを参照
 !frontend/.gitignore
