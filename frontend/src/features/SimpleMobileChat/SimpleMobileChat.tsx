@@ -1,4 +1,4 @@
-import { generateText } from "@/services/llmService";
+import { buildPrompt, generateText } from "@/services/llmService";
 import { currentLanguageAtom } from "@/store/languageAtoms";
 import {
 	addSimpleChatMessageAtom,
@@ -53,8 +53,9 @@ export const SimpleMobileChat: React.FC = () => {
 			abortRef.current = new AbortController();
 
 			try {
+				const payloadQuery = buildPrompt(userMessage, currentLanguage);
 				const response = await generateText(
-					userMessage,
+					payloadQuery,
 					{}, // 空のcontextオブジェクト
 					abortRef.current.signal,
 					undefined,

@@ -1,5 +1,5 @@
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { generateText } from "@/services/llmService";
+import { buildPrompt, generateText } from "@/services/llmService";
 import { currentLanguageAtom } from "@/store/languageAtoms";
 import { useAtom } from "jotai";
 import type React from "react";
@@ -130,8 +130,9 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			return;
 		}
 		if (isQuestion && query) {
+			const payloadQuery = buildPrompt(query, currentLanguage);
 			generateText(
-				query,
+				payloadQuery,
 				category ? { category: category.title } : undefined,
 				undefined,
 				undefined,
@@ -152,8 +153,9 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 		if (inputValue.trim()) {
 			setLoading(true);
 			const newQuestion = inputValue.trim();
+			const payloadQuery = buildPrompt(newQuestion, currentLanguage);
 			const res = await generateText(
-				newQuestion,
+				payloadQuery,
 				category ? { category: category.title } : undefined,
 				undefined,
 				undefined,

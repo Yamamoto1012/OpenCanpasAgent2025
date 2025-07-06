@@ -1,6 +1,7 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import "./App.css";
 import { useAtom, useSetAtom } from "jotai";
+import { useTranslation } from "react-i18next";
 import { AppLayout } from "./components/AppLayout";
 import {
 	SentimentDebugToggle,
@@ -15,6 +16,7 @@ import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import { showVoiceChatAtom } from "./store/appStateAtoms";
 import { addMessageAtom } from "./store/chatAtoms";
+import { currentLanguageAtom } from "./store/languageAtoms";
 import {
 	currentScreenAtom,
 	showBottomNavigationAtom,
@@ -26,8 +28,17 @@ import {
 export default function App() {
 	const [showVoiceChat] = useAtom(showVoiceChatAtom);
 	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
+	const [currentLanguage] = useAtom(currentLanguageAtom);
 	const addMessage = useSetAtom(addMessageAtom);
 	const setCurrentScreen = useSetAtom(currentScreenAtom);
+	const { i18n } = useTranslation();
+
+	// アプリ起動時に保存された言語設定とi18nextを同期
+	useEffect(() => {
+		if (currentLanguage && i18n.language !== currentLanguage) {
+			i18n.changeLanguage(currentLanguage);
+		}
+	}, [currentLanguage, i18n]);
 
 	// カスタムフックの利用
 	const { vrmWrapperRef } = useAudioContext();

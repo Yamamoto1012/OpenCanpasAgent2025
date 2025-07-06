@@ -1,7 +1,7 @@
 import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { generateText } from "@/services/llmService";
+import { buildPrompt, generateText } from "@/services/llmService";
 import { sentimentService } from "@/services/sentimentService";
 import { addMessageAtom, messagesAtom, resetChatAtom } from "@/store/chatAtoms";
 import { currentLanguageAtom } from "@/store/languageAtoms";
@@ -143,8 +143,9 @@ export const ChatInterface = forwardRef<
 		setIsLoading(true);
 
 		try {
+			const payloadQuery = buildPrompt(trimmed, currentLanguage);
 			const answer = await generateText(
-				trimmed,
+				payloadQuery,
 				undefined,
 				controller.signal,
 				undefined,

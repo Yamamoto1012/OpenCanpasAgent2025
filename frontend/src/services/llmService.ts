@@ -20,6 +20,15 @@ type QueryResponse = {
 };
 
 /**
+ * 言語設定に応じてプロンプトを構築する
+ * @param query ユーザーからの入力テキスト
+ * @param lang 言語設定 ('ja' | 'en')
+ * @returns 言語に応じて加工されたプロンプト
+ */
+export const buildPrompt = (query: string, lang: "ja" | "en") =>
+	lang === "en" ? `Please answer in English.\n\n${query}` : query;
+
+/**
  * 指定した時間だけ待機する
  * @param ms 待機時間（ミリ秒）
  */
