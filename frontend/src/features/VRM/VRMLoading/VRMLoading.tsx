@@ -6,6 +6,7 @@ import {
 } from "@/store/vrmLoadingAtoms";
 import { useAtom } from "jotai";
 import { type FC, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { VRMLoadingView } from "./VRMLoadingView";
 
 /**
@@ -35,6 +36,7 @@ export const VRMLoading: FC<VRMLoadingProps> = ({
 	const [progress, setProgress] = useAtom(vrmLoadProgressAtom);
 	const [loadingText, setLoadingText] = useAtom(vrmLoadingTextAtom);
 	const [errorMessage, setErrorMessage] = useAtom(vrmLoadErrorMessageAtom);
+	const { t } = useTranslation("vrm");
 
 	// コンポーネントマウント時に初期状態に強制リセット
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -42,7 +44,7 @@ export const VRMLoading: FC<VRMLoadingProps> = ({
 		// プライベートモードでも確実にローディング状態を初期化
 		setLoadingState("initial");
 		setProgress(0);
-		setLoadingText("モデルを読み込んでいます...");
+		setLoadingText(t("loading"));
 	}, []);
 
 	// ローディングシミュレーション
@@ -61,13 +63,13 @@ export const VRMLoading: FC<VRMLoadingProps> = ({
 
 						// 進捗状況に応じてテキストを変更
 						if (prev < 30 && newProgress >= 30) {
-							setLoadingText("モデルデータを解析中...");
+							setLoadingText(t("analyzingModelData"));
 						} else if (prev < 60 && newProgress >= 60) {
-							setLoadingText("テクスチャを読み込み中...");
+							setLoadingText(t("loadingTextures"));
 						} else if (prev < 80 && newProgress >= 80) {
-							setLoadingText("表情とモーションを準備中...");
+							setLoadingText(t("preparingExpressions"));
 						} else if (prev < 95 && newProgress >= 95) {
-							setLoadingText("もうすぐ準備完了です...");
+							setLoadingText(t("almostReady"));
 						}
 
 						// 100%に達したら完了状態に移行
@@ -102,6 +104,7 @@ export const VRMLoading: FC<VRMLoadingProps> = ({
 		setLoadingState,
 		setLoadingText,
 		setProgress,
+		t,
 	]);
 
 	/**
@@ -111,7 +114,7 @@ export const VRMLoading: FC<VRMLoadingProps> = ({
 	const handleRetry = () => {
 		setLoadingState("initial");
 		setProgress(0);
-		setLoadingText("モデルを読み込んでいます...");
+		setLoadingText(t("loading"));
 		setErrorMessage("");
 	};
 
@@ -119,7 +122,7 @@ export const VRMLoading: FC<VRMLoadingProps> = ({
 		<VRMLoadingView
 			loadingState={loadingState}
 			progress={Math.round(progress)}
-			loadingText={loadingText || "モデルを読み込んでいます..."}
+			loadingText={loadingText || t("loading")}
 			errorMessage={errorMessage}
 			onStartChat={onStartChat}
 			onRetry={handleRetry}

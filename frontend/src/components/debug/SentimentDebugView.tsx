@@ -5,6 +5,7 @@ import { BarChart3, Bug, Clock, Trash2, X } from "lucide-react";
  * 感情分析結果デバッグ表示コンポーネント
  */
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
@@ -29,6 +30,7 @@ export const SentimentDebugToggle: React.FC<{ className?: string }> = ({
 	className = "",
 }) => {
 	const [isVisible, toggleDebug] = useAtom(toggleSentimentDebugAtom);
+	const { t } = useTranslation("debug");
 
 	return (
 		<Button
@@ -38,7 +40,7 @@ export const SentimentDebugToggle: React.FC<{ className?: string }> = ({
 			className={`fixed top-4 right-4 z-50 ${className}`}
 		>
 			<Bug className="w-4 h-4 mr-2" />
-			{isVisible ? "デバッグ非表示" : "感情デバッグ"}
+			{isVisible ? t("sentiment.toggleShow") : t("sentiment.toggleHide")}
 		</Button>
 	);
 };
@@ -50,6 +52,7 @@ const SentimentHistoryItem: React.FC<{
 	analysis: SentimentAnalysisResult;
 	isLatest?: boolean;
 }> = ({ analysis, isLatest = false }) => {
+	const { t } = useTranslation("debug");
 	const timestamp = new Date(analysis.timestamp).toLocaleTimeString("ja-JP");
 	const sentimentColor = SENTIMENT_COLORS[analysis.category];
 	const sentimentLabel = SENTIMENT_LABELS[analysis.category];
@@ -77,11 +80,11 @@ const SentimentHistoryItem: React.FC<{
 
 			<div className="flex items-center justify-between">
 				<span className="text-sm font-mono">
-					スコア: {analysis.score.toFixed(1)}
+					{t("sentiment.scoreLabel")} {analysis.score.toFixed(1)}
 				</span>
 				{isLatest && (
 					<span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-						最新
+						{t("sentiment.latest")}
 					</span>
 				)}
 			</div>
@@ -116,6 +119,7 @@ export const SentimentDebugView: React.FC<SentimentDebugViewProps> = ({
 	const [debugState] = useAtom(sentimentDebugAtom);
 	const [, clearHistory] = useAtom(clearSentimentHistoryAtom);
 	const [, toggleDebug] = useAtom(toggleSentimentDebugAtom);
+	const { t } = useTranslation("debug");
 
 	if (!debugState.isVisible) {
 		return null;
@@ -135,7 +139,7 @@ export const SentimentDebugView: React.FC<SentimentDebugViewProps> = ({
 						<div className="flex justify-between items-center">
 							<CardTitle className="text-lg flex items-center">
 								<BarChart3 className="w-5 h-5 mr-2" />
-								感情分析デバッグ
+								{t("sentiment.title")}
 							</CardTitle>
 							<div className="flex gap-2">
 								<Button
@@ -160,13 +164,17 @@ export const SentimentDebugView: React.FC<SentimentDebugViewProps> = ({
 								<div className="text-2xl font-bold text-blue-600">
 									{debugState.totalAnalyses}
 								</div>
-								<div className="text-xs text-blue-600">総回数</div>
+								<div className="text-xs text-blue-600">
+									{t("sentiment.totalAnalyses")}
+								</div>
 							</div>
 							<div className="text-center p-2 bg-green-50 rounded-lg">
 								<div className="text-2xl font-bold text-green-600">
 									{debugState.averageScore}
 								</div>
-								<div className="text-xs text-green-600">平均スコア</div>
+								<div className="text-xs text-green-600">
+									{t("sentiment.averageScore")}
+								</div>
 							</div>
 						</div>
 
@@ -175,7 +183,9 @@ export const SentimentDebugView: React.FC<SentimentDebugViewProps> = ({
 						{/* 最新の結果 */}
 						{debugState.lastAnalysis && (
 							<div className="mb-4">
-								<h4 className="text-sm font-semibold mb-2">最新の分析結果</h4>
+								<h4 className="text-sm font-semibold mb-2">
+									{t("sentiment.latestAnalysis")}
+								</h4>
 								<SentimentHistoryItem
 									analysis={debugState.lastAnalysis}
 									isLatest={true}
@@ -187,7 +197,9 @@ export const SentimentDebugView: React.FC<SentimentDebugViewProps> = ({
 						{debugState.history.length > 1 && (
 							<div>
 								<h4 className="text-sm font-semibold mb-2">
-									履歴 ({debugState.history.length - 1}件)
+									{t("sentiment.historyCount", {
+										count: debugState.history.length - 1,
+									})}
 								</h4>
 								<ScrollArea className="h-32">
 									<div className="space-y-2">
@@ -208,7 +220,7 @@ export const SentimentDebugView: React.FC<SentimentDebugViewProps> = ({
 						{debugState.history.length === 0 && (
 							<div className="text-center py-8 text-gray-500">
 								<BarChart3 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-								<p className="text-sm">感情分析結果はまだありません</p>
+								<p className="text-sm">{t("sentiment.noResults")}</p>
 							</div>
 						)}
 					</CardContent>

@@ -1,3 +1,18 @@
 {
-	"loading": "VRMを読み込んでいます..."
+	"loading": "VRMを読み込んでいます...",
+	"preparing": "準備中...",
+	"loadingModel": "モデルをロード中",
+	"failedToLoad": "読み込みに失敗しました",
+	"loadComplete": "読み込み完了",
+	"retry": "再試行",
+	"loadingError": "読み込みエラー",
+	"loading3DModel": "3Dモデル読み込み",
+	"failedToLoadModel": "モデルの読み込みに失敗しました",
+	"readyToChat": "準備完了！会話を始めましょう",
+	"startConversation": "会話を始める",
+	"reload": "再読み込み",
+	"analyzingModelData": "モデルデータを解析中...",
+	"loadingTextures": "テクスチャを読み込み中...",
+	"preparingExpressions": "表情とモーションを準備中...",
+	"almostReady": "もうすぐ準備完了です..."
 }

@@ -1,5 +1,6 @@
 import { Languages, Mic2, Volume2, VolumeX } from "lucide-react";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { IconButton } from "../IconButton/IconButton";
 import { InfoPanel } from "../InfoPanel/InfoPanel";
 
@@ -58,6 +59,7 @@ export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 	onOpenVoiceChat,
 	onCloseInfo,
 }) => {
+	const { t } = useTranslation("chat");
 	return (
 		<>
 			{/* デスクトップ: 右下に縦に配置、モバイル: 右下に横に配置 */}
@@ -72,7 +74,7 @@ export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 					<IconButton
 						icon={Mic2}
 						onClick={onOpenVoiceChat}
-						aria-label="音声チャットを開く"
+						aria-label={t("openVoiceChat")}
 						className="h-11 w-11 md:h-12 md:w-12" // タッチターゲット44px以上
 					/>
 				</div>
@@ -82,7 +84,7 @@ export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 					<IconButton
 						icon={isMuted ? VolumeX : Volume2}
 						onClick={onToggleMute}
-						aria-label={isMuted ? "音声をオンにする" : "音声をミュートする"}
+						aria-label={isMuted ? t("unmute") : t("mute")}
 						className="h-11 w-11 md:h-12 md:w-12"
 					/>
 				</div>
@@ -92,7 +94,7 @@ export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 					<IconButton
 						icon={Languages}
 						onClick={onOpenLanguageSelector}
-						aria-label="言語を選択する"
+						aria-label={t("selectLanguage")}
 						className="h-11 w-11 md:h-12 md:w-12"
 					/>
 				</div>

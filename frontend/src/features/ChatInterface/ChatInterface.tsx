@@ -18,6 +18,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { ChatInterfaceView } from "./ChatInterfaceView";
 import { ChatMobileView } from "./ChatMobileView";
 
@@ -49,6 +50,7 @@ export const ChatInterface = forwardRef<
 	const addMessage = useSetAtom(addMessageAtom);
 	const resetChat = useSetAtom(resetChatAtom);
 	const addSentimentAnalysis = useSetAtom(addSentimentAnalysisAtom);
+	const { t } = useTranslation("chat");
 
 	// TTS関連フック
 	const { speak, stop } = useTextToSpeech({
@@ -156,11 +158,11 @@ export const ChatInterface = forwardRef<
 			pushMessage({ text: answer, isUser: false, speakText: answer });
 		} catch (err) {
 			if (err instanceof Error && err.name === "AbortError") {
-				pushMessage({ text: "（生成を停止しました）", isUser: false });
+				pushMessage({ text: t("generationStopped"), isUser: false });
 			} else {
 				setIsLoading(false);
 				pushMessage({
-					text: "すみません、応答の生成中にエラーが発生しました。もう一度お試しください。",
+					text: t("errorGeneratingResponse"),
 					isUser: false,
 				});
 			}

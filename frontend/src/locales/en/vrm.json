@@ -1,3 +1,18 @@
 {
-	"loading": "Loading VRM..."
+	"loading": "Loading VRM...",
+	"preparing": "Preparing...",
+	"loadingModel": "Loading model",
+	"failedToLoad": "Failed to load",
+	"loadComplete": "Load complete",
+	"retry": "Retry",
+	"loadingError": "Loading Error",
+	"loading3DModel": "Loading 3D Model",
+	"failedToLoadModel": "Failed to load the model",
+	"readyToChat": "Ready! Let's start a conversation",
+	"startConversation": "Start Conversation",
+	"reload": "Reload",
+	"analyzingModelData": "Analyzing model data...",
+	"loadingTextures": "Loading textures...",
+	"preparingExpressions": "Preparing expressions and motions...",
+	"almostReady": "Almost ready..."
 }

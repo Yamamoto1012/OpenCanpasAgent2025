@@ -3,6 +3,7 @@ import { VoiceWaveform } from "@/features/VoiceWaveform/VoiceWaveform";
 import { Mic, MicOff, Send, SquareSlash } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 
 export type ChatInputAreaProps = {
 	inputValue: string;
@@ -38,6 +39,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 	onStop,
 }) => {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const { t } = useTranslation("chat");
 
 	// 入力内容に応じて高さを自動調整
 	const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
@@ -72,9 +74,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 					onChange={onInputChange}
 					onKeyDown={onKeyDown}
 					onInput={handleInput}
-					placeholder={
-						isRecording ? "音声を認識しています..." : "質問を入力..."
-					}
+					placeholder={isRecording ? t("recognizingVoice") : t("enterQuestion")}
 					disabled={isThinking || isRecording}
 					rows={1}
 					className={`
@@ -110,7 +110,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 							${isRecording ? "animate-pulse" : ""}
 						`}
 						disabled={isThinking}
-						title={isRecording ? "録音を停止" : "音声で質問"}
+						title={isRecording ? t("stopRecording") : t("askWithVoice")}
 					>
 						{isRecording ? (
 							<MicOff className="h-5 w-5 md:h-4 md:w-4" />
@@ -131,7 +131,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 							touch-manipulation
 						"
 						style={{ backgroundColor: "#9f9579", borderColor: "#9f9579" }}
-						title="送信"
+						title={t("send")}
 					>
 						<Send className="h-5 w-5 md:h-4 md:w-4" />
 					</Button>
@@ -146,7 +146,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 							h-12 w-12 md:h-11 md:w-11
 							touch-manipulation
 						"
-						title="生成を停止"
+						title={t("stopGeneration")}
 					>
 						<SquareSlash className="h-5 w-5 md:h-4 md:w-4" />
 					</Button>

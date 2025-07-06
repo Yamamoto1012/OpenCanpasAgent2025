@@ -1,11 +1,12 @@
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 
 export type Category = {
 	id?: string;
-	title: string;
-	description: string;
+	title: string; // 国際化キー
+	description: string; // 国際化キー
 	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 	color: string;
 };
@@ -28,7 +29,9 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 	delay,
 	onClick,
 }) => {
+	const { t } = useTranslation("category");
 	const IconComponent = category.icon;
+
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
@@ -58,10 +61,10 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 				</div>
 				<div className="flex flex-col flex-1 min-w-0">
 					<h3 className="font-medium text-lg md:text-lg leading-tight mb-1">
-						{category.title}
+						{t(category.title)}
 					</h3>
 					<p className="text-sm md:text-sm text-gray-500 leading-relaxed line-clamp-2">
-						{category.description}
+						{t(category.description)}
 					</p>
 				</div>
 			</Card>

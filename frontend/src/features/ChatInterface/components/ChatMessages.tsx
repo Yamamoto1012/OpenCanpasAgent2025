@@ -1,5 +1,6 @@
 import type { Message } from "@/store/chatAtoms";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import { ChatMessageItem } from "./ChatMessageItem";
 import { ChatThinkingIndicator } from "./ChatThinkingIndicator";
 
@@ -20,6 +21,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
 	isThinking,
 	messagesEndRef,
 }) => {
+	const { t } = useTranslation("chat");
 	return (
 		<div
 			className="
@@ -38,9 +40,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
 			<div className="flex flex-col space-y-3 md:space-y-4 min-h-full">
 				{messages.length === 0 && (
 					<div className="flex-1 flex items-center justify-center text-gray-500 text-center px-4">
-						<p className="text-sm md:text-base">
-							メッセージを送信して会話を始めましょう
-						</p>
+						<p className="text-sm md:text-base">{t("startConversation")}</p>
 					</div>
 				)}
 				{messages.map((message) => (

@@ -1,17 +1,5 @@
 {
-	"close": "Close",
-	"ok": "OK",
-	"cancel": "Cancel",
-	"save": "Save",
-	"delete": "Delete",
-	"edit": "Edit",
-	"loading": "Loading...",
-	"error": "An error occurred",
-	"retry": "Retry",
-	"confirm": "Confirm",
-	"yes": "Yes",
-	"no": "No",
-	"success": {
-		"languageChanged": "Language changed successfully"
-	}
+	"browserNotSupported": "This browser does not support voice recognition",
+	"errorDuringRecognition": "An error occurred during voice recognition",
+	"allowMicrophoneAccess": "Please allow access to the microphone."
 }

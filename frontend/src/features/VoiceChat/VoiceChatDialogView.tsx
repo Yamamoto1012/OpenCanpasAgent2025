@@ -5,6 +5,7 @@ import { useAtom } from "jotai";
 import { X } from "lucide-react";
 import type { FC, RefObject } from "react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChat } from "./VoiceChat";
 
@@ -39,6 +40,7 @@ export const VoiceChatDialogView: FC<VoiceChatDialogViewProps> = ({
 }) => {
 	const { isMobile } = useResponsive();
 	const [currentScreen] = useAtom(currentScreenAtom);
+	const { t } = useTranslation("voice");
 
 	// モバイル時にナビゲーションで他の画面が選択された場合、ダイアログを閉じる
 	useEffect(() => {
@@ -70,7 +72,7 @@ export const VoiceChatDialogView: FC<VoiceChatDialogViewProps> = ({
 								<button
 									onClick={onClose}
 									className="p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
-									aria-label="音声チャットを閉じる"
+									aria-label={t("closeVoiceChat")}
 									type="button"
 								>
 									<X className="h-5 w-5 text-white" />

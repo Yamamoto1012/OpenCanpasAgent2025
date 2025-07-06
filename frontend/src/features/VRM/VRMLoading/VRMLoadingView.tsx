@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Loader2, MessageCircle } from "lucide-react";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 
 export type VRMLoadingViewProps = {
 	/**
@@ -45,11 +46,12 @@ export const VRMLoadingView: FC<VRMLoadingViewProps> = ({
 	onStartChat,
 	onRetry,
 }) => {
+	const { t } = useTranslation("vrm");
 	return (
 		<div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-50">
 			<div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6">
 				<h2 className="text-xl font-bold text-center text-[#9f9579] mb-6">
-					{loadingState === "error" ? "読み込みエラー" : "3Dモデル読み込み"}
+					{loadingState === "error" ? t("loadingError") : t("loading3DModel")}
 				</h2>
 
 				<div className="relative h-32 mb-6 flex items-center justify-center">
@@ -77,7 +79,7 @@ export const VRMLoadingView: FC<VRMLoadingViewProps> = ({
 								</svg>
 							</div>
 							<p className="text-gray-700">
-								{errorMessage || "モデルの読み込みに失敗しました"}
+								{errorMessage || t("failedToLoadModel")}
 							</p>
 						</motion.div>
 					) : loadingState !== "complete" ? (
@@ -126,9 +128,7 @@ export const VRMLoadingView: FC<VRMLoadingViewProps> = ({
 									/>
 								</svg>
 							</div>
-							<p className="text-[#9f9579] text-center">
-								準備完了！会話を始めましょう
-							</p>
+							<p className="text-[#9f9579] text-center">{t("readyToChat")}</p>
 						</motion.div>
 					)}
 				</div>
@@ -145,7 +145,7 @@ export const VRMLoadingView: FC<VRMLoadingViewProps> = ({
 					</div>
 
 					<div className="flex justify-between text-sm text-[#9f9579]">
-						<span>3Dモデル読み込み</span>
+						<span>{t("loading3DModel")}</span>
 						<span>{progress}%</span>
 					</div>
 
@@ -159,7 +159,7 @@ export const VRMLoadingView: FC<VRMLoadingViewProps> = ({
 							onClick={onStartChat}
 						>
 							<MessageCircle className="mr-2 h-4 w-4" />
-							会話を始める
+							{t("startConversation")}
 						</motion.button>
 					) : loadingState === "error" ? (
 						<motion.button
@@ -183,7 +183,7 @@ export const VRMLoadingView: FC<VRMLoadingViewProps> = ({
 									d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
 								/>
 							</svg>
-							再読み込み
+							{t("reload")}
 						</motion.button>
 					) : null}
 				</div>

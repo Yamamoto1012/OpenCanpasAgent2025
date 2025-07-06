@@ -54,7 +54,6 @@ export const useVoiceRecording = ({
 	const recordingInterval = useAtomValue(recordingIntervalAtom); // 録音間隔
 	const toggleRecordingAction = useSetAtom(toggleRecordingAtom); // 録音の開始/停止を切り替える
 	const updateRecordingTimer = useSetAtom(updateRecordingTimerAtom); // 録音タイマーを更新する
-
 	/**
 	 * 録音の開始/停止を切り替える
 	 */

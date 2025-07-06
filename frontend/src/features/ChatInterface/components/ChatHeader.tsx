@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 
 export type ChatHeaderProps = {
 	onReset: () => void;
 };
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ onReset }) => {
+	const { t } = useTranslation("chat");
 	return (
 		<div
 			style={{ backgroundColor: "#b3cfad" }}
@@ -21,7 +23,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ onReset }) => {
 				<RefreshCw className="h-5 w-5" />
 			</Button>
 			<span className="ml-2 font-medium text-gray-800">
-				会話を最初からやり直す
+				{t("restartConversation")}
 			</span>
 		</div>
 	);

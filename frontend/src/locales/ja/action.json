@@ -1,3 +1,10 @@
 {
-	"title": "アクション"
+	"title": "アクション",
+	"aboutCategory": "「{{categoryTitle}}」について",
+	"searchInCategory": "このカテゴリで検索する",
+	"askAndSearch": "質問を入力して検索する",
+	"recognizing": "音声を認識しています...",
+	"askAbout": "{{categoryTitle}}について質問...",
+	"stopRecording": "録音を停止",
+	"askWithVoice": "音声で質問"
 }

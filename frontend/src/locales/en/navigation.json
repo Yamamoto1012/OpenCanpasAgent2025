@@ -1,5 +1,8 @@
 {
 	"home": "Home",
 	"chat": "Chat",
-	"settings": "Settings"
+	"settings": "Settings",
+	"dialogue": "Dialogue",
+	"voice": "Voice",
+	"info": "Info"
 }

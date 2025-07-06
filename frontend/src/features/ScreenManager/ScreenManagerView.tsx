@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
 import type { FC, RefObject } from "react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 export type ScreenManagerViewProps = {
 	/**
@@ -84,6 +85,7 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 	onCloseInfo,
 }) => {
 	const setShowVoiceChat = useSetAtom(showVoiceChatAtom);
+	const { t } = useTranslation("navigation");
 
 	// 音声チャット画面がアクティブな場合は音声チャットダイアログを表示
 	const handleVoiceScreenActivation = () => {
@@ -172,10 +174,8 @@ export const ScreenManagerView: FC<ScreenManagerViewProps> = ({
 							transition={{ duration: 0.2 }}
 						>
 							<div className="pb-20 p-8 text-center text-white">
-								<h2 className="text-2xl font-bold mb-4">音声チャット</h2>
-								<p className="text-lg opacity-80">
-									音声チャットダイアログが開きます
-								</p>
+								<h2 className="text-2xl font-bold mb-4">{t("voice")}</h2>
+								<p className="text-lg opacity-80">{t("voiceDialogWillOpen")}</p>
 							</div>
 						</motion.div>
 					)}

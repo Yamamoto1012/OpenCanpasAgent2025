@@ -8,6 +8,7 @@ import {
 	revokeObjectURL,
 } from "@/lib/utils/audio";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 /**
  * TTS フックの設定オプション
@@ -50,6 +51,9 @@ export const useTextToSpeech = (options: UseTTSOptions = {}): UseTTSReturn => {
 		defaultFormat = "wav",
 		vrmWrapperRef,
 	} = options;
+
+	// 翻訳関数を取得
+	const { t } = useTranslation("voice");
 
 	// 状態管理
 	const [state, setState] = useState<TTSState>({
@@ -198,7 +202,7 @@ export const useTextToSpeech = (options: UseTTSOptions = {}): UseTTSReturn => {
 					format: defaultFormat,
 				};
 
-				const audioBlob = await requestTTS(ttsRequest);
+				const audioBlob = await requestTTS(ttsRequest, t);
 
 				// キャンセルされていないかチェック
 				if (abortControllerRef.current?.signal.aborted) {
@@ -236,6 +240,7 @@ export const useTextToSpeech = (options: UseTTSOptions = {}): UseTTSReturn => {
 			playWithVRM,
 			playWithAudio,
 			vrmWrapperRef,
+			t,
 		],
 	);
 

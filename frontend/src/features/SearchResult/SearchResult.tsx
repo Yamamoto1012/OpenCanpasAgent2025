@@ -4,6 +4,7 @@ import { currentLanguageAtom } from "@/store/languageAtoms";
 import { useAtom } from "jotai";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Category } from "../CategoryNavigator/components/CategoryCard";
 import { admissionAnswers } from "../CategoryNavigator/const/admissionAnswers";
 import { archAnswers } from "../CategoryNavigator/const/archAnswers";
@@ -100,6 +101,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	) as React.RefObject<HTMLInputElement>;
 	const { speak } = useTextToSpeech({ vrmWrapperRef });
 	const prevGuideMessageRef = useRef<string>("");
+	const { t } = useTranslation("search");
 
 	// LLMの返答
 	const [responseText, setResponseText] = useState<string>("");
@@ -108,8 +110,8 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 
 	// AIの返答
 	const guideMessage = isQuestion
-		? `${query}についてはこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`
-		: `「${category?.title || ""}」についての情報はこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`;
+		? t("infoForQuery", { query })
+		: t("infoForCategory", { categoryTitle: category?.title || "" });
 
 	// 初回表示時やquery変更時にテンプレ回答 or LLMへ問い合わせ
 	useEffect(() => {
