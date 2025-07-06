@@ -1,0 +1,10 @@
+{
+	"sentiment": {
+		"title": "Sentiment Analysis Debug",
+		"latestScore": "Latest Score",
+		"history": "History",
+		"score": "Score",
+		"text": "Text",
+		"reset": "Reset Sentiment Analysis"
+	}
+}

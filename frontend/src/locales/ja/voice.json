@@ -1,0 +1,8 @@
+{
+	"input": "音声入力",
+	"recording": "音声入力中...",
+	"chatTitle": "音声チャット",
+	"speakToMic": "マイクに話しかけてください",
+	"recognizedText": "認識されたテキスト",
+	"recognizedTextPlaceholder": "テキストがここに表示されます"
+}

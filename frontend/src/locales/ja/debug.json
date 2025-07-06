@@ -1,0 +1,10 @@
+{
+	"sentiment": {
+		"title": "感情分析デバッグ",
+		"latestScore": "最新のスコア",
+		"history": "履歴",
+		"score": "スコア",
+		"text": "テキスト",
+		"reset": "感情分析をリセット"
+	}
+}

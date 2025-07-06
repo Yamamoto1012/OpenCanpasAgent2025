@@ -1,0 +1,13 @@
+{
+	"content": "Content",
+	"appInfo": "Application Information",
+	"information": "Information",
+	"techStack": "Tech Stack",
+	"usage": "Usage",
+	"title": "Information Panel",
+	"description": "This application is an information system for students at Kanazawa Institute of Technology.",
+	"info": {
+		"title": "Information",
+		"description": "This application is an information system for students at Kanazawa Institute of Technology."
+	}
+}

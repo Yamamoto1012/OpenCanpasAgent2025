@@ -1,0 +1,9 @@
+{
+	"title": "チャット",
+	"sendMessage": "メッセージを送信",
+	"enterMessage": "メッセージを入力してください",
+	"generateAnswer": "回答を生成",
+	"generateAnotherAnswer": "別の回答を生成",
+	"rateAnswer": "回答を評価",
+	"askWithText": "テキストで質問する"
+}

@@ -1,0 +1,17 @@
+{
+	"close": "Close",
+	"ok": "OK",
+	"cancel": "Cancel",
+	"save": "Save",
+	"delete": "Delete",
+	"edit": "Edit",
+	"loading": "Loading...",
+	"error": "An error occurred",
+	"retry": "Retry",
+	"confirm": "Confirm",
+	"yes": "Yes",
+	"no": "No",
+	"success": {
+		"languageChanged": "Language changed successfully"
+	}
+}

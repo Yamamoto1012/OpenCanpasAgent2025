@@ -1,0 +1,8 @@
+{
+	"input": "Voice Input",
+	"recording": "Recording...",
+	"chatTitle": "Voice Chat",
+	"speakToMic": "Please speak to the microphone",
+	"recognizedText": "Recognized Text",
+	"recognizedTextPlaceholder": "Text will be displayed here"
+}

@@ -1,0 +1,14 @@
+{
+	"title": "言語",
+	"japanese": "日本語",
+	"english": "英語",
+	"selector": {
+		"title": "言語選択",
+		"description": "使用する言語を選択してください",
+		"current": "現在の言語"
+	},
+	"names": {
+		"ja": "日本語",
+		"en": "English"
+	}
+}

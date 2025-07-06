@@ -1,0 +1,9 @@
+{
+	"title": "Chat",
+	"sendMessage": "Send Message",
+	"enterMessage": "Please enter a message",
+	"generateAnswer": "Generate Answer",
+	"generateAnotherAnswer": "Generate Another Answer",
+	"rateAnswer": "Rate Answer",
+	"askWithText": "Ask with text"
+}
