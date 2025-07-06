@@ -110,11 +110,14 @@ describe("useTextToSpeech", () => {
 				expect(result.current.state.isLoading).toBe(false);
 			});
 
-			expect(mockRequestTTS).toHaveBeenCalledWith({
-				text: "こんにちは",
-				speakerId: 888753760,
-				format: "wav",
-			});
+			expect(mockRequestTTS).toHaveBeenCalledWith(
+				{
+					text: "こんにちは",
+					speakerId: 888753760,
+					format: "wav",
+				},
+				expect.any(Function),
+			);
 			expect(mockCreateAudioURL).toHaveBeenCalled();
 			expect(result.current.state.currentText).toBe("こんにちは");
 		});
@@ -143,11 +146,14 @@ describe("useTextToSpeech", () => {
 			});
 
 			await waitFor(() => {
-				expect(mockRequestTTS).toHaveBeenCalledWith({
-					text: "テスト",
-					speakerId: 654321,
-					format: "wav",
-				});
+				expect(mockRequestTTS).toHaveBeenCalledWith(
+					{
+						text: "テスト",
+						speakerId: 654321,
+						format: "wav",
+					},
+					expect.any(Function),
+				);
 			});
 		});
 

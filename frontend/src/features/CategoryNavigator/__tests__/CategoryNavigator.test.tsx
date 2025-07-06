@@ -4,6 +4,18 @@ import { Provider, createStore } from "jotai";
 import { describe, expect, it, vi } from "vitest";
 import { CategoryNavigator } from "../CategoryNavigator";
 
+// react-i18nextのモック
+vi.mock("react-i18next", () => ({
+	useTranslation: () => ({
+		t: (key: string) => {
+			const translations: Record<string, string> = {
+				selectCategory: "カテゴリーを選択",
+			};
+			return translations[key] || key;
+		},
+	}),
+}));
+
 describe("CategoryNavigator", () => {
 	const mockOnCategoryDepthChange = vi.fn();
 
