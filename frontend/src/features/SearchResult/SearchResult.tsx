@@ -1,8 +1,10 @@
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { generateText } from "@/services/llmService";
+import { buildPrompt, generateText } from "@/services/llmService";
+import { currentLanguageAtom } from "@/store/languageAtoms";
 import { useAtom } from "jotai";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Category } from "../CategoryNavigator/components/CategoryCard";
 import { admissionAnswers } from "../CategoryNavigator/const/admissionAnswers";
 import { archAnswers } from "../CategoryNavigator/const/archAnswers";
@@ -93,11 +95,13 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	vrmWrapperRef,
 }) => {
 	const [inputValue, setInputValue] = useAtom(inputValueAtom);
+	const [currentLanguage] = useAtom(currentLanguageAtom);
 	const inputRef = useRef<HTMLInputElement>(
 		null,
 	) as React.RefObject<HTMLInputElement>;
 	const { speak } = useTextToSpeech({ vrmWrapperRef });
 	const prevGuideMessageRef = useRef<string>("");
+	const { t } = useTranslation("search");
 
 	// LLMの返答
 	const [responseText, setResponseText] = useState<string>("");
@@ -106,8 +110,8 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 
 	// AIの返答
 	const guideMessage = isQuestion
-		? `${query}についてはこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`
-		: `「${category?.title || ""}」についての情報はこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。`;
+		? t("infoForQuery", { query })
+		: t("infoForCategory", { categoryTitle: category?.title || "" });
 
 	// 初回表示時やquery変更時にテンプレ回答 or LLMへ問い合わせ
 	useEffect(() => {
@@ -128,7 +132,15 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			return;
 		}
 		if (isQuestion && query) {
-			generateText(query, category ? { category: category.title } : undefined)
+			const payloadQuery = buildPrompt(query, currentLanguage);
+			generateText(
+				payloadQuery,
+				category ? { category: category.title } : undefined,
+				undefined,
+				undefined,
+				"/query",
+				currentLanguage,
+			)
 				.then((res) => {
 					setDetailText(res || "回答が取得できませんでした。");
 					setResponseText(guideMessage);
@@ -136,16 +148,21 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 				})
 				.finally(() => setLoading(false));
 		}
-	}, [query, category, isQuestion, guideMessage, speak]);
+	}, [query, category, isQuestion, guideMessage, speak, currentLanguage]);
 
 	// 新しい質問を送信する処理
 	const handleSendQuestion = async () => {
 		if (inputValue.trim()) {
 			setLoading(true);
 			const newQuestion = inputValue.trim();
+			const payloadQuery = buildPrompt(newQuestion, currentLanguage);
 			const res = await generateText(
-				newQuestion,
+				payloadQuery,
 				category ? { category: category.title } : undefined,
+				undefined,
+				undefined,
+				"/query",
+				currentLanguage,
 			);
 			setDetailText(res || "回答が取得できませんでした。");
 			setResponseText(guideMessage);

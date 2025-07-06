@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 type ThinkingIndicatorProps = {
 	visible: boolean;
@@ -32,6 +33,7 @@ export const ThinkingIndicator = ({
 	}
 
 	const zIndex = "z-50";
+	const { t } = useTranslation("chat");
 
 	return (
 		<motion.div
@@ -83,7 +85,7 @@ export const ThinkingIndicator = ({
 						className="w-3 h-3 rounded-full bg-white"
 					/>
 				</motion.div>
-				<span className="ml-3 text-white font-medium">思考中...</span>
+				<span className="ml-3 text-white font-medium">{t("thinking")}</span>
 			</div>
 		</motion.div>
 	);

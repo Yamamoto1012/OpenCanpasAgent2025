@@ -1,0 +1,13 @@
+{
+	"results": "Search Results",
+	"answerForQuery": "Answer for \"{{query}}\"",
+	"searchResultsForCategory": "Search results for \"{{categoryTitle}}\"",
+	"back": "Back",
+	"enterQuestion": "Please enter your question",
+	"backToStart": "Back to Start",
+	"infoForQuery": "Here is the information about {{query}}.\nIf you have another question, please enter it.",
+	"infoForCategory": "Here is the information about \"{{categoryTitle}}\".\nIf you have another question, please enter it.",
+	"overviewComingSoon": "Overview information for this category is currently being prepared.",
+	"noAnswer": "Could not retrieve an answer.",
+	"retrievingAnswer": "Retrieving answer..."
+}

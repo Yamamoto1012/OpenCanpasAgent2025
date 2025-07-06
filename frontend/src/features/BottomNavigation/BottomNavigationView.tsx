@@ -2,6 +2,7 @@ import type { NavigationScreen } from "@/store/navigationAtoms";
 import { AnimatePresence, motion } from "framer-motion";
 import { Info, MessageCircle, MessageSquare, Mic } from "lucide-react";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 
 export type BottomNavigationViewProps = {
 	/**
@@ -26,22 +27,22 @@ export type BottomNavigationViewProps = {
 const navigationItems = [
 	{
 		id: "chat" as NavigationScreen,
-		label: "対話",
+		labelKey: "dialogue",
 		icon: MessageCircle,
 	},
 	{
 		id: "simple-chat" as NavigationScreen,
-		label: "チャット",
+		labelKey: "chat",
 		icon: MessageSquare,
 	},
 	{
 		id: "voice" as NavigationScreen,
-		label: "音声",
+		labelKey: "voice",
 		icon: Mic,
 	},
 	{
 		id: "info" as NavigationScreen,
-		label: "情報",
+		labelKey: "info",
 		icon: Info,
 	},
 ];
@@ -57,6 +58,7 @@ export const BottomNavigationView: FC<BottomNavigationViewProps> = ({
 	isVisible,
 	onScreenChange,
 }) => {
+	const { t } = useTranslation("navigation");
 	return (
 		<AnimatePresence>
 			{isVisible && (
@@ -72,6 +74,7 @@ export const BottomNavigationView: FC<BottomNavigationViewProps> = ({
 							{navigationItems.map((item) => {
 								const Icon = item.icon;
 								const isActive = currentScreen === item.id;
+								const label = t(item.labelKey);
 
 								return (
 									// biome-ignore lint/a11y/useButtonType: <explanation>
@@ -79,7 +82,7 @@ export const BottomNavigationView: FC<BottomNavigationViewProps> = ({
 										key={item.id}
 										onClick={() => onScreenChange(item.id)}
 										className="flex flex-col items-center justify-center p-2 min-w-[70px] flex-1"
-										aria-label={item.label}
+										aria-label={label}
 									>
 										<div className="flex flex-col items-center">
 											<Icon
@@ -94,7 +97,7 @@ export const BottomNavigationView: FC<BottomNavigationViewProps> = ({
 														: "text-gray-500"
 												}`}
 											>
-												{item.label}
+												{label}
 											</span>
 										</div>
 									</button>

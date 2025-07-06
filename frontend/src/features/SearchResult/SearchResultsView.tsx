@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion } from "framer-motion";
 import { ArrowLeft, Send } from "lucide-react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 
@@ -31,6 +32,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 	onBack,
 	inputRef,
 }) => {
+	const { t } = useTranslation("search");
 	return (
 		<div className="w-full max-w-2xl mx-auto">
 			{/* ヘッダー部分 */}
@@ -47,7 +49,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 						onClick={onBack}
 					>
 						<ArrowLeft className="h-4 w-4 mr-1" />
-						戻る
+						{t("back")}
 					</Button>
 					<h2 className="text-xl font-semibold">{title}</h2>
 				</motion.div>

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { MessageCircle, Mic, MicOff, Search, Send } from "lucide-react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 
 export type ActionPromptViewProps = {
 	categoryTitle: string;
@@ -43,6 +44,7 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 	onSearch,
 }) => {
 	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
+	const { t } = useTranslation("action");
 
 	return (
 		<motion.div
@@ -74,7 +76,7 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 						${showBottomNavigation ? "text-sm" : "text-base"}
 					`}
 					>
-						「{categoryTitle}」について
+						{t("aboutCategory", { categoryTitle })}
 					</h3>
 				</div>
 
@@ -98,7 +100,7 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 								<Search
 									className={`${showBottomNavigation ? "w-4 h-4" : "w-4 h-4"}`}
 								/>
-								このカテゴリで検索する
+								{t("searchInCategory")}
 							</Button>
 
 							<Button
@@ -113,7 +115,7 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 								<MessageCircle
 									className={`${showBottomNavigation ? "w-4 h-4" : "w-4 h-4"}`}
 								/>
-								質問を入力して検索する
+								{t("askAndSearch")}
 							</Button>
 						</>
 					) : (
@@ -127,8 +129,8 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 									onChange={onQuestionChange}
 									placeholder={
 										isRecording
-											? "音声を認識しています..."
-											: `${categoryTitle}について質問...`
+											? t("recognizing")
+											: t("askAbout", { categoryTitle })
 									}
 									className={`
 										${isRecording ? "bg-red-50 border-0" : "bg-white border-0"}
@@ -149,7 +151,7 @@ export const ActionPromptView: React.FC<ActionPromptViewProps> = ({
 									size={showBottomNavigation ? "sm" : "icon"}
 									onClick={onToggleRecording}
 									className={`flex-shrink-0 ${isRecording ? "animate-pulse" : ""}`}
-									title={isRecording ? "録音を停止" : "音声で質問"}
+									title={isRecording ? t("stopRecording") : t("askWithVoice")}
 								>
 									{isRecording ? (
 										<MicOff className="h-4 w-4" />

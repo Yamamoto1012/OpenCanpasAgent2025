@@ -1,0 +1,10 @@
+{
+	"title": "Action",
+	"aboutCategory": "About \"{{categoryTitle}}\"",
+	"searchInCategory": "Search in this category",
+	"askAndSearch": "Ask a question to search",
+	"recognizing": "Recognizing voice...",
+	"askAbout": "Ask about {{categoryTitle}}...",
+	"stopRecording": "Stop Recording",
+	"askWithVoice": "Ask with voice"
+}

@@ -1,0 +1,13 @@
+{
+	"results": "検索結果",
+	"answerForQuery": "「{{query}}」の回答",
+	"searchResultsForCategory": "「{{categoryTitle}}」の検索結果",
+	"back": "戻る",
+	"enterQuestion": "質問を入力してください",
+	"backToStart": "最初に戻る",
+	"infoForQuery": "{{query}}についてはこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。",
+	"infoForCategory": "「{{categoryTitle}}」についての情報はこちらです。\n別の質問をしたい場合は、質問を入力してくださいね。",
+	"overviewComingSoon": "このカテゴリの概要情報は準備中です。",
+	"noAnswer": "回答が取得できませんでした。",
+	"retrievingAnswer": "回答を取得中です..."
+}

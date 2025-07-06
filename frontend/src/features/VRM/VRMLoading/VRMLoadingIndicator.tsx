@@ -6,6 +6,7 @@ import {
 } from "@/store/vrmLoadingAtoms";
 import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 // ローディング状態に基づくアニメーションテキストを生成するカスタムフック
 const useLoadingAnimation = (isLoading: boolean) => {
@@ -33,12 +34,6 @@ const progressBarStyles = {
 };
 
 // ローディング状態による表示メッセージの定義
-const loadingMessages = {
-	initial: "準備中...",
-	loading: "モデルをロード中",
-	error: "読み込みに失敗しました",
-	complete: "読み込み完了",
-};
 
 type VRMLoadingIndicatorProps = {
 	/** ローディング完了時のコールバック */
@@ -63,6 +58,7 @@ export const VRMLoadingIndicator = ({
 	const loadProgress = useAtomValue(vrmLoadProgressAtom);
 	const loadingText = useAtomValue(vrmLoadingTextAtom);
 	const errorMessage = useAtomValue(vrmLoadErrorMessageAtom);
+	const { t } = useTranslation("vrm");
 
 	// ローディング中のアニメーションドット
 	const dots = useLoadingAnimation(loadingState === "loading");
@@ -82,8 +78,20 @@ export const VRMLoadingIndicator = ({
 	}, [onRetry]);
 
 	// 現在の状態に応じたメッセージを取得
-	const statusMessage =
-		loadingMessages[loadingState] || loadingMessages.initial;
+	const statusMessage = (() => {
+		switch (loadingState) {
+			case "initial":
+				return t("preparing");
+			case "loading":
+				return t("loadingModel");
+			case "error":
+				return t("failedToLoad");
+			case "complete":
+				return t("loadComplete");
+			default:
+				return "";
+		}
+	})();
 
 	// エラー表示コンポーネント
 	if (loadingState === "error") {
@@ -98,7 +106,7 @@ export const VRMLoadingIndicator = ({
 					onClick={handleRetry}
 					className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
 				>
-					再試行
+					{t("retry")}
 				</button>
 			</div>
 		);

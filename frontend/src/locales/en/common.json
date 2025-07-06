@@ -1,0 +1,5 @@
+{
+	"browserNotSupported": "This browser does not support voice recognition",
+	"errorDuringRecognition": "An error occurred during voice recognition",
+	"allowMicrophoneAccess": "Please allow access to the microphone."
+}

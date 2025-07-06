@@ -1,7 +1,3 @@
-/**
- * 音声関連のユーティリティ関数
- */
-
 export type AudioFormat = "wav" | "mp3" | "ogg";
 
 export type TTSRequest = {
@@ -19,28 +15,32 @@ export type AudioPlayerOptions = {
 /**
  * TTS APIリクエストのバリデーション
  * @param request TTSリクエストオブジェクト
+ * @param t 翻訳関数
  * @returns エラーメッセージの配列
  */
-export const validateTTSRequest = (request: Partial<TTSRequest>): string[] => {
+export const validateTTSRequest = (
+	request: Partial<TTSRequest>,
+	t: (key: string) => string,
+): string[] => {
 	const errors: string[] = [];
 
 	if (!request.text || request.text.trim().length === 0) {
-		errors.push("テキストが入力されていません");
+		errors.push(t("textNotEntered"));
 	}
 
 	if (request.text && request.text.length > 1000) {
-		errors.push("テキストが長すぎます（1000文字以内）");
+		errors.push(t("textTooLong"));
 	}
 
 	if (
 		request.speakerId &&
 		(request.speakerId < 0 || !Number.isInteger(request.speakerId))
 	) {
-		errors.push("話者IDが無効です");
+		errors.push(t("speakerIdInvalid"));
 	}
 
 	if (request.format && !["wav", "mp3", "ogg"].includes(request.format)) {
-		errors.push("音声フォーマットが無効です");
+		errors.push(t("audioFormatInvalid"));
 	}
 
 	return errors;
@@ -49,12 +49,16 @@ export const validateTTSRequest = (request: Partial<TTSRequest>): string[] => {
 /**
  * TTS APIにリクエストを送信する
  * @param request TTSリクエストオブジェクト
+ * @param t 翻訳関数
  * @returns 音声ファイルのblob(バイナリデータ)
  */
-export const requestTTS = async (request: TTSRequest): Promise<Blob> => {
-	const errors = validateTTSRequest(request);
+export const requestTTS = async (
+	request: TTSRequest,
+	t: (key: string) => string,
+): Promise<Blob> => {
+	const errors = validateTTSRequest(request, t);
 	if (errors.length > 0) {
-		throw new Error(`バリデーションエラー: ${errors.join(", ")}`);
+		throw new Error(`${t("validationError")}: ${errors.join(", ")}`);
 	}
 
 	const response = await fetch("http://localhost:8000/tts", {
@@ -69,7 +73,7 @@ export const requestTTS = async (request: TTSRequest): Promise<Blob> => {
 
 	if (!response.ok) {
 		const errorText = await response.text().catch(() => "Unknown error");
-		throw new Error(`TTS APIエラー: ${response.status} - ${errorText}`);
+		throw new Error(`${t("ttsApiError")}: ${response.status} - ${errorText}`);
 	}
 
 	return response.blob();
@@ -120,11 +124,7 @@ export const createAudioElement = (
  * @returns void
  */
 export const revokeObjectURL = (url: string): void => {
-	try {
-		URL.revokeObjectURL(url);
-	} catch (error) {
-		console.warn("Object URL revoke error:", error);
-	}
+	URL.revokeObjectURL(url);
 };
 
 /**

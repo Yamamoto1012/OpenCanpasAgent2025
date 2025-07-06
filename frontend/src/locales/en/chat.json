@@ -1,0 +1,22 @@
+{
+	"title": "Chat",
+	"sendMessage": "Send Message",
+	"enterMessage": "Please enter a message",
+	"generateAnswer": "Generate Answer",
+	"generateAnotherAnswer": "Generate Another Answer",
+	"rateAnswer": "Rate Answer",
+	"askWithText": "Ask with text",
+	"generationStopped": "(Generation stopped)",
+	"errorGeneratingResponse": "I'm sorry, an error occurred while generating a response. Please try again.",
+	"restartConversation": "Restart conversation",
+	"recognizingVoice": "Recognizing voice...",
+	"enterQuestion": "Enter your question...",
+	"stopRecording": "Stop Recording",
+	"askWithVoice": "Ask with voice",
+	"send": "Send",
+	"stopGeneration": "Stop Generation",
+	"startConversation": "Send a message to start the conversation",
+	"schoolLife": "School Life",
+	"recommendedFaculties": "Recommended Faculties",
+	"employmentRecord": "Employment Record"
+}

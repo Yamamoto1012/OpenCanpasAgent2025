@@ -1,5 +1,6 @@
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { generateText } from "@/services/llmService";
+import { buildPrompt, generateText } from "@/services/llmService";
+import { currentLanguageAtom } from "@/store/languageAtoms";
 import {
 	addAiMessageAtom,
 	addUserMessageAtom,
@@ -31,6 +32,7 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	const [processingState] = useAtom(processingStateAtom);
 	const [chatHistory] = useAtom(chatHistoryAtom);
 	const [vrmIsThinking] = useAtom(vrmIsThinkingAtom);
+	const [currentLanguage] = useAtom(currentLanguageAtom);
 
 	// Atomを更新するためのセッター関数
 	const setProcessingState = useSetAtom(setProcessingStateAtom);
@@ -141,12 +143,14 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	const generateAIResponse = async (userInput: string) => {
 		try {
 			// 応答を保存
+			const payloadQuery = buildPrompt(userInput, currentLanguage);
 			const response = await generateText(
-				userInput,
+				payloadQuery,
 				undefined,
 				undefined,
 				3,
 				"/voice_mode_answer",
+				currentLanguage,
 			);
 
 			addAiMessage(response);

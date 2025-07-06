@@ -1,0 +1,19 @@
+{
+	"sentiment": {
+		"title": "感情分析デバッグ",
+		"latestScore": "最新のスコア",
+		"history": "履歴",
+		"score": "スコア",
+		"text": "テキスト",
+		"reset": "感情分析をリセット",
+		"toggleShow": "デバッグ非表示",
+		"toggleHide": "感情デバッグ",
+		"scoreLabel": "スコア:",
+		"latest": "最新",
+		"totalAnalyses": "総回数",
+		"averageScore": "平均スコア",
+		"latestAnalysis": "最新の分析結果",
+		"historyCount": "履歴 ({{count}}件)",
+		"noResults": "感情分析結果はまだありません"
+	}
+}

@@ -1,4 +1,5 @@
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import { InfoSection } from "./InfoSection";
 
 type TechCard = {
@@ -6,32 +7,33 @@ type TechCard = {
 	description: string;
 };
 
-const techCards: TechCard[] = [
-	{
-		title: "ローカルLLM",
-		description:
-			"Ollama（DeepSeek）を使用し、プライバシーを保護しながら高品質な応答を生成します。",
-	},
-	{
-		title: "RAG（検索拡張生成）",
-		description:
-			"ChromaDBとLangChainを組み合わせることで、ドキュメント知識を活用した正確な回答を提供します。",
-	},
-	{
-		title: "AI音声合成",
-		description:
-			"RVCまたはVITSベースのAIボイスチェンジャーを用いて、自然で表現豊かな音声を生成します。",
-	},
-	{
-		title: "3Dキャラクター",
-		description:
-			"Three.jsを使用し、ウェブブラウザ上でインタラクティブな3Dキャラクターを表示します。",
-	},
-];
-
 export const TechSection: React.FC = () => {
+	const { t } = useTranslation("infoPanel");
+	const techCards: TechCard[] = [
+		{
+			title: t("techStack.localLLM.title"),
+			description: t("techStack.localLLM.description"),
+		},
+		{
+			title: t("techStack.rag.title"),
+			description: t("techStack.rag.description"),
+		},
+		{
+			title: t("techStack.aiVoiceSynthesis.title"),
+			description: t("techStack.aiVoiceSynthesis.description"),
+		},
+		{
+			title: t("techStack.3dCharacter.title"),
+			description: t("techStack.3dCharacter.description"),
+		},
+	];
+
 	return (
-		<InfoSection iconType="cpu" title="使用技術" iconColor="text-green-400">
+		<InfoSection
+			iconType="cpu"
+			title={t("techStack.title")}
+			iconColor="text-green-400"
+		>
 			<div className="space-y-4">
 				{techCards.map((card) => (
 					<div key={card.title} className="bg-white/5 p-4 rounded-lg">

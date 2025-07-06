@@ -44,7 +44,6 @@ export const randomTextGeneratorAtom = atom<((text?: string) => string) | null>(
 
 // 音声認識インスタンスの保持用変数
 let speechRecognition: WebSpeechRecognition | null = null;
-
 /**
  * 録音の開始/停止を切り替えるアクション
  */
@@ -149,7 +148,7 @@ export const toggleRecordingAtom = atom(
 				"マイクの使用許可またはWeb Speech APIの初期化エラー:",
 				error,
 			);
-			alert("マイクへのアクセスを許可してください。");
+			alert("マイクへのアクセスを許可してください");
 			set(isRecordingAtom, false);
 		}
 	},

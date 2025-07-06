@@ -1,0 +1,5 @@
+{
+	"dependencies": {
+		"i18next-http-backend": "^3.0.2"
+	}
+}

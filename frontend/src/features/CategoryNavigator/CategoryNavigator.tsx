@@ -12,6 +12,7 @@ import { showBottomNavigationAtom } from "@/store/navigationAtoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { ChevronRight } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { CategoryNavigatorView } from "./CategroyNavigatorView";
 import type { Category } from "./components/CategoryCard";
 import { mainCategories, subCategories, subSubCategories } from "./constants";
@@ -37,6 +38,7 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 	const navigateBack = useSetAtom(navigateBackAtom);
 	const categoryPath = useAtomValue(categoryPathAtom);
 	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
+	const { t } = useTranslation("category");
 
 	// 親コンポーネントに現在のカテゴリー深さを通知
 	useEffect(() => {
@@ -87,18 +89,22 @@ export const CategoryNavigator: React.FC<CategoryNavigatorProps> = ({
 	// パンくずリスト形式でタイトル要素を取得
 	const getBreadcrumbs = () => {
 		if (categoryPath.length === 0) {
-			return <span className="font-semibold text-xl">カテゴリーを選択</span>;
+			return (
+				<span className="font-semibold text-xl">{t("selectCategory")}</span>
+			);
 		}
 
 		// デスクトップ向けパンくずリスト
 		return (
 			<div className="flex flex-wrap items-center text-xl">
-				<span className="font-semibold text-gray-500">カテゴリーを選択</span>
+				<span className="font-semibold text-gray-500">
+					{t("selectCategory")}
+				</span>
 
 				{categoryPath.map((item) => (
 					<div key={item.id} className="flex items-center">
 						<ChevronRight className="mx-1 h-5 w-5 text-gray-500" />
-						<span className="font-semibold">{item.title}</span>
+						<span className="font-semibold">{t(item.title)}</span>
 					</div>
 				))}
 			</div>

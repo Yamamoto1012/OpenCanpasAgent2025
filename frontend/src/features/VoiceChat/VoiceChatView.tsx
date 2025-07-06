@@ -11,6 +11,7 @@ import type { ChatMessage, ProcessingState } from "@/store/voiceChatAtoms";
 import { motion } from "framer-motion";
 import { Info, Mic, StopCircle } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 export type VoiceChatViewProps = {
 	isListening: boolean;
@@ -32,6 +33,7 @@ export const VoiceChatView = ({
 	onStopListening,
 }: VoiceChatViewProps) => {
 	const chatContainerRef = useRef<HTMLDivElement>(null);
+	const { t } = useTranslation("voice");
 
 	// チャット履歴が更新されたらスクロールを一番下に
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -46,15 +48,15 @@ export const VoiceChatView = ({
 	const getStatusMessage = () => {
 		switch (processingState) {
 			case "recording":
-				return "音声を認識しています...";
+				return t("recognizingVoice");
 			case "processing":
-				return "音声を処理しています...";
+				return t("processingVoice");
 			case "thinking":
-				return "回答を考えています...";
+				return t("thinkingAnswer");
 			case "responding":
-				return "応答中...";
+				return t("responding");
 			default:
-				return "マイクをクリックして続けてください";
+				return t("clickMicToContinue");
 		}
 	};
 
@@ -140,11 +142,11 @@ export const VoiceChatView = ({
 						</DialogTrigger>
 						<DialogContent className="sm:max-w-md">
 							<DialogHeader>
-								<DialogTitle>音声チャットについて</DialogTitle>
+								<DialogTitle>{t("aboutVoiceChat")}</DialogTitle>
 								<DialogDescription>
-									このインターフェースでは、マイクボタンをクリックして音声入力を開始できます。
-									音声は自動的にテキストに変換され、AIが応答します。
-									停止ボタンをクリックするか、一定の間隔の後自動的に音声認識が停止します。
+									{t("voiceChatDescription1")}
+									{t("voiceChatDescription2")}
+									{t("voiceChatDescription3")}
 								</DialogDescription>
 							</DialogHeader>
 						</DialogContent>

@@ -2,6 +2,7 @@ import type { SimpleChatMessage } from "@/store/simpleChatAtoms";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageSquare, MoreVertical, Send } from "lucide-react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 
 export type SimpleMobileChatViewProps = {
 	messages: SimpleChatMessage[];
@@ -39,6 +40,7 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 	messagesEndRef,
 }) => {
 	const hasMessages = messages.length > 0;
+	const { t } = useTranslation("chat");
 
 	return (
 		<div className="h-full w-full flex flex-col bg-white">
@@ -55,12 +57,12 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 						</div>
 						<div>
 							<h1 className="text-lg font-semibold text-gray-900">
-								AI沢みのり
+								{t("aiName")}
 							</h1>
 							<p className="text-xs text-gray-500">
 								{hasMessages
-									? `${messages.length}件のメッセージ`
-									: "いつでもお話しできます"}
+									? t("messageCount", { count: messages.length })
+									: t("readyToTalk")}
 							</p>
 						</div>
 					</div>
@@ -147,7 +149,7 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 												<div className="w-2 h-2 bg-[#b3cfad] rounded-full animate-bounce delay-200" />
 											</div>
 											<span className="text-xs text-gray-600 ml-2">
-												AIが考えています...
+												{t("aiThinking")}
 											</span>
 										</div>
 									</div>
@@ -175,12 +177,12 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 								/>
 							</div>
 							<h2 className="text-xl font-semibold text-gray-900 mb-2">
-								大学に関することを質問してみましょう
+								{t("askUniversityQuestion")}
 							</h2>
 							<p className="text-gray-600 text-sm leading-relaxed">
-								何でもお気軽にお聞きください。
+								{t("askAnything")}
 								<br />
-								質問、相談、雑談なんでもOKです。
+								{t("questionsConsultations")}
 							</p>
 						</div>
 					</motion.div>
@@ -201,7 +203,7 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 							onKeyDown={onKeyDown}
 							onCompositionStart={onCompositionStart}
 							onCompositionEnd={onCompositionEnd}
-							placeholder="メッセージを入力..."
+							placeholder={t("enterMessage")}
 							disabled={isThinking}
 							rows={1}
 							className="
@@ -226,7 +228,7 @@ export const SimpleMobileChatView: React.FC<SimpleMobileChatViewProps> = ({
 							hover:from-[#9bb896] hover:to-[#8aa785] transition-all duration-200
 							shadow-sm hover:shadow-md
 						"
-						aria-label="メッセージを送信"
+						aria-label={t("sendMessage")}
 					>
 						<Send className="h-4 w-4" />
 					</motion.button>

@@ -1,0 +1,5 @@
+{
+	"browserNotSupported": "このブラウザは音声認識に対応していません",
+	"errorDuringRecognition": "音声認識中にエラーが発生しました",
+	"allowMicrophoneAccess": "マイクへのアクセスを許可してください。"
+}

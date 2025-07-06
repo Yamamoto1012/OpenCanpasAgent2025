@@ -1,5 +1,6 @@
-import { Info, Mic2, Volume2, VolumeX } from "lucide-react";
+import { Languages, Mic2, Volume2, VolumeX } from "lucide-react";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { IconButton } from "../IconButton/IconButton";
 import { InfoPanel } from "../InfoPanel/InfoPanel";
 
@@ -13,6 +14,11 @@ export type ControlButtonsViewProps = {
 	 * ミュート状態
 	 */
 	isMuted: boolean;
+
+	/**
+	 * 言語選択ボタンを押した際のハンドラー
+	 */
+	onOpenLanguageSelector: () => void;
 
 	/**
 	 * 情報パネル表示切替のハンドラー
@@ -47,11 +53,13 @@ export type ControlButtonsViewProps = {
 export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 	showInfo,
 	isMuted,
-	onToggleInfo,
+	// onToggleInfo,
+	onOpenLanguageSelector,
 	onToggleMute,
 	onOpenVoiceChat,
 	onCloseInfo,
 }) => {
+	const { t } = useTranslation("chat");
 	return (
 		<>
 			{/* デスクトップ: 右下に縦に配置、モバイル: 右下に横に配置 */}
@@ -66,7 +74,7 @@ export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 					<IconButton
 						icon={Mic2}
 						onClick={onOpenVoiceChat}
-						aria-label="音声チャットを開く"
+						aria-label={t("openVoiceChat")}
 						className="h-11 w-11 md:h-12 md:w-12" // タッチターゲット44px以上
 					/>
 				</div>
@@ -76,20 +84,30 @@ export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 					<IconButton
 						icon={isMuted ? VolumeX : Volume2}
 						onClick={onToggleMute}
-						aria-label={isMuted ? "音声をオンにする" : "音声をミュートする"}
+						aria-label={isMuted ? t("unmute") : t("mute")}
+						className="h-11 w-11 md:h-12 md:w-12"
+					/>
+				</div>
+
+				{/* 言語選択ボタン */}
+				<div className="order-1 md:order-3">
+					<IconButton
+						icon={Languages}
+						onClick={onOpenLanguageSelector}
+						aria-label={t("selectLanguage")}
 						className="h-11 w-11 md:h-12 md:w-12"
 					/>
 				</div>
 
 				{/* 情報ボタン */}
-				<div className="order-1 md:order-3">
+				{/* <div className="order-1 md:order-3">
 					<IconButton
 						icon={Info}
 						onClick={onToggleInfo}
 						aria-label="情報を表示"
 						className="h-11 w-11 md:h-12 md:w-12"
 					/>
-				</div>
+				</div> */}
 			</div>
 
 			{/* 情報パネル */}

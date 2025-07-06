@@ -1,0 +1,19 @@
+{
+	"sentiment": {
+		"title": "Sentiment Analysis Debug",
+		"latestScore": "Latest Score",
+		"history": "History",
+		"score": "Score",
+		"text": "Text",
+		"reset": "Reset Sentiment Analysis",
+		"toggleShow": "Hide Debug",
+		"toggleHide": "Sentiment Debug",
+		"scoreLabel": "Score:",
+		"latest": "Latest",
+		"totalAnalyses": "Total Analyses",
+		"averageScore": "Average Score",
+		"latestAnalysis": "Latest Analysis",
+		"historyCount": "History ({{count}} items)",
+		"noResults": "No sentiment analysis results yet."
+	}
+}

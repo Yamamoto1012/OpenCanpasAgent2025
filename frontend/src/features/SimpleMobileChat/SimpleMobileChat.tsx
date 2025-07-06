@@ -1,4 +1,5 @@
-import { generateText } from "@/services/llmService";
+import { buildPrompt, generateText } from "@/services/llmService";
+import { currentLanguageAtom } from "@/store/languageAtoms";
 import {
 	addSimpleChatMessageAtom,
 	simpleChatInputAtom,
@@ -13,6 +14,7 @@ import {
 	useEffect,
 	useRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { SimpleMobileChatView } from "./SimpleMobileChatView";
 
 /**
@@ -23,7 +25,9 @@ export const SimpleMobileChat: React.FC = () => {
 	const [messages] = useAtom(simpleChatMessagesAtom);
 	const [inputValue, setInputValue] = useAtom(simpleChatInputAtom);
 	const [isThinking, setIsThinking] = useAtom(simpleChatIsThinkingAtom);
+	const [currentLanguage] = useAtom(currentLanguageAtom);
 	const addMessage = useSetAtom(addSimpleChatMessageAtom);
+	const { t } = useTranslation("chat");
 
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 	const abortRef = useRef<AbortController | null>(null);
@@ -51,10 +55,14 @@ export const SimpleMobileChat: React.FC = () => {
 			abortRef.current = new AbortController();
 
 			try {
+				const payloadQuery = buildPrompt(userMessage, currentLanguage);
 				const response = await generateText(
-					userMessage,
+					payloadQuery,
 					{}, // 空のcontextオブジェクト
 					abortRef.current.signal,
+					undefined,
+					"/query",
+					currentLanguage,
 				);
 
 				if (!abortRef.current.signal.aborted) {
@@ -67,7 +75,7 @@ export const SimpleMobileChat: React.FC = () => {
 				if (!abortRef.current?.signal.aborted) {
 					console.error("AI応答の生成に失敗しました:", error);
 					addMessage({
-						text: "申し訳ございません。エラーが発生しました。もう一度お試しください。",
+						text: t("errorGeneratingResponse"),
 						isUser: false,
 					});
 				}
@@ -78,7 +86,7 @@ export const SimpleMobileChat: React.FC = () => {
 				abortRef.current = null;
 			}
 		},
-		[addMessage, setIsThinking],
+		[addMessage, setIsThinking, currentLanguage, t],
 	);
 
 	// メッセージ送信処理

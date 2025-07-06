@@ -3,8 +3,10 @@ import {
 	showInfoAtom,
 	showVoiceChatAtom,
 } from "@/store/appStateAtoms";
+import { languageSelectorOpenAtom } from "@/store/languageAtoms";
 import { useAtom } from "jotai";
 import type { FC } from "react";
+import { LanguageSelector } from "../LanguageSelector/LanguageSelector";
 import { ControlButtonsView } from "./ControlButtonsView";
 
 /**
@@ -17,6 +19,12 @@ export const ControlButtons: FC = () => {
 	const [showInfo, setShowInfo] = useAtom(showInfoAtom);
 	const [isMuted, setIsMuted] = useAtom(isMutedAtom);
 	const [, setShowVoiceChat] = useAtom(showVoiceChatAtom);
+	const [, setLanguageSelectorOpen] = useAtom(languageSelectorOpenAtom);
+
+	/**
+	 * 言語選択ダイアログを開く
+	 */
+	const handleOpenLanguageSelector = () => setLanguageSelectorOpen(true);
 
 	/**
 	 * 情報パネルの表示状態を切り替える
@@ -39,13 +47,18 @@ export const ControlButtons: FC = () => {
 	const handleOpenVoiceChat = () => setShowVoiceChat(true);
 
 	return (
-		<ControlButtonsView
-			showInfo={showInfo}
-			isMuted={isMuted}
-			onToggleInfo={handleToggleInfo}
-			onToggleMute={handleToggleMute}
-			onOpenVoiceChat={handleOpenVoiceChat}
-			onCloseInfo={handleCloseInfo}
-		/>
+		<>
+			<ControlButtonsView
+				showInfo={showInfo}
+				isMuted={isMuted}
+				onOpenLanguageSelector={handleOpenLanguageSelector}
+				onToggleInfo={handleToggleInfo}
+				onToggleMute={handleToggleMute}
+				onOpenVoiceChat={handleOpenVoiceChat}
+				onCloseInfo={handleCloseInfo}
+			/>
+			{/* 言語選択ダイアログ */}
+			<LanguageSelector />
+		</>
 	);
 };
