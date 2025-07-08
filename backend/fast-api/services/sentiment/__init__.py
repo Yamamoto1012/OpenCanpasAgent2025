@@ -5,11 +5,14 @@ Sentiment analysis module
 """
 
 from .analyzer import SentimentAnalyzer, SentimentCategory
-from .sentiment_service import analyze_sentiment, get_sentiment_analyzer
+from .sentiment_service import (
+    get_sentiment_analyzer,
+    analyze_sentiment_batch
+)
 
 __all__ = [
     "SentimentAnalyzer",
     "SentimentCategory", 
-    "analyze_sentiment",
     "get_sentiment_analyzer",
+    "analyze_sentiment_batch",
 ] 

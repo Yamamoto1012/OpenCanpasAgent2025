@@ -2,11 +2,15 @@
 Sentiment analysis service
 
 感情分析のビジネスロジックを提供する。
+ハイブリッド感情分析システム（ルールベース＋ONNX）をサポート。
 """
-from typing import Tuple, Optional
+import logging
+from typing import Tuple, Optional, Dict, Any, List
 
 from .analyzer import SentimentAnalyzer, SentimentCategory
+from models import SentimentResult
 
+logger = logging.getLogger(__name__)
 
 # グローバルインスタンス
 _analyzer_instance: Optional[SentimentAnalyzer] = None
@@ -29,16 +33,38 @@ def get_sentiment_analyzer() -> SentimentAnalyzer:
     return _analyzer_instance
 
 
-def analyze_sentiment(text: str) -> Tuple[float, SentimentCategory]:
+def analyze_sentiment_batch(texts: List[str]) -> List[SentimentResult]:
     """
-    感情分析を実行する関数
+    テキストのバッチ感情分析を実行
     
     Args:
-        text: 分析対象のテキスト
+        texts: 分析対象のテキストリスト
         
     Returns:
-        Tuple[float, SentimentCategory]: 感情スコア（0-100）とカテゴリ
-        
+        List[SentimentResult]: 分析結果のリスト
     """
     analyzer = get_sentiment_analyzer()
-    return analyzer.analyze(text) 
+    results = []
+    
+    for text in texts:
+        try:
+            score, category, metadata = analyzer.analyze_with_metadata(text)
+            results.append(SentimentResult(
+                text=text,
+                score=score,
+                category=category.value,
+                confidence=metadata.get('confidence', 0.0),
+                method=metadata.get('method', 'unknown')
+            ))
+        except Exception as e:
+            logger.error(f"感情分析エラー: {e}")
+            # エラー時はニュートラルを返す
+            results.append(SentimentResult(
+                text=text,
+                score=50.0,
+                category=SentimentCategory.NEUTRAL.value,
+                confidence=0.0,
+                method='error'
+            ))
+    
+    return results 

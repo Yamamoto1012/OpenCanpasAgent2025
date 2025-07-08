@@ -2,8 +2,10 @@
  * リアルタイム感情分析
  */
 import { useQuery } from "@tanstack/react-query";
+import { useAtom } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { sentimentService } from "../services/sentimentService";
+import { addSentimentAnalysisAtom } from "../store/sentimentDebugStore";
 import type {
 	SentimentAnalysisResult,
 	SentimentState,
@@ -15,6 +17,7 @@ type UseSentimentOptions = {
 	pollingInterval?: number; // ミリ秒
 	onSentimentChange?: (result: SentimentAnalysisResult) => void;
 	minTextLength?: number;
+	enableDebugLogging?: boolean; // デバッグストアへの送信を有効化
 };
 
 // 感情分析フックの戻り値の型定義
@@ -36,6 +39,7 @@ export const useSentiment = (
 		pollingInterval = 3000, // 3秒間隔
 		onSentimentChange,
 		minTextLength = 1,
+		enableDebugLogging = true,
 	} = options;
 
 	const [currentText, setCurrentText] = useState<string>("");
@@ -43,16 +47,18 @@ export const useSentiment = (
 	const lastAnalyzedTextRef = useRef<string>("");
 	const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+	// デバッグストアに結果を追加するためのアトム
+	const [, addSentimentAnalysis] = useAtom(addSentimentAnalysisAtom);
+
 	const { data, isLoading, error, refetch } = useQuery({
 		queryKey: ["sentiment", currentText],
 		queryFn: async (): Promise<SentimentAnalysisResult> => {
-			const response = await sentimentService.analyzeSentiment(currentText);
+			const result = await sentimentService.analyzeSentiment(currentText);
 
-			const result: SentimentAnalysisResult = {
-				score: response.score,
-				category: response.category,
-				timestamp: Date.now(),
-			};
+			// デバッグストアに結果を追加
+			if (enableDebugLogging) {
+				addSentimentAnalysis(result);
+			}
 
 			// 結果が変わった場合にコールバックを実行
 			if (onSentimentChange) {

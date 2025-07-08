@@ -4,8 +4,7 @@ Services package for AivisSpeech API
 このパッケージは責務ごとに分離されたサービス層を提供する。
 """
 
-# 後方互換性のためのre-export（段階的に移行）
-from .sentiment.sentiment_service import analyze_sentiment
+# 各サービスのre-export
 from .engine.engine_service import get_engine_version, get_speakers, get_user_dict
 from .speech.speech_service import (
     create_audio_query,
@@ -18,7 +17,6 @@ from .response.formatters import (
 )
 
 __all__ = [
-    "analyze_sentiment",
     "get_engine_version",
     "get_speakers", 
     "get_user_dict",

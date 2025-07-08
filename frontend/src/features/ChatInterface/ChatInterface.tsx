@@ -1,16 +1,9 @@
-import type { VRMWrapperHandle } from "@/features/VRM/VRMWrapper/VRMWrapper";
-import { useResponsive } from "@/hooks/useResponsive";
-import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { buildPrompt, generateText } from "@/services/llmService";
-import { sentimentService } from "@/services/sentimentService";
-import { addMessageAtom, messagesAtom, resetChatAtom } from "@/store/chatAtoms";
-import { currentLanguageAtom } from "@/store/languageAtoms";
-import { isRecordingAtom, toggleRecordingAtom } from "@/store/recordingAtoms";
-import { addSentimentAnalysisAtom } from "@/store/sentimentDebugStore";
+import { ChatInterfaceView } from "./ChatInterfaceView";
+import { ChatMobileView } from "./ChatMobileView";
+
 import { useAtom, useSetAtom } from "jotai";
+import type { ChangeEvent, KeyboardEvent } from "react";
 import {
-	type ChangeEvent,
-	type KeyboardEvent,
 	forwardRef,
 	useCallback,
 	useEffect,
@@ -19,8 +12,25 @@ import {
 	useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { ChatInterfaceView } from "./ChatInterfaceView";
-import { ChatMobileView } from "./ChatMobileView";
+
+import {
+	addMessageAtom,
+	messagesAtom,
+	resetChatAtom,
+} from "../../store/chatAtoms";
+import { currentLanguageAtom } from "../../store/languageAtoms";
+import {
+	isRecordingAtom,
+	toggleRecordingAtom,
+} from "../../store/recordingAtoms";
+
+import { useResponsive } from "../../hooks/useResponsive";
+import { useSentiment } from "../../hooks/useSentiment";
+import { useTextToSpeech } from "../../hooks/useTextToSpeech";
+
+import { buildPrompt, generateText } from "../../services/llmService";
+
+import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 
 export type ChatInterfaceProps = {
 	vrmWrapperRef?: React.RefObject<VRMWrapperHandle | null>;
@@ -49,7 +59,6 @@ export const ChatInterface = forwardRef<
 	const toggleRecording = useSetAtom(toggleRecordingAtom);
 	const addMessage = useSetAtom(addMessageAtom);
 	const resetChat = useSetAtom(resetChatAtom);
-	const addSentimentAnalysis = useSetAtom(addSentimentAnalysisAtom);
 	const { t } = useTranslation("chat");
 
 	// TTS関連フック
@@ -57,32 +66,16 @@ export const ChatInterface = forwardRef<
 		vrmWrapperRef: props.vrmWrapperRef,
 	});
 
+	// 感情分析フック
+	const { analyzeSentiment } = useSentiment({
+		enabled: true,
+		enableDebugLogging: true,
+	});
+
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	// メッセージIDを採番
 	const createId = () => Date.now() + Math.random();
-
-	// 感情分析を実行する関数
-	const performSentimentAnalysis = useCallback(
-		async (text: string) => {
-			if (!text.trim() || text.length < 3) {
-				return;
-			}
-
-			try {
-				const response = await sentimentService.analyzeSentiment(text);
-				// 感情分析結果をストアに追加
-				addSentimentAnalysis({
-					score: response.score,
-					category: response.category,
-					timestamp: Date.now(),
-				});
-			} catch (error) {
-				console.warn("感情分析実行中にエラーが発生しました:", error);
-			}
-		},
-		[addSentimentAnalysis],
-	);
 
 	// メッセージを入れる
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -93,7 +86,7 @@ export const ChatInterface = forwardRef<
 
 			// AIの返答の場合は感情分析を実行
 			if (!enriched.isUser && enriched.text) {
-				performSentimentAnalysis(enriched.text);
+				analyzeSentiment(enriched.text);
 			}
 
 			if (!enriched.isUser && enriched.speakText) {
@@ -101,12 +94,12 @@ export const ChatInterface = forwardRef<
 				speak(enriched.speakText);
 			}
 		},
-		[addMessage, speak, stop, performSentimentAnalysis],
+		[addMessage, speak, stop, analyzeSentiment],
 	);
 
 	// 外部から呼び出し可能なメソッドを定義
 	useImperativeHandle(ref, () => ({
-		sendMessage: (text) => pushMessage({ text, isUser: true }),
+		sendMessage: (text: string) => pushMessage({ text, isUser: true }),
 		stopGeneration: () => {
 			abortRef.current?.abort();
 			stop();
