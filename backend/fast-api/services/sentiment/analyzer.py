@@ -1,10 +1,12 @@
 """
 Sentiment Analyzer
 
-ginza+spacyを使用した日本語感情分析機能を提供する。
+ハイブリッド感情分析（ルールベース＋ONNX)
 """
 import os
 import re
+import math
+import statistics
 from enum import Enum
 from typing import Dict, Any, Tuple, Union, List, Optional
 
@@ -30,7 +32,136 @@ class SentimentCategory(str, Enum):
 
 
 class SentimentAnalyzer:
+    """
+    感情分析インターフェース
+    
+    環境変数に基づいてハイブリッドまたはレガシー実装を使用する。
+    - USE_HYBRID_SENTIMENT=true: ハイブリッド実装（デフォルト）
+    - USE_HYBRID_SENTIMENT=false: レガシー実装(辞書ベース)
+    """
+    
+    def __init__(self):
+        # 設定に基づいて実装を選択
+        use_hybrid = os.getenv('USE_HYBRID_SENTIMENT', 'true').lower() == 'true'
+        
+        if use_hybrid:
+            logger.info("ハイブリッド感情分析器を使用")
+            self._impl = self._create_hybrid_analyzer()
+        else:
+            logger.info("レガシー感情分析器を使用")
+            self._impl = LegacySentimentAnalyzer()
+    
+    def _create_hybrid_analyzer(self):
+        """ハイブリッド分析器を作成"""
+        try:
+            from .hybrid_analyzer import HybridSentimentAnalyzer
+            
+            # 環境変数から設定を読み込み
+            confidence_threshold = float(os.getenv('SENTIMENT_CONFIDENCE_THRESHOLD', '0.7'))
+            enable_onnx = os.getenv('ENABLE_ONNX_SENTIMENT', 'true').lower() == 'true'
+            use_dummy_onnx = os.getenv('USE_DUMMY_ONNX', 'false').lower() == 'true'
+            onnx_model_path = os.getenv('ONNX_MODEL_PATH')
+            
+            return HybridSentimentAnalyzer(
+                confidence_threshold=confidence_threshold,
+                enable_onnx=enable_onnx,
+                onnx_model_path=onnx_model_path,
+                use_dummy_onnx=use_dummy_onnx
+            )
+        except ImportError as e:
+            logger.error(f"ハイブリッド分析器のインポートに失敗: {e}")
+            logger.info("レガシー分析器にフォールバックします")
+            return LegacySentimentAnalyzer()
+        except Exception as e:
+            logger.error(f"ハイブリッド分析器の初期化に失敗: {e}")
+            logger.info("レガシー分析器にフォールバックします")
+            return LegacySentimentAnalyzer()
+    
+    def analyze(self, text: str) -> Tuple[float, SentimentCategory]:
+        """
+        感情分析を実行する
+        
+        後方互換性を保つインターフェース
+        """
+        try:
+            if hasattr(self._impl, 'analyze'):
+                result = self._impl.analyze(text)
+                # ハイブリッドの場合はメタデータを除外
+                if len(result) > 2:
+                    return result[0], result[1]
+                return result
+            else:
+                # フォールバック
+                return 50.0, SentimentCategory.NEUTRAL
+        except Exception as e:
+            logger.error(f"感情分析エラー: {e}")
+            return 50.0, SentimentCategory.NEUTRAL
+    
+    def analyze_with_metadata(self, text: str) -> Tuple[float, SentimentCategory, Dict[str, Any]]:
+        """
+        メタデータ付きで感情分析を実行する
+        
+        新しいインターフェース（ハイブリッド専用）
+        """
+        if hasattr(self._impl, 'analyze') and hasattr(self._impl, 'get_metrics'):
+            # ハイブリッド分析器
+            return self._impl.analyze(text)
+        else:
+            # レガシー分析器
+            score, category = self._impl.analyze(text)
+            metadata = {
+                'method': 'legacy',
+                'implementation': type(self._impl).__name__
+            }
+            return score, category, metadata
+    
+    def get_analyzer_info(self) -> Dict[str, Any]:
+        """分析器の情報を取得"""
+        info = {
+            'implementation': type(self._impl).__name__,
+            'version': '2.0.0'
+        }
+        
+        if hasattr(self._impl, 'get_analyzer_status'):
+            # ハイブリッド分析器
+            info.update(self._impl.get_analyzer_status())
+        elif hasattr(self._impl, 'nlp'):
+            # レガシー分析器
+            info.update({
+                'spacy_available': SPACY_AVAILABLE,
+                'ginza_model': str(self._impl.nlp.meta.get('name', 'unknown')) if self._impl.nlp else None,
+                'dictionary_size': len(self._impl.sentiment_dict) if hasattr(self._impl, 'sentiment_dict') else 0
+            })
+        
+        return info
+    
+    def get_metrics(self) -> Dict[str, Any]:
+        """パフォーマンスメトリクスを取得（ハイブリッド専用）"""
+        if hasattr(self._impl, 'get_metrics'):
+            return self._impl.get_metrics()
+        else:
+            return {'error': 'メトリクスはハイブリッド実装でのみ利用可能です'}
+
+
+class LegacySentimentAnalyzer:
     """ginza+spacyによる感情分析クラス"""
+    
+    # 動的閾値設定
+    SENTIMENT_THRESHOLDS = {
+        'strong_negative': 20,
+        'mild_negative': 40,
+        'neutral': 60,
+        'mild_positive': 80,
+        'strong_positive': 90
+    }
+    
+    # 文脈修飾子の重み付け
+    CONTEXT_MODIFIERS = {
+        'negation': -0.8,
+        'intensifier': 1.5,
+        'diminisher': 0.6,
+        'uncertainty': 0.7
+    }
     
     def __init__(self):
         self.nlp: Optional[Language] = None
@@ -162,6 +293,145 @@ class SentimentAnalyzer:
         self.sentiment_dict.update(basic_emotions)
         logger.info(f"フォールバック辞書を使用: {len(basic_emotions)}語")
     
+    def extract_emotion_bearing_tokens(self, doc) -> List[Tuple[str, str, str]]:
+        """感情を表す可能性のあるトークンを抽出"""
+        emotion_tokens = []
+        
+        for sent in doc.sents:
+            for token in sent:
+                # 品詞フィルタを拡張
+                if token.pos_ in ['NOUN', 'PROPN', 'VERB', 'ADJ', 'ADV', 'AUX', 'INTJ']:
+                    emotion_tokens.append((token.lemma_, token.text, token.pos_))
+                
+                # 活用形も考慮（「頑張る」→「頑張ろう」）
+                if token.pos_ == 'VERB' and token.text != token.lemma_:
+                    emotion_tokens.append((token.text, token.text, 'VERB_CONJUGATED'))
+        
+        return emotion_tokens
+    
+    def should_filter_context_dependent(self, word: str, pos: str, sentence: str) -> bool:
+        """文脈依存語彙のフィルタリングを改善"""
+        # 除外すべき文脈依存語（機能語や一般名詞）
+        truly_context_dependent = {
+            'よく', 'ところ', 'こと', 'もの', 'ほんと', '人'
+        }
+        
+        # 感情に寄与する可能性がある語は除外しない
+        emotion_contributing = {
+            '今日', '明日', '気持ち', '一日', '毎日'
+        }
+        
+        if word in truly_context_dependent:
+            return True
+        
+        if word in emotion_contributing:
+            # 文の主要な内容語であれば保持
+            return False
+        
+        return False
+    
+    def calculate_weighted_score(self, word_scores: List[Tuple[str, float, str]]) -> float:
+        """品詞による重み付き平均を計算"""
+        weights = {
+            'ADJ': 1.5,    # 形容詞は感情表現として重要
+            'ADV': 1.2,    # 副詞も感情の強度を表す
+            'VERB': 1.0,   # 動詞は標準
+            'NOUN': 0.8,   # 名詞は補助的
+            'PROPN': 0.5,  # 固有名詞は感情への寄与が小さい
+            'VERB_CONJUGATED': 1.1  # 活用形は感情表現として重要
+        }
+        
+        weighted_sum = 0.0
+        total_weight = 0.0
+        
+        for word, score, pos in word_scores:
+            weight = weights.get(pos, 1.0)
+            weighted_sum += score * weight
+            total_weight += weight
+        
+        return weighted_sum / total_weight if total_weight > 0 else 0.0
+    
+    def integrate_context_score(self, base_score: float, context_score: float) -> float:
+        """文脈スコアを適切に統合"""
+        # 文脈スコアを0-1の範囲に正規化
+        normalized_context = (context_score + 1) / 2  # -1〜1を0〜1に変換
+        
+        # 重み付き結合（文脈の影響を20%に制限）
+        integrated_score = base_score * 0.8 + normalized_context * 0.2
+        
+        return integrated_score
+    
+    def normalize_score(self, raw_score: float, intensity: float = 1.0) -> float:
+        """統一された正規化処理"""
+        # -1〜1の範囲を想定し、0〜100に変換
+        # intensityを考慮した非線形変換
+        normalized = (math.tanh(raw_score * intensity * 2) + 1) / 2
+        
+        return normalized * 100
+    
+    def detect_positive_patterns(self, text: str) -> float:
+        """文章全体のポジティブパターンを検出"""
+        pattern_scores = {
+            # 励まし・決意表現
+            r'(頑張|がんば)(ろう|ります|る|って)': 0.7,
+            r'(笑顔|えがお)で': 0.8,
+            r'(楽し|たのし)(み|もう)': 0.8,
+            r'(素敵|すてき)な': 0.7,
+            r'(幸せ|しあわせ)に': 0.8,
+            
+            # 前向きな意図
+            r'ように(頑張|がんば|なり|する)': 0.6,
+            r'(できる|出来る)(よう|ように)': 0.6,
+            
+            # 挨拶・祝福
+            r'(おはよう|こんにちは|ありがとう)': 0.5,
+            r'(おめでとう|お疲れ様)': 0.6,
+        }
+        
+        total_score = 0.0
+        match_count = 0
+        
+        for pattern, score in pattern_scores.items():
+            if re.search(pattern, text):
+                total_score += score
+                match_count += 1
+        
+        return total_score / max(match_count, 1)
+    
+    def calculate_expression_weight(self, text: str) -> float:
+        """感嘆符や絵文字による感情強度の計算"""
+        weight = 1.0
+        
+        # 感嘆符の数と位置を考慮
+        exclamation_count = text.count('!') + text.count('！')
+        if exclamation_count > 0:
+            # 文末の感嘆符はより重要
+            if text.rstrip().endswith(('!', '！')):
+                weight *= (1.0 + 0.3 * min(exclamation_count, 3))
+            else:
+                weight *= (1.0 + 0.1 * exclamation_count)
+        
+        # 絵文字・顔文字の検出（簡易版）
+        positive_emojis = ['😊', '😄', '🙂', '👍', '✨', '🌟', '❤️', '(^_^)', '(^^)']
+        for emoji in positive_emojis:
+            if emoji in text:
+                weight *= 1.2
+        
+        return weight
+    
+    def calculate_confidence(self, matched_words: int, total_words: int, text_length: int) -> float:
+        """分析の信頼度を計算"""
+        # マッチ率
+        match_rate = matched_words / total_words if total_words > 0 else 0
+        
+        # テキスト長による信頼度
+        length_confidence = min(1.0, text_length / 50)  # 50文字で最大信頼度
+        
+        # 総合信頼度
+        confidence = (match_rate * 0.7 + length_confidence * 0.3)
+        
+        return round(confidence * 100, 1)
+    
     def _get_word_mapping(self) -> Dict[str, List[str]]:
         """表記揺れマッピング"""
         return {
@@ -220,54 +490,60 @@ class SentimentAnalyzer:
         if not SPACY_AVAILABLE or not self.nlp:
             # フォールバック: 基本的な感情推定
             context_score, _ = self._apply_context_based_fallback(text)
-            sentiment_score = (context_score + 1.0) * 50.0
-            sentiment_score = max(0.0, min(100.0, sentiment_score))
+            sentiment_score = self.normalize_score(context_score)
+            
             return sentiment_score, self._score_to_category(sentiment_score)
         
         if not text.strip():
             return 50.0, SentimentCategory.NEUTRAL
         
         doc = self.nlp(text)
-        analyzed_words = []
+        
+        #　感情トークン抽出
+        emotion_tokens = self.extract_emotion_bearing_tokens(doc)
         matched_words = []
-        score = 0.0
         
         word_mapping = self._get_word_mapping()
         force_positive = self._get_force_positive_words()
         
-        # 形態素解析による語彙分析
-        for sent in doc.sents:
-            for token in sent:
-                if token.pos_ in ['NOUN', 'PROPN', 'VERB', 'ADJ', 'ADV']:
-                    word = token.lemma_
-                    surface = token.text
-                    analyzed_words.append((word, surface, token.pos_))
-                    
-                    # 感情スコアの取得
-                    word_score = self._get_word_sentiment_score(
-                        word, surface, token.pos_, word_mapping, force_positive
-                    )
-                    
-                    if word_score is not None:
-                        adjusted_score = self._adjust_score_by_context(
-                            word_score, word, token.pos_
-                        )
-                        score += adjusted_score
-                        matched_words.append((word, adjusted_score, token.pos_))
+        # 語彙分析と重み付きスコア計算
+        for word, surface, pos in emotion_tokens:
+            # 文脈依存語彙のフィルタリング
+            if self.should_filter_context_dependent(word, pos, text):
+                continue
+            
+            # 感情スコアの取得
+            word_score = self._get_word_sentiment_score(
+                word, surface, pos, word_mapping, force_positive
+            )
+            
+            if word_score is not None:
+                # 改善されたスコア調整
+                adjusted_score = self._adjust_score_by_context_improved(
+                    word_score, word, pos, text
+                )
+                matched_words.append((word, adjusted_score, pos))
         
-        # 基本スコア計算
-        if len(analyzed_words) > 0:
-            avg_score = score / len(analyzed_words)
+        # 重み付き平均による基本スコア計算
+        if matched_words:
+            base_score = self.calculate_weighted_score(matched_words)
         else:
-            avg_score = 0.0
+            base_score = 0.0
         
-        # 文脈ベースの補完
-        context_score, context_patterns = self._apply_context_based_fallback(text)
-        avg_score += context_score
+        # 文脈ベースの補完とパターン認識
+        context_score, _ = self._apply_context_based_fallback(text)
+        positive_patterns = self.detect_positive_patterns(text)
         
-        # 0-100スケールに正規化
-        sentiment_score = (avg_score + 1.0) * 50.0
-        sentiment_score = max(0.0, min(100.0, sentiment_score))
+        # 文脈スコアの統合
+        integrated_score = self.integrate_context_score(base_score, context_score)
+        integrated_score += positive_patterns * 0.5  # パターンスコアを追加
+        
+        # 表現重みの適用
+        expression_weight = self.calculate_expression_weight(text)
+        integrated_score *= expression_weight
+        
+        # 統一された正規化処理
+        sentiment_score = self.normalize_score(integrated_score)
         
         # カテゴリ分類
         category = self._score_to_category(sentiment_score)
@@ -312,47 +588,121 @@ class SentimentAnalyzer:
         
         return None
     
-    def _adjust_score_by_context(self, score: float, word: str, pos: str) -> float:
-        """文脈を考慮したスコア調整"""
-        # 文脈依存語彙のフィルタリング
-        context_dependent = [
-            'よく', 'ところ', 'すぎる', 'なる', 'いく', 'みる', '見る',
-            '人', 'こと', 'もの', 'ほんと', '超', 'とても', '日', '映画',
-            '料理', '本当', '今日', '気持ち', 'いっぱい'
-        ]
+    def _adjust_score_by_context_improved(self, score: float, word: str, pos: str, 
+                                        sentence_context: str = "") -> float:
+        """文脈を考慮したスコア調整（改善版）"""
+        # 真に文脈依存的で感情価値が低い語のみフィルタ
+        truly_neutral_words = {'ところ', 'こと', 'もの', 'よく', 'みる'}
         
-        if word in context_dependent and score < 0:
-            return 0.0  # ネガティブスコアを無効化
+        if word in truly_neutral_words and abs(score) < 0.3:
+            return 0.0
         
-        # スコア調整
+        # 文脈修飾子の適用
+        modifier = self._detect_context_modifier(sentence_context, word)
+        if modifier:
+            score *= self.CONTEXT_MODIFIERS[modifier]
+        
+        # スコア調整を緩和
         if score < 0:
+            # ネガティブスコアの過度な抑制を避ける
             if score >= -0.3:
-                return score * 0.2  # 微弱ネガティブは大幅軽減
+                return score * 0.5  # 0.2 → 0.5に緩和
             elif score >= -0.7:
-                return score * 0.5  # 中程度ネガティブは軽減
-        elif score > 0.5:
-            # ポジティブスコアの強化
-            if pos == 'ADJ':  # 形容詞は感情表現として重要
-                if score > 0.9:
-                    return score * 1.5
-                else:
-                    return score * 1.3
-            elif score > 0.9:
+                return score * 0.7  # 0.5 → 0.7に緩和
+        elif score > 0:
+            # ポジティブスコアの適切な強化
+            if pos in ['ADJ', 'VERB', 'INTJ']:  # 感情表現として重要な品詞
                 return score * 1.2
-            else:
-                return score * 1.1
         
         return score
     
+    def _adjust_score_by_context(self, score: float, word: str, pos: str, sentence_context: str = "") -> float:
+        """文脈を考慮したスコア調整"""
+        return self._adjust_score_by_context_improved(score, word, pos, sentence_context)
+    
+    def _detect_context_modifier(self, sentence_context: str, word: str) -> Optional[str]:
+        """文脈修飾子を検出する"""
+        # 否定語の検出
+        negation_words = ['ない', 'ではない', 'ではありません', 'くない', 'ずに']
+        for neg_word in negation_words:
+            if neg_word in sentence_context:
+                return 'negation'
+        
+        # 強調語の検出
+        intensifier_words = ['とても', '非常に', '超', 'めちゃ', 'すごく', '本当に', '実に', 'かなり']
+        for int_word in intensifier_words:
+            if int_word in sentence_context:
+                return 'intensifier'
+        
+        # 弱化語の検出
+        diminisher_words = ['少し', 'ちょっと', 'やや', 'わずかに', 'まあまあ', 'そこそこ']
+        for dim_word in diminisher_words:
+            if dim_word in sentence_context:
+                return 'diminisher'
+        
+        # 不確実性表現の検出
+        uncertainty_words = ['たぶん', 'おそらく', 'もしかしたら', 'なんとなく', 'ような気がする']
+        for unc_word in uncertainty_words:
+            if unc_word in sentence_context:
+                return 'uncertainty'
+        
+        return None
+    
+    # 旧版メソッドは下位互換性のため保持
+    def normalize_score_sigmoid(self, raw_score: float) -> float:
+        """シグモイド関数を使用した非線形正規化"""
+        sigmoid_score = 1 / (1 + math.exp(-raw_score * 3))
+        return sigmoid_score * 100
+    
+    def normalize_score_tanh(self, raw_score: float) -> float:
+        """双曲線正接を使用した正規化（より滑らかな変換）"""
+        tanh_score = (math.tanh(raw_score * 2) + 1) / 2
+        return tanh_score * 100
+    
+    def adjust_intensity(self, base_score: float, intensity_factor: float) -> float:
+        """感情強度に基づくスコア調整"""
+        if base_score > 50:  # ポジティブ
+            return base_score + (100 - base_score) * intensity_factor * 0.3
+        else:  # ネガティブ
+            return base_score - base_score * intensity_factor * 0.3
+    
+    def statistical_correction(self, raw_score: float, text_length: int) -> float:
+        """テキスト長と過去の分析結果を考慮した補正"""
+        length_factor = min(1.0, text_length / 100)  # 長文ほど信頼度UP
+        corrected_score = raw_score * (0.7 + 0.3 * length_factor)
+        return max(0.0, min(100.0, corrected_score))
+    
+    def _calculate_intensity_factor(self, text: str) -> float:
+        """テキストから感情強度を計算"""
+        intensity = 0.0
+        
+        # 感嘆符、疑問符の数
+        intensity += (text.count('!') + text.count('！')) * 0.2
+        intensity += (text.count('?') + text.count('？')) * 0.1
+        
+        # 強調表現
+        intensifiers = ['とても', '非常に', '超', 'めちゃ', 'すごく', '本当に', '実に']
+        for intensifier in intensifiers:
+            if intensifier in text:
+                intensity += 0.3
+        
+        # 弱化表現
+        diminishers = ['少し', 'ちょっと', 'やや', 'わずかに', 'まあまあ']
+        for diminisher in diminishers:
+            if diminisher in text:
+                intensity -= 0.2
+        
+        return max(0.0, min(1.0, intensity))
+    
     def _score_to_category(self, score: float) -> SentimentCategory:
-        """スコアをカテゴリに分類する"""
-        if score >= 81:
+        """動的閾値を使用してスコアをカテゴリに分類する"""
+        if score >= self.SENTIMENT_THRESHOLDS['strong_positive']:
             return SentimentCategory.STRONG_POSITIVE
-        elif score >= 61:
+        elif score >= self.SENTIMENT_THRESHOLDS['mild_positive']:
             return SentimentCategory.MILD_POSITIVE
-        elif score >= 40:
+        elif score >= self.SENTIMENT_THRESHOLDS['neutral']:
             return SentimentCategory.NEUTRAL
-        elif score >= 21:
+        elif score >= self.SENTIMENT_THRESHOLDS['mild_negative']:
             return SentimentCategory.MILD_NEGATIVE
         else:
             return SentimentCategory.STRONG_NEGATIVE 
