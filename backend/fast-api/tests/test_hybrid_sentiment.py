@@ -11,9 +11,8 @@ from unittest.mock import patch, MagicMock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from services.sentiment.rule_based_analyzer import RuleBasedSentimentAnalyzer, EmotionRule
-from services.sentiment.onnx_analyzer import DummyONNXAnalyzer
 from services.sentiment.hybrid_analyzer import HybridSentimentAnalyzer
-from services.sentiment.analyzer import SentimentAnalyzer, SentimentCategory, LegacySentimentAnalyzer
+from services.sentiment.analyzer import SentimentAnalyzer, SentimentCategory
 
 
 class TestRuleBasedAnalyzer:
@@ -127,36 +126,6 @@ class TestRuleBasedAnalyzer:
         assert len(details['matched_rules']) > 0
 
 
-class TestDummyONNXAnalyzer:
-    """ダミーONNX分析器のテスト"""
-    
-    def setup_method(self):
-        """各テストメソッドの前に実行"""
-        self.analyzer = DummyONNXAnalyzer()
-    
-    def test_basic_analysis(self):
-        """基本的な分析機能のテスト"""
-        text = "今日は楽しい一日でした"
-        score, category, probs = self.analyzer.analyze(text)
-        
-        assert 0 <= score <= 100, f"Score out of range: {score}"
-        assert isinstance(category, SentimentCategory)
-        assert isinstance(probs, dict)
-        assert 'positive' in probs
-        assert 'negative' in probs
-        assert 'neutral' in probs
-    
-    def test_availability(self):
-        """利用可能性チェックのテスト"""
-        assert self.analyzer.is_available() == True
-    
-    def test_model_info(self):
-        """モデル情報取得のテスト"""
-        info = self.analyzer.get_model_info()
-        assert 'available' in info
-        assert info['available'] == True
-        assert info['type'] == 'dummy'
-
 
 class TestHybridAnalyzer:
     """ハイブリッド感情分析器のテスト"""
@@ -166,8 +135,7 @@ class TestHybridAnalyzer:
         # テスト用の設定でハイブリッド分析器を初期化
         self.analyzer = HybridSentimentAnalyzer(
             confidence_threshold=0.7,
-            enable_onnx=True,
-            use_dummy_onnx=True  # テストではダミーを使用
+            enable_onnx=False  # テストではONNXを無効化
         )
     
     def test_high_confidence_rule_based(self):
@@ -281,47 +249,35 @@ class TestSentimentAnalyzerIntegration:
     
     def test_hybrid_mode(self):
         """ハイブリッドモードのテスト"""
-        with patch.dict(os.environ, {'USE_HYBRID_SENTIMENT': 'true', 'USE_DUMMY_ONNX': 'true'}):
-            analyzer = SentimentAnalyzer()
-            
-            score, category = analyzer.analyze("楽しい一日でした")
-            assert 0 <= score <= 100
-            assert isinstance(category, SentimentCategory)
-            
-            # メタデータ付き分析
-            score, category, metadata = analyzer.analyze_with_metadata("楽しい一日でした")
-            assert 'method' in metadata
-    
-    def test_legacy_mode(self):
-        """レガシーモードのテスト"""
-        with patch.dict(os.environ, {'USE_HYBRID_SENTIMENT': 'false'}):
-            analyzer = SentimentAnalyzer()
-            
-            # レガシー実装が使われているかチェック
-            info = analyzer.get_analyzer_info()
-            assert info['implementation'] == 'LegacySentimentAnalyzer'
+        analyzer = SentimentAnalyzer()
+        
+        score, category = analyzer.analyze("楽しい一日でした")
+        assert 0 <= score <= 100
+        assert isinstance(category, SentimentCategory)
+        
+        # メタデータ付き分析
+        score, category, metadata = analyzer.analyze_with_metadata("楽しい一日でした")
+        assert 'method' in metadata
     
     def test_analyzer_info(self):
         """分析器情報取得のテスト"""
-        with patch.dict(os.environ, {'USE_HYBRID_SENTIMENT': 'true', 'USE_DUMMY_ONNX': 'true'}):
-            analyzer = SentimentAnalyzer()
-            info = analyzer.get_analyzer_info()
-            
-            assert 'implementation' in info
-            assert 'version' in info
-            assert info['version'] == '2.0.0'
+        analyzer = SentimentAnalyzer()
+        info = analyzer.get_analyzer_info()
+        
+        assert 'implementation' in info
+        assert 'version' in info
+        assert info['version'] == '2.0.0'
     
     def test_metrics_access(self):
         """メトリクス取得のテスト"""
-        with patch.dict(os.environ, {'USE_HYBRID_SENTIMENT': 'true', 'USE_DUMMY_ONNX': 'true'}):
-            analyzer = SentimentAnalyzer()
-            
-            # 分析実行
-            analyzer.analyze("テストテキスト")
-            
-            metrics = analyzer.get_metrics()
-            assert isinstance(metrics, dict)
-            assert 'total_requests' in metrics
+        analyzer = SentimentAnalyzer()
+        
+        # 分析実行
+        analyzer.analyze("テストテキスト")
+        
+        metrics = analyzer.get_metrics()
+        assert isinstance(metrics, dict)
+        assert 'total_requests' in metrics
 
 
 class TestPerformance:

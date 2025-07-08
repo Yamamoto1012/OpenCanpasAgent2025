@@ -63,13 +63,11 @@ class SentimentConfig:
     
     def __init__(self) -> None:
         """感情分析に関する設定を環境変数から読み込む"""
-        self.use_hybrid: bool = os.getenv('USE_HYBRID_SENTIMENT', 'true').lower() == 'true'
         self.confidence_threshold: float = float(os.getenv('SENTIMENT_CONFIDENCE_THRESHOLD', '0.7'))
         self.max_text_length: int = int(os.getenv('SENTIMENT_MAX_TEXT_LENGTH', '10000'))
         self.max_batch_size: int = int(os.getenv('SENTIMENT_MAX_BATCH_SIZE', '100'))
         self.enable_onnx: bool = os.getenv('ENABLE_ONNX_SENTIMENT', 'true').lower() == 'true'
         self.onnx_model_path: str = os.getenv('ONNX_MODEL_PATH', '')
-        self.use_dummy_onnx: bool = os.getenv('USE_DUMMY_ONNX', 'false').lower() == 'true'
 
 
 # 設定インスタンスを作成

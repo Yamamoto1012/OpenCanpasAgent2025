@@ -11,7 +11,7 @@ import os
 
 from .analyzer import SentimentCategory
 from .rule_based_analyzer import RuleBasedSentimentAnalyzer
-from .onnx_analyzer import ONNXSentimentAnalyzer, DummyONNXAnalyzer
+from .onnx_analyzer import ONNXSentimentAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +23,7 @@ class HybridSentimentAnalyzer:
         self,
         confidence_threshold: float = 0.7,
         enable_onnx: bool = True,
-        onnx_model_path: Optional[str] = None,
-        use_dummy_onnx: bool = False
+        onnx_model_path: Optional[str] = None
     ):
         """
         ハイブリッド分析器を初期化
@@ -33,11 +32,9 @@ class HybridSentimentAnalyzer:
             confidence_threshold: ルールベースからONNXに切り替える信頼度の閾値
             enable_onnx: ONNX分析器を有効にするか
             onnx_model_path: ONNXモデルのパス
-            use_dummy_onnx: ダミーONNX分析器を使用するか（テスト用）
         """
         self.confidence_threshold = confidence_threshold
         self.enable_onnx = enable_onnx
-        self.use_dummy_onnx = use_dummy_onnx
         
         # ルールベースアナライザーは常に初期化
         self.rule_analyzer = RuleBasedSentimentAnalyzer()
@@ -70,30 +67,19 @@ class HybridSentimentAnalyzer:
             return False
         
         try:
-            if self.use_dummy_onnx:
-                self.onnx_analyzer = DummyONNXAnalyzer()
-                logger.info("ダミーONNX分析器を初期化しました")
+            self.onnx_analyzer = ONNXSentimentAnalyzer(self.onnx_model_path)
+            if not self.onnx_analyzer.is_available():
+                logger.warning("ONNX分析器が利用できません")
+                self.enable_onnx = False
+                return False
             else:
-                self.onnx_analyzer = ONNXSentimentAnalyzer(self.onnx_model_path)
-                if not self.onnx_analyzer.is_available():
-                    logger.warning("ONNX分析器が利用できません。ダミー分析器にフォールバックします")
-                    self.onnx_analyzer = DummyONNXAnalyzer()
-                else:
-                    logger.info("ONNX分析器を初期化しました")
-            
-            return True
+                logger.info("ONNX分析器を初期化しました")
+                return True
             
         except Exception as e:
             logger.error(f"ONNX分析器の初期化に失敗: {e}")
-            # フォールバック: ダミー分析器
-            try:
-                self.onnx_analyzer = DummyONNXAnalyzer()
-                logger.info("ダミー分析器にフォールバックしました")
-                return True
-            except Exception as fallback_error:
-                logger.error(f"ダミー分析器の初期化も失敗: {fallback_error}")
-                self.enable_onnx = False
-                return False
+            self.enable_onnx = False
+            return False
     
     def analyze(self, text: str) -> Tuple[float, SentimentCategory, Dict[str, Any]]:
         """ハイブリッド感情分析を実行"""
@@ -310,8 +296,7 @@ class HybridSentimentAnalyzer:
             },
             'hybrid_config': {
                 'confidence_threshold': self.confidence_threshold,
-                'enable_onnx': self.enable_onnx,
-                'use_dummy_onnx': self.use_dummy_onnx
+                'enable_onnx': self.enable_onnx
             }
         }
         
