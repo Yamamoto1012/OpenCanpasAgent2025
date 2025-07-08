@@ -4,7 +4,7 @@ AivisSpeech API サーバーのデータモデル
 リクエストとレスポンスのデータ構造を定義する。
 """
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Literal, Optional
+from typing import Dict, Any, Literal, Optional, List, Union
 
 # 音声合成リクエストモデル
 class TextRequest(BaseModel):
@@ -45,10 +45,23 @@ class StatusResponse(BaseModel):
 
 class SentimentRequest(BaseModel):
     """感情分析リクエストモデル"""
-    text: str = Field(..., description="感情分析を行うテキスト", example="スマホのカメラロールなんてどうせ私ばっかでしょ！？ むしろそうじゃなきゃ一生許さない！ ")
+    texts: Union[str, List[str]] = Field(
+        ...,
+        description="分析するテキスト（文字列または文字列のリスト）",
+        example="今日は楽しい一日でした！"
+    )
+
+
+class SentimentResult(BaseModel):
+    """個別の感情分析結果"""
+    text: str = Field(..., description="分析対象テキスト")
+    score: float = Field(..., description="感情スコア（0-100）", ge=0, le=100)
+    category: str = Field(..., description="感情カテゴリ", example="mild_positive")
+    confidence: float = Field(..., description="分析の信頼度（0-1）", ge=0, le=1)
+    method: str = Field(..., description="使用した分析手法", example="hybrid")
 
 
 class SentimentResponse(BaseModel):
     """感情分析レスポンスモデル"""
-    score: float = Field(..., description="感情スコア（0-100）", example=75.5)
-    category: str = Field(..., description="感情カテゴリ", example="mスマホのカメラロールなんてどうせ私ばっかでしょ！？ むしろそうじゃなきゃ一生許さない！ ")
+    results: List[SentimentResult] = Field(..., description="分析結果のリスト")
+    metadata: Dict[str, Any] = Field(..., description="処理に関するメタデータ")
