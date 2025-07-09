@@ -97,6 +97,8 @@ export const useStreamingTTS = (
 	const playAudioRef = useRef<typeof playAudio | null>(null);
 	const processQueueRef = useRef<typeof processQueue | null>(null);
 	const playNextItemRef = useRef<typeof playNextItem | null>(null);
+	// 処理中のアイテムIDを追跡
+	const processingItemsRef = useRef<Set<string>>(new Set());
 
 	/**
 	 * 状態を安全に更新する
@@ -284,6 +286,17 @@ export const useStreamingTTS = (
 			return;
 		}
 
+		// ここで即座にアイテムのIDを記録して重複防止
+		const processingItemId = nextItem.id;
+
+		// 既に処理中なら早期リターン
+		if (processingItemsRef.current.has(processingItemId)) {
+			return;
+		}
+
+		// 処理中としてマーク
+		processingItemsRef.current.add(processingItemId);
+
 		// アイテムを生成中に設定
 		setState((prev) => {
 			const updatedQueue = prev.queue.map((item) =>
@@ -335,6 +348,10 @@ export const useStreamingTTS = (
 							isGenerating: false, // エラー時もfalseに設定
 						};
 					});
+				})
+				.finally(() => {
+					// 処理完了後、処理中リストから削除
+					processingItemsRef.current.delete(processingItemId);
 				});
 		}
 	}, []);

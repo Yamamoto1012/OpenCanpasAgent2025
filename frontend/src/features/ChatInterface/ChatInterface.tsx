@@ -284,11 +284,9 @@ export const ChatInterface = forwardRef<
 			const payloadQuery = buildPrompt(trimmed, currentLanguage);
 			let accumulatedText = "";
 			let lastProcessedLength = 0; // 重複防止用の追跡変数
+			const processedSentences = new Set<string>();
 
-			let chunkCount = 0;
-			const allChunks: string[] = []; // すべてのチャンクを記録
-
-			// 改善された文検出器を初期化（OpenAI ChatGPT方式）
+			// 改善された文検出器を初期化
 			const sentenceDetector = createSentenceDetector({
 				sentenceDelimiter: /[。！？\n]/,
 				minSentenceLength: 3, // 最小文字数を3に減らす
@@ -301,9 +299,6 @@ export const ChatInterface = forwardRef<
 				controller.signal,
 				(chunk) => {
 					if (chunk.type === "content" && chunk.content) {
-						chunkCount++;
-						allChunks.push(chunk.content); // すべてのチャンクを記録
-
 						// 重複チェック
 						const previousText = accumulatedText;
 						accumulatedText += chunk.content;
@@ -326,8 +321,13 @@ export const ChatInterface = forwardRef<
 
 								// 完成した文を音声キューに追加
 								for (const sentence of detectionResult.completeSentences) {
-									if (sentence.trim()) {
-										streamingTTS.addToQueue(sentence.trim());
+									const trimmedSentence = sentence.trim();
+									if (
+										trimmedSentence &&
+										!processedSentences.has(trimmedSentence)
+									) {
+										processedSentences.add(trimmedSentence);
+										streamingTTS.addToQueue(trimmedSentence);
 										updateAudioStreamingState({
 											queuedMessageIds: [
 												...audioStreamingState.queuedMessageIds,
@@ -361,9 +361,10 @@ export const ChatInterface = forwardRef<
 						// 残りのテキストを処理
 						const finalSentences = sentenceDetector.finalize();
 						for (const sentence of finalSentences) {
-							if (sentence.trim()) {
-								console.log(`最終文を音声キューに追加: "${sentence}"`);
-								streamingTTS.addToQueue(sentence.trim());
+							const trimmedSentence = sentence.trim();
+							if (trimmedSentence && !processedSentences.has(trimmedSentence)) {
+								processedSentences.add(trimmedSentence);
+								streamingTTS.addToQueue(trimmedSentence);
 							}
 						}
 
