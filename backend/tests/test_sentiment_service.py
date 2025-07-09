@@ -410,15 +410,16 @@ class TestContextAwareScoring:
             normalized = analyzer.normalize_score_sigmoid(score)
             assert 0.0 <= normalized <= 100.0
     
-    def test_tanh_normalization(self):
-        """双曲線正接正規化のテスト"""
-        analyzer = SentimentAnalyzer()
+    def test_linear_normalization(self):
+        """線形正規化のテスト"""
+        from services.sentiment.rule_based_analyzer import RuleBasedSentimentAnalyzer
+        analyzer = RuleBasedSentimentAnalyzer()
         
         # 各種スコアでの正規化テスト
         test_scores = [-2.0, -1.0, 0.0, 1.0, 2.0]
         
         for score in test_scores:
-            normalized = analyzer.normalize_score_tanh(score)
+            normalized = analyzer._normalize_score(score)
             assert 0.0 <= normalized <= 100.0
     
     def test_statistical_correction(self):
@@ -474,14 +475,15 @@ class TestNewNormalizationMethods:
         # 数値の関係性を確認
         assert extreme_negative < neutral < extreme_positive
     
-    def test_normalize_score_tanh_range(self):
-        """双曲線正接正規化の範囲テスト"""
-        analyzer = SentimentAnalyzer()
+    def test_normalize_score_linear_range(self):
+        """線形正規化の範囲テスト"""
+        from services.sentiment.rule_based_analyzer import RuleBasedSentimentAnalyzer
+        analyzer = RuleBasedSentimentAnalyzer()
         
         # 極端値でのテスト
-        extreme_negative = analyzer.normalize_score_tanh(-10.0)
-        extreme_positive = analyzer.normalize_score_tanh(10.0)
-        neutral = analyzer.normalize_score_tanh(0.0)
+        extreme_negative = analyzer._normalize_score(-10.0)
+        extreme_positive = analyzer._normalize_score(10.0)
+        neutral = analyzer._normalize_score(0.0)
         
         assert 0.0 <= extreme_negative <= 100.0
         assert 0.0 <= extreme_positive <= 100.0
