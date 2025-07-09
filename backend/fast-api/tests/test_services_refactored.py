@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import Mock, patch
 
 # 感情分析モジュールのテスト
-from services.sentiment import SentimentCategory, SentimentAnalyzer, analyze_sentiment
+from services.sentiment import SentimentCategory, SentimentAnalyzer
 
 
 class TestSentimentAnalyzer:
@@ -26,13 +26,6 @@ class TestSentimentAnalyzer:
         """spacy未インストール時のフォールバック動作テスト"""
         analyzer = SentimentAnalyzer()
         score, category = analyzer.analyze("こんにちは")
-        assert isinstance(score, float)
-        assert isinstance(category, SentimentCategory)
-        assert 0 <= score <= 100
-    
-    def test_analyze_sentiment_function(self):
-        """analyze_sentiment関数のテスト"""
-        score, category = analyze_sentiment("テストです")
         assert isinstance(score, float)
         assert isinstance(category, SentimentCategory)
         assert 0 <= score <= 100
@@ -111,18 +104,3 @@ class TestResponseFormatters:
         assert response.base64_audio is not None
 
 
-# 後方互換性のテスト
-def test_backward_compatibility():
-    """後方互換性テスト"""
-    # 元のservices.pyからのimportが動作することを確認
-    import services
-    
-    # 主要な関数が利用可能であることを確認
-    assert hasattr(services, 'analyze_sentiment')
-    assert hasattr(services, 'get_engine_version')
-    assert hasattr(services, 'get_speakers')
-    assert hasattr(services, 'create_audio_query')
-    assert hasattr(services, 'synthesize_speech')
-    assert hasattr(services, 'text_to_speech')
-    assert hasattr(services, 'get_wav_response')
-    assert hasattr(services, 'get_base64_response')

@@ -120,9 +120,10 @@ def test_normalization_methods():
         normalized = analyzer.normalize_score_sigmoid(score)
         print(f"入力: {score:4.1f} -> 出力: {normalized:6.2f}")
     
-    print("\n3. tanh正規化 (normalize_score_tanh)")
+    print("\n3. 線形正規化")
     for score in test_scores:
-        normalized = analyzer.normalize_score_tanh(score)
+        # 現在の実装では normalize_score メソッドが線形正規化を使用
+        normalized = analyzer.normalize_score(score)
         print(f"入力: {score:4.1f} -> 出力: {normalized:6.2f}")
 
 

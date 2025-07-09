@@ -45,8 +45,12 @@ def analyze_sentiment_batch(texts: List[str]) -> List[SentimentResult]:
     """
     analyzer = get_sentiment_analyzer()
     results = []
+    success_count = 0
+    error_count = 0
     
-    for text in texts:
+    logger.info(f"バッチ感情分析開始: {len(texts)}件のテキストを処理")
+    
+    for i, text in enumerate(texts):
         try:
             score, category, metadata = analyzer.analyze_with_metadata(text)
             results.append(SentimentResult(
@@ -56,8 +60,13 @@ def analyze_sentiment_batch(texts: List[str]) -> List[SentimentResult]:
                 confidence=metadata.get('confidence', 0.0),
                 method=metadata.get('method', 'unknown')
             ))
+            success_count += 1
+            
         except Exception as e:
-            logger.error(f"感情分析エラー: {e}")
+            # テキストの先頭部分をログに含める（
+            text_preview = text[:50] + "..." if len(text) > 50 else text
+            logger.error(f"感情分析エラー (テキスト{i+1}/{len(texts)}): {e} - テキスト: '{text_preview}'")
+            
             # エラー時はニュートラルを返す
             results.append(SentimentResult(
                 text=text,
@@ -66,5 +75,7 @@ def analyze_sentiment_batch(texts: List[str]) -> List[SentimentResult]:
                 confidence=0.0,
                 method='error'
             ))
+            error_count += 1
     
+    logger.info(f"バッチ感情分析完了: 成功={success_count}, エラー={error_count}")
     return results 

@@ -6,8 +6,8 @@ from typing import List
 from fastapi import APIRouter, HTTPException, status
 
 from config import sentiment_config
-from models import SentimentRequest, SentimentResponse, SentimentResult
-from services.sentiment import get_sentiment_analyzer, SentimentCategory
+from models import SentimentRequest, SentimentResponse
+from services.sentiment import analyze_sentiment_batch
 
 # APIルートを作成
 router = APIRouter(tags=["sentiment"])
@@ -55,19 +55,8 @@ async def analyze_sentiment(request: SentimentRequest) -> SentimentResponse:
             )
     
     try:
-        # 分析実行
-        analyzer = get_sentiment_analyzer()
-        results = []
-        
-        for text in texts:
-            score, category, metadata = analyzer.analyze_with_metadata(text)
-            results.append(SentimentResult(
-                text=text,
-                score=score,
-                category=category.value,
-                confidence=metadata.get('confidence', 0.0),
-                method=metadata.get('method', 'unknown')
-            ))
+        # バッチ分析実行
+        results = analyze_sentiment_batch(texts)
         
         processing_time = time.time() - start_time
         

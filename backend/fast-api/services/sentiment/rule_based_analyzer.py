@@ -216,11 +216,13 @@ class RuleBasedSentimentAnalyzer:
         return modified_score
     
     def _normalize_score(self, raw_score: float) -> float:
-        """スコアを0-100の範囲に正規化"""
-        # -2.0〜2.0の範囲を想定
-        import math
-        normalized = (math.tanh(raw_score) + 1) / 2
-        return normalized * 100
+        """スコアを0-100の範囲に線形正規化"""
+        # -2.0〜2.0の範囲を想定して線形マッピング
+        # 境界値でクリッピング
+        clipped_score = max(-2.0, min(2.0, raw_score))
+        # -2.0〜2.0を0〜100にマッピング
+        normalized = ((clipped_score + 2.0) / 4.0) * 100
+        return normalized
     
     def _calculate_confidence(self, text: str, matches: List[EmotionRule],
                             has_negation: bool, intensifier_factor: float,
