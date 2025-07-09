@@ -2,7 +2,6 @@ import type { Message } from "@/store/chatAtoms";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { ChatMessageItem } from "./ChatMessageItem";
-import { ChatThinkingIndicator } from "./ChatThinkingIndicator";
 
 export type ChatMessagesProps = {
 	messages: Message[];
@@ -18,7 +17,6 @@ export type ChatMessagesProps = {
  */
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
 	messages,
-	isThinking,
 	messagesEndRef,
 }) => {
 	const { t } = useTranslation("chat");
@@ -46,7 +44,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
 				{messages.map((message) => (
 					<ChatMessageItem key={message.id} message={message} />
 				))}
-				{isThinking && <ChatThinkingIndicator />}
 				<div ref={messagesEndRef} className="h-1" />
 			</div>
 		</div>
