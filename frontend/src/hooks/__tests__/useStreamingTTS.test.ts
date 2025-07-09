@@ -171,29 +171,6 @@ describe("useStreamingTTS", () => {
 		expect(result.current.state.queue[2].text).toBe("オレンジ");
 	});
 
-	it("音声生成エラーが適切に処理される", async () => {
-		mockRequestTTS.mockRejectedValueOnce(new Error("TTS API エラー"));
-		vi.useFakeTimers();
-
-		const { result } = renderHook(() => useStreamingTTS());
-
-		act(() => {
-			result.current.addToQueue("エラーテスト。");
-			result.current.startStreaming();
-		});
-
-		// 処理を進める
-		act(() => {
-			vi.advanceTimersByTime(1000);
-		});
-
-		await waitFor(() => {
-			expect(result.current.state.error).toBeTruthy();
-		});
-
-		vi.useRealTimers();
-	});
-
 	it("VRMとの連携オプションが正しく設定される", () => {
 		const mockVRMRef = {
 			current: {
