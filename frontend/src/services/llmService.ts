@@ -12,11 +12,21 @@ type QueryRequest = {
 	query: string;
 	context?: Record<string, unknown>;
 	language?: SupportedLanguage;
+	stream?: boolean;
 };
 
 type QueryResponse = {
 	answer: string;
 	metadata?: Record<string, unknown>;
+};
+
+// ストリーミングレスポンスの型定義
+type StreamChunk = {
+	id: string;
+	type: "start" | "content" | "done" | "error";
+	content?: string;
+	metadata?: Record<string, unknown>;
+	timestamp: string;
 };
 
 /**
@@ -35,10 +45,96 @@ export const buildPrompt = (query: string, lang: "ja" | "en") =>
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * ストリーミング対応のgenerateText関数
+ * @param query ユーザーからの入力テキスト
+ * @param context 必要に応じて追加のコンテキスト情報
+ * @param signal APIリクエストを中止するためのAbortSignal
+ * @param onChunk ストリーミングチャンクを受信した際のコールバック
+ * @param endpoint APIのエンドポイント
+ * @param language 応答言語
+ * @returns 生成されたテキスト応答
+ */
+export async function generateTextStream(
+	query: string,
+	context?: Record<string, unknown>,
+	signal?: AbortSignal,
+	onChunk?: (chunk: StreamChunk) => void,
+	endpoint = "/query",
+	language?: SupportedLanguage,
+): Promise<string> {
+	const payload: QueryRequest = {
+		query,
+		context,
+		language: language || "ja",
+		stream: true,
+	};
+
+	try {
+		// ストリーミング対応のAPIエンドポイントにリクエストを送信
+		const response = await fetch(`${API_BASE_URL}/llm${endpoint}`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(payload),
+			signal,
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const reader = response.body?.getReader();
+		const decoder = new TextDecoder();
+		let fullText = "";
+
+		if (!reader) {
+			throw new Error("Response body is not readable");
+		}
+
+		while (true) {
+			const { done, value } = await reader.read();
+
+			if (done) break;
+
+			const chunk = decoder.decode(value, { stream: true });
+			const lines = chunk.split("\n");
+
+			for (const line of lines) {
+				if (line.trim()) {
+					try {
+						const data: StreamChunk = JSON.parse(line);
+
+						if (data.type === "content" && data.content) {
+							fullText += data.content;
+							onChunk?.(data);
+						} else if (data.type === "error") {
+							throw new Error(data.content || "Stream error");
+						} else if (data.type === "done") {
+							onChunk?.(data);
+						}
+					} catch (e) {
+						console.error("Failed to parse stream chunk:", e);
+					}
+				}
+			}
+		}
+
+		return fullText;
+	} catch (error) {
+		if (error instanceof Error && error.name === "AbortError") {
+			throw error;
+		}
+		console.error("Stream error:", error);
+		throw new Error("Failed to generate response");
+	}
+}
+
+/**
  * LLM APIにテキストクエリを送信し、生成されたテキストを取得する
  * @param query ユーザーからの入力テキスト
  * @param context 必要に応じて追加のコンテキスト情報
- * @param signal APIリクエストを中止するためのAbortSingal
+ * @param signal APIリクエストを中止するためのAbortSignal
  * @param retries 残りの再試行回数（内部使用）
  * @param endpoint APIのエンドポイント
  * @param language 応答言語
@@ -52,25 +148,52 @@ export const generateText = async (
 	endpoint = "/query",
 	language?: SupportedLanguage,
 ): Promise<string> => {
-	try {
-		const response = await fetch(`${API_BASE_URL}/llm${endpoint}`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				query,
-				context,
-				language,
-			} as QueryRequest),
-			signal,
-		});
+	// 音声モードは非ストリーミング
+	if (endpoint === "/voice_mode_answer") {
+		const payload: QueryRequest = {
+			query,
+			context,
+			language: language || "ja",
+			stream: false,
+		};
 
-		if (!response.ok) {
-			// APIエラー時の処理
-			if (retries > 0 && (response.status === 503 || response.status === 504)) {
+		try {
+			const response = await fetch(`${API_BASE_URL}/api/llm${endpoint}`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(payload),
+				signal,
+			});
+
+			if (!response.ok) {
+				if (
+					retries > 0 &&
+					(response.status === 503 || response.status === 504)
+				) {
+					console.warn(
+						`API一時利用不可 (${response.status})、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
+					);
+					await sleep(RETRY_DELAY);
+					return generateText(
+						query,
+						context,
+						signal,
+						retries - 1,
+						endpoint,
+						language,
+					);
+				}
+				throw new Error(`API error: ${response.status}`);
+			}
+
+			const data: QueryResponse = await response.json();
+			return data.answer;
+		} catch (error) {
+			if (retries > 0 && error instanceof TypeError) {
 				console.warn(
-					`API一時利用不可 (${response.status})、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
+					`ネットワークエラー、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
 				);
 				await sleep(RETRY_DELAY);
 				return generateText(
@@ -82,28 +205,18 @@ export const generateText = async (
 					language,
 				);
 			}
-			throw new Error(`API error: ${response.status}`);
+			console.error("Error generating text:", error);
+			throw error;
 		}
-
-		const data: QueryResponse = await response.json();
-		return data.answer;
-	} catch (error) {
-		// ネットワークエラーなどの場合も再試行
-		if (retries > 0 && error instanceof TypeError) {
-			console.warn(
-				`ネットワークエラー、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
-			);
-			await sleep(RETRY_DELAY);
-			return generateText(
-				query,
-				context,
-				signal,
-				retries - 1,
-				endpoint,
-				language,
-			);
-		}
-		console.error("Error generating text:", error);
-		throw error;
 	}
+
+	// 通常モードはストリーミングを使用
+	return generateTextStream(
+		query,
+		context,
+		signal,
+		undefined,
+		endpoint,
+		language,
+	);
 };

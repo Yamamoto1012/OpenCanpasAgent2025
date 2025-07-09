@@ -1,5 +1,6 @@
 import type { VRM } from "@pixiv/three-vrm";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { AudioQueueItem } from "../../../hooks/useStreamingTTS";
 import { LipSync } from "../LipSync/lipSync";
 import type { LipSyncAnalyzeResult } from "../LipSync/types";
 import { ExpressionManager } from "../VRMExpression/ExpressionManager";
@@ -103,11 +104,17 @@ type LipSyncMode = "acoustic" | "text" | "hybrid";
 /**
  * VRMモデルのリップシンク制御を行うフック
  * 音響データベースのリアルタイムリップシンクとテキストベースのフォールバックを提供
+ * ストリーミング音声キューとの連携
  * @param vrm VRMモデルインスタンス
  * @param isMuted 音声ミュート状態
+ * @param streamingAudioQueue ストリーミング音声キュー
  * @returns リップシンク制御のための関数と状態
  */
-export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
+export const useLipSync = (
+	vrm: VRM | null,
+	isMuted: boolean,
+	streamingAudioQueue?: AudioQueueItem[],
+) => {
 	const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
 	const [lipSyncMode, setLipSyncMode] = useState<LipSyncMode>("acoustic");
 	const lipSyncRef = useRef<LipSync | null>(null);
@@ -122,6 +129,35 @@ export const useLipSync = (vrm: VRM | null, isMuted: boolean) => {
 	useEffect(() => {
 		expressionManager.setVRM(vrm);
 	}, [vrm, expressionManager]);
+
+	// ストリーミング音声キューの監視とリップシンク連携
+	useEffect(() => {
+		if (!streamingAudioQueue || !expressionManager) return;
+
+		// キューに新しい音声アイテムが追加された場合の処理
+		const playingItem = streamingAudioQueue?.find((item) => item.isPlaying);
+		const generatingItem = streamingAudioQueue?.find(
+			(item) => item.isGenerating,
+		);
+
+		if (playingItem?.audioURL) {
+			// 現在再生中の音声に対してリップシンクを有効化
+			if (!isPlayingAudioRef.current) {
+				isPlayingAudioRef.current = true;
+				expressionManager.setLipSyncActive(true);
+			}
+		} else if (generatingItem) {
+			// 音声生成中の場合、テキストベースの仮リップシンクを実行
+			if (lipSyncMode === "text" || lipSyncMode === "hybrid") {
+				// 軽量なテキストベースリップシンクをトリガー
+				expressionManager.setLipSyncActive(true);
+			}
+		} else if (streamingAudioQueue?.length === 0 && isPlayingAudioRef.current) {
+			// キューが空になった場合、リップシンクを非有効化
+			isPlayingAudioRef.current = false;
+			expressionManager.setLipSyncActive(false);
+		}
+	}, [streamingAudioQueue, expressionManager, lipSyncMode]);
 
 	// AudioContextの初期化
 	// ユーザーのインタラクション後に初期化される

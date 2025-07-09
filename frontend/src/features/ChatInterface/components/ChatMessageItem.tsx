@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Message } from "@/store/chatAtoms";
 import type React from "react";
+import { BlinkingCursor } from "./BlinkingCursor";
 
 export type ChatMessageItemProps = {
 	message: Message;
@@ -50,9 +51,14 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
 			<div
 				className={`rounded-2xl p-3 px-4 max-w-[80%] shadow-sm ${
 					message.isUser ? "bg-green-100 text-left" : "bg-white text-left"
-				}`}
+				} ${message.isStreaming ? "animate-pulse-subtle" : ""}`}
 			>
-				<p className="text-gray-800">{message.text}</p>
+				<div className="text-gray-800 relative">
+					{message.text}
+					{message.isStreaming && !message.isUser && (
+						<BlinkingCursor className="inline-block" />
+					)}
+				</div>
 			</div>
 		</div>
 	);

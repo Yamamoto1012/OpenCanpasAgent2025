@@ -7,6 +7,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import type { AudioStreamingState } from "../../../store/chatAtoms";
 import { sentimentDebugAtom } from "../../../store/sentimentDebugStore";
 import type { SentimentCategory } from "../../../types/sentiment";
 import { VRMRender } from "../VRMRender/VRMRender";
@@ -27,6 +28,7 @@ export type VRMWrapperHandle = {
 type VRMWrapperProps = {
 	categoryDepth?: number;
 	isMuted: boolean;
+	audioStreamingState?: AudioStreamingState;
 	onThinkingStateChange?: (isThinking: boolean) => void;
 };
 
