@@ -63,7 +63,11 @@ export default function App() {
 	} = actions;
 
 	const handleAskQuestion = (question: string) => {
-		addMessage({ text: question, isUser: true });
+		addMessage({
+			id: Date.now(),
+			text: question,
+			isUser: true,
+		});
 		originalHandleAskQuestion(question);
 	};
 
