@@ -146,7 +146,7 @@ export const useStreamingTTS = (
 	);
 
 	/**
-	 * 音声生成を実行する（エラーハンドリング強化版）
+	 * 音声生成を実行する
 	 */
 	const generateAudio = useCallback(
 		async (item: AudioQueueItem): Promise<AudioQueueItem> => {
@@ -194,7 +194,6 @@ export const useStreamingTTS = (
 
 					// 最大再試行回数に達した場合
 					if (retryCount > maxRetries) {
-						console.error(`音声生成エラー (テキスト: "${item.text}")`, error);
 						return {
 							...item,
 							isGenerating: false,
@@ -266,15 +265,24 @@ export const useStreamingTTS = (
 	 */
 	const processQueue = useCallback(() => {
 		const currentState = stateRef.current;
+
+		// 生成中のアイテムがあるかチェック
+		const hasGeneratingItem = currentState.queue.some(
+			(item) => item.isGenerating,
+		);
+
+		if (hasGeneratingItem) {
+			return;
+		}
+
 		const nextItem = currentState.queue.find(
 			(item) =>
 				!item.isGenerating && !item.isPlaying && !item.audioURL && !item.error,
 		);
 
-		if (!nextItem || currentState.isGenerating) return;
-
-		// 音声生成開始前にログ出力（デバッグ用）
-		console.log("ストリーミング音声生成開始:", nextItem.text);
+		if (!nextItem) {
+			return;
+		}
 
 		// アイテムを生成中に設定
 		setState((prev) => {
@@ -299,15 +307,10 @@ export const useStreamingTTS = (
 							item.id === generatedItem.id ? generatedItem : item,
 						);
 
-						// 他に生成が必要なアイテムがあるかチェック
-						const hasMoreToGenerate = updatedQueue.some(
-							(item) => !item.isGenerating && !item.audioURL && !item.error,
-						);
-
 						return {
 							...prevState,
 							queue: updatedQueue,
-							isGenerating: hasMoreToGenerate, // 次に生成すべきアイテムがある場合は生成状態を維持
+							isGenerating: false,
 						};
 					});
 				})
@@ -329,9 +332,7 @@ export const useStreamingTTS = (
 						return {
 							...prevState,
 							queue: updatedQueue,
-							isGenerating: false,
-							error:
-								error instanceof Error ? error : new Error("音声生成エラー"),
+							isGenerating: false, // エラー時もfalseに設定
 						};
 					});
 				});
@@ -343,16 +344,24 @@ export const useStreamingTTS = (
 	 */
 	const playNextItem = useCallback(() => {
 		const currentState = stateRef.current;
+
+		// 再生中のアイテムがあるかチェック
+		const hasPlayingItem = currentState.queue.some((item) => item.isPlaying);
+
+		if (hasPlayingItem) {
+			console.log("PlayNextItem - Already playing an item");
+			return;
+		}
+
 		const nextPlayableItem = currentState.queue.find(
 			(item) => item.audioURL && !item.isPlaying && !item.error,
 		);
 
-		if (!nextPlayableItem || currentState.isPlaying) return;
+		if (!nextPlayableItem) {
+			return;
+		}
 
-		// 音声再生開始前にログ出力（デバッグ用）
-		console.log("ストリーミング音声再生開始:", nextPlayableItem.text);
-
-		// アイテムを再生中に設定（より早期に状態を更新）
+		// アイテムを再生中に設定
 		setState((prev) => ({
 			...prev,
 			isPlaying: true,
@@ -373,21 +382,15 @@ export const useStreamingTTS = (
 			.then(() => {
 				console.log("ストリーミング音声再生完了:", nextPlayableItem.text);
 				setState((finalState) => {
-					// 次に再生可能なアイテムがあるかチェック
 					const remainingQueue = finalState.queue.filter(
 						(item) => item.id !== nextPlayableItem.id,
-					);
-					const hasMorePlayable = remainingQueue.some(
-						(item) => item.audioURL && !item.error,
 					);
 
 					return {
 						...finalState,
 						queue: remainingQueue,
-						isPlaying: hasMorePlayable, // 次に再生可能なアイテムがある場合はisPlayingを維持
-						currentQueueItem: hasMorePlayable
-							? finalState.currentQueueItem
-							: null,
+						isPlaying: false,
+						currentQueueItem: null,
 					};
 				});
 			})
@@ -417,30 +420,17 @@ export const useStreamingTTS = (
 		// 定期的にキューを処理
 		processingIntervalRef.current = setInterval(() => {
 			if (isStreamingActiveRef.current) {
-				// 現在の状態をチェックして必要な処理を実行
-				const currentState = stateRef.current;
-
-				// 音声生成が必要な場合のみprocessQueueを実行
-				const needsGeneration = currentState.queue.some(
-					(item) => !item.isGenerating && !item.audioURL && !item.error,
-				);
-				if (
-					needsGeneration &&
-					!currentState.isGenerating &&
-					processQueueRef.current
-				) {
+				// 音声生成処理
+				if (processQueueRef.current) {
 					processQueueRef.current();
 				}
 
-				// 再生可能なアイテムがある場合のみplayNextItemを実行
-				const canPlay = currentState.queue.some(
-					(item) => item.audioURL && !item.isPlaying && !item.error,
-				);
-				if (canPlay && !currentState.isPlaying && playNextItemRef.current) {
+				// 音声再生処理
+				if (playNextItemRef.current) {
 					playNextItemRef.current();
 				}
 			}
-		}, 300); // 300ms間隔でチェック（より頻繁に）
+		}, 100); // 100msに短縮して反応性を向上
 	}, [updateState]);
 
 	/**

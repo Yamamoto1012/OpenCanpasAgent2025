@@ -14,7 +14,9 @@ import {
 import { useTranslation } from "react-i18next";
 
 import {
+	type Message,
 	addMessageAtom,
+	addMessageWithIdAtom,
 	audioStreamingStateAtom,
 	messagesAtom,
 	resetChatAtom,
@@ -67,6 +69,7 @@ export const ChatInterface = forwardRef<
 	const [isRecording] = useAtom(isRecordingAtom);
 	const toggleRecording = useSetAtom(toggleRecordingAtom);
 	const addMessage = useSetAtom(addMessageAtom);
+	const addMessageWithId = useSetAtom(addMessageWithIdAtom);
 	const updateMessage = useSetAtom(updateMessageAtom);
 	const resetChat = useSetAtom(resetChatAtom);
 	const startAudioStreaming = useSetAtom(startAudioStreamingAtom);
@@ -151,7 +154,17 @@ export const ChatInterface = forwardRef<
 	);
 
 	// メッセージIDを採番
-	const createId = () => Date.now() + Math.random();
+	const messageIdCounter = useRef(0);
+	const createId = () => {
+		messageIdCounter.current += 1;
+		return Date.now() * 1000 + messageIdCounter.current;
+	};
+
+	// メッセージ送信中断用のref
+	const abortRef = useRef<AbortController | null>(null);
+
+	// 重複実行防止フラグ
+	const isGeneratingRef = useRef(false);
 
 	// メッセージを入れる
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -214,32 +227,55 @@ export const ChatInterface = forwardRef<
 		setInput(e.target.value);
 	};
 
-	// メッセージ送信中断用のref
-	const abortRef = useRef<AbortController | null>(null);
-
 	// メッセージ送信処理（ストリーミング音声対応）
 	const handleSend = async () => {
 		const trimmed = input.trim();
 		if (!trimmed) return;
 
+		// 重複実行防止チェック
+		if (isGeneratingRef.current) {
+			console.warn("handleSend already in progress, skipping duplicate call");
+			return;
+		}
+
+		// 実行フラグを設定
+		isGeneratingRef.current = true;
+
 		// ユーザーメッセージを追加
 		pushMessage({ text: trimmed, isUser: true });
 
-		// 送信中のメッセージをキャンセル
+		// 既存の処理を中断
+		if (abortRef.current) {
+			abortRef.current.abort();
+		}
+
+		// 新しいコントローラーを作成
 		const controller = new AbortController();
 		abortRef.current = controller;
 
 		// 思考中状態に設定
 		setIsLoading(true);
 
+		// AIメッセージのIDを事前に生成
+		const aiMessageId = createId();
+
+		// 既存メッセージとの重複チェック
+		const existingMessage = messages.find((m) => m.id === aiMessageId);
+		if (existingMessage) {
+			isGeneratingRef.current = false;
+			return;
+		}
+
 		// AIメッセージのプレースホルダーを追加
-		const aiMessageId = Math.floor(createId());
-		const aiMessage = {
+		const aiMessage: Message = {
+			id: aiMessageId,
 			text: "",
 			isUser: false,
 			isStreaming: true,
 		};
-		addMessage(aiMessage);
+
+		// メッセージを直接追加
+		addMessageWithId(aiMessage);
 
 		// ストリーミング音声の準備（排他制御付き）
 		startStreamingAudioSafely(aiMessageId);
@@ -247,11 +283,15 @@ export const ChatInterface = forwardRef<
 		try {
 			const payloadQuery = buildPrompt(trimmed, currentLanguage);
 			let accumulatedText = "";
+			let lastProcessedLength = 0; // 重複防止用の追跡変数
+
+			let chunkCount = 0;
+			const allChunks: string[] = []; // すべてのチャンクを記録
 
 			// 改善された文検出器を初期化（OpenAI ChatGPT方式）
 			const sentenceDetector = createSentenceDetector({
 				sentenceDelimiter: /[。！？\n]/,
-				minSentenceLength: 5,
+				minSentenceLength: 3, // 最小文字数を3に減らす
 				prefetchTrigger: 0.7, // 文の70%完成時点で先読み音声生成開始
 			});
 
@@ -261,46 +301,64 @@ export const ChatInterface = forwardRef<
 				controller.signal,
 				(chunk) => {
 					if (chunk.type === "content" && chunk.content) {
+						chunkCount++;
+						allChunks.push(chunk.content); // すべてのチャンクを記録
+
+						// 重複チェック
+						const previousText = accumulatedText;
 						accumulatedText += chunk.content;
 
-						// ストリーミング中のメッセージを更新
-						updateMessage({
-							id: aiMessageId,
-							updates: {
-								text: accumulatedText,
-								isStreaming: true,
-							},
-						});
+						// テキストが実際に変更された場合のみ更新
+						if (accumulatedText !== previousText) {
+							// ストリーミング中のメッセージを更新
+							updateMessage({
+								id: aiMessageId,
+								updates: {
+									text: accumulatedText,
+									isStreaming: true,
+								},
+							});
 
-						// 改善された文検出ロジック（先読み音声生成対応）
-						const detectionResult = sentenceDetector.addChunk(chunk.content);
+							// 新しく追加されたテキストのみを処理
+							const newText = accumulatedText.substring(lastProcessedLength);
+							if (newText) {
+								const detectionResult = sentenceDetector.addChunk(newText);
 
-						// 完成した文を音声キューに追加
-						for (const sentence of detectionResult.completeSentences) {
-							if (sentence.trim()) {
-								console.log(`完成文を音声キューに追加: "${sentence}"`);
-								streamingTTS.addToQueue(sentence.trim());
-								updateAudioStreamingState({
-									queuedMessageIds: [
-										...audioStreamingState.queuedMessageIds,
-										aiMessageId,
-									],
-								});
+								// 完成した文を音声キューに追加
+								for (const sentence of detectionResult.completeSentences) {
+									if (sentence.trim()) {
+										streamingTTS.addToQueue(sentence.trim());
+										updateAudioStreamingState({
+											queuedMessageIds: [
+												...audioStreamingState.queuedMessageIds,
+												aiMessageId,
+											],
+										});
+									}
+								}
+
+								// 先読み音声生成（文の70%完成時点）
+								if (
+									detectionResult.shouldStartPrefetch &&
+									detectionResult.remainingText.trim()
+								) {
+									console.log(
+										`先読み音声生成準備: "${detectionResult.remainingText}" (完成度: ${Math.round(detectionResult.completeness * 100)}%)`,
+									);
+									// 将来の実装: 部分的な文の音声生成を予約
+								}
+
+								lastProcessedLength = accumulatedText.length;
 							}
 						}
-
-						// 先読み音声生成（文の70%完成時点）
-						if (
-							detectionResult.shouldStartPrefetch &&
-							detectionResult.remainingText.trim()
-						) {
-							console.log(
-								`先読み音声生成準備: "${detectionResult.remainingText}" (完成度: ${Math.round(detectionResult.completeness * 100)}%)`,
-							);
-							// 将来の実装: 部分的な文の音声生成を予約
-						}
 					} else if (chunk.type === "done") {
-						// ストリーミング完了 - 残りのテキストも音声化
+						// 重複テキストの検出と除去（タスクドキュメント対応）
+						const uniqueText = accumulatedText.replace(/(.{50,})\1/g, "$1");
+						if (uniqueText !== accumulatedText) {
+							accumulatedText = uniqueText;
+						}
+
+						// 残りのテキストを処理
 						const finalSentences = sentenceDetector.finalize();
 						for (const sentence of finalSentences) {
 							if (sentence.trim()) {
@@ -322,6 +380,9 @@ export const ChatInterface = forwardRef<
 						setIsLoading(false);
 						// 感情分析を実行
 						analyzeSentiment(accumulatedText);
+
+						// 実行フラグをリセット
+						isGeneratingRef.current = false;
 
 						// AudioMutexManager を使った改善されたフォールバック処理
 						// ストリーミング音声が開始されない場合のみ従来のTTSを使用
@@ -398,6 +459,9 @@ export const ChatInterface = forwardRef<
 					},
 				});
 			}
+		} finally {
+			// 実行フラグを必ずリセット
+			isGeneratingRef.current = false;
 		}
 		setInput("");
 	};

@@ -95,7 +95,9 @@ export async function generateTextStream(
 		while (true) {
 			const { done, value } = await reader.read();
 
-			if (done) break;
+			if (done) {
+				break;
+			}
 
 			const chunk = decoder.decode(value, { stream: true });
 			const lines = chunk.split("\n");
@@ -107,6 +109,7 @@ export async function generateTextStream(
 
 						if (data.type === "content" && data.content) {
 							fullText += data.content;
+
 							onChunk?.(data);
 						} else if (data.type === "error") {
 							throw new Error(data.content || "Stream error");
@@ -114,7 +117,12 @@ export async function generateTextStream(
 							onChunk?.(data);
 						}
 					} catch (e) {
-						console.error("Failed to parse stream chunk:", e);
+						console.error(
+							"Failed to parse stream chunk:",
+							e,
+							"Line was:",
+							line,
+						);
 					}
 				}
 			}

@@ -74,6 +74,7 @@ export const addMessageAtom = atom(
 		get,
 		set,
 		payload: {
+			id: number;
 			text: string;
 			isUser: boolean;
 			speakText?: string;
@@ -82,7 +83,7 @@ export const addMessageAtom = atom(
 	) => {
 		const currentMessages = get(messagesAtom);
 		const newMessage: Message = {
-			id: currentMessages.length + 1,
+			id: payload.id,
 			text: payload.text,
 			isUser: payload.isUser,
 			speakText: payload.speakText,
@@ -103,12 +104,47 @@ export const updateMessageAtom = atom(
 		payload: { id: number; updates: Partial<Omit<Message, "id">> },
 	) => {
 		const currentMessages = get(messagesAtom);
-		const updatedMessages = currentMessages.map((message) =>
-			message.id === payload.id ? { ...message, ...payload.updates } : message,
-		);
+		const messageIndex = currentMessages.findIndex((m) => m.id === payload.id);
+
+		if (messageIndex === -1) {
+			console.warn("Message not found:", payload.id);
+			return;
+		}
+
+		const currentMessage = currentMessages[messageIndex];
+
+		// テキストの重複チェック
+		if (payload.updates.text && currentMessage.text === payload.updates.text) {
+			console.log("Text unchanged, skipping update");
+			return;
+		}
+
+		const updatedMessages = [...currentMessages];
+		updatedMessages[messageIndex] = { ...currentMessage, ...payload.updates };
+
 		set(messagesAtom, updatedMessages);
 	},
 );
+
+/**
+ * IDを指定してメッセージを追加するアトム（重複チェック付き）
+ */
+export const addMessageWithIdAtom = atom(null, (get, set, message: Message) => {
+	console.log(
+		"Adding message with ID:",
+		message.id,
+		message.text.substring(0, 50),
+	);
+	const currentMessages = get(messagesAtom);
+	// 重複チェック
+	const exists = currentMessages.some((m) => m.id === message.id);
+	if (!exists) {
+		console.log("Message added successfully:", message.id);
+		set(messagesAtom, [...currentMessages, message]);
+	} else {
+		console.warn("Duplicate message ID detected and ignored:", message.id);
+	}
+});
 
 /**
  * チャットをリセットするアトム
