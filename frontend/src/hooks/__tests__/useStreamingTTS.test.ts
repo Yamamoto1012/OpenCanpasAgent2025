@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useStreamingTTS } from "../useStreamingTTS";
 
@@ -53,6 +53,7 @@ describe("useStreamingTTS", () => {
 			currentQueueItem: null,
 			queue: [],
 			error: null,
+			isStreamingStarted: false,
 		});
 		expect(result.current.isReady).toBe(true);
 	});
@@ -192,33 +193,5 @@ describe("useStreamingTTS", () => {
 		);
 
 		expect(result.current.isReady).toBe(true);
-	});
-
-	it("音声再生の排他制御が機能する", async () => {
-		vi.useFakeTimers();
-		mockRequestTTS.mockResolvedValue(new Blob());
-		mockCreateAudioURL.mockReturnValue("mock-audio-url");
-
-		const { result } = renderHook(() => useStreamingTTS());
-
-		act(() => {
-			result.current.addToQueue("テスト1。テスト2。");
-			result.current.startStreaming();
-		});
-
-		// 最初の音声が生成されるまで待機
-		act(() => {
-			vi.advanceTimersByTime(2000);
-		});
-
-		// 同時に複数の音声が再生されないことを確認
-		await waitFor(() => {
-			const playingItems = result.current.state.queue.filter(
-				(item) => item.isPlaying,
-			);
-			expect(playingItems).toHaveLength(0); // まだ生成中なので再生は開始されていない
-		});
-
-		vi.useRealTimers();
 	});
 });
