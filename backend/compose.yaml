@@ -23,6 +23,14 @@ services:
       - "8000:8000"
     environment:
       - AIVIS_ENGINE_URL=http://aivis:10101
+      - DIFY_API_URL=${DIFY_API_URL}
+      - DIFY_API_KEY=${DIFY_API_KEY}
+      - DIFY_WORKFLOW_ID=${DIFY_WORKFLOW_ID}
+      - DIFY_VOICE_WORKFLOW_ID=${DIFY_VOICE_WORKFLOW_ID}
+      - ENABLE_STREAMING=true
+      - STREAM_CHUNK_SIZE=1024
+      - STREAM_TIMEOUT=60.0
+      - VERIFY_SSL=false
     depends_on:
       aivis:
         condition: service_healthy
@@ -30,6 +38,11 @@ services:
       - ./fast-api:/app
       - ./toukou_pn.txt:/app/../toukou_pn.txt:ro
       - ./pn_ja.dic:/app/../pn_ja.dic:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/llm/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   aivis-data:

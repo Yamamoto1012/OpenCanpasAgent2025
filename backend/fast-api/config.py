@@ -52,10 +52,22 @@ class Settings:
         self.redoc_url: str = os.getenv("REDOC_URL", "/redoc")
         self.openapi_url: str = os.getenv("OPENAPI_URL", "/openapi.json")
 
-        # LLM API設定
+        # TODO LLM API設定を削除
         self.llm_api_url: str = os.getenv("LLM_API_URL")
         self.llm_endpoint: str = os.getenv("LLM_ENDPOINT", "/answer_query")
         self.llm_timeout: float = float(os.getenv("LLM_TIMEOUT", "30.0"))
+        
+        # Dify設定
+        self.dify_api_url: str = os.getenv("DIFY_API_URL", "")
+        self.dify_api_key: str = os.getenv("DIFY_API_KEY", "")
+        self.dify_workflow_id: str = os.getenv("DIFY_WORKFLOW_ID", "")
+        self.dify_voice_workflow_id: str = os.getenv("DIFY_VOICE_WORKFLOW_ID", "")
+        
+        # ストリーミング設定
+        self.enable_streaming: bool = os.getenv("ENABLE_STREAMING", "true").lower() == "true"
+        self.stream_chunk_size: int = int(os.getenv("STREAM_CHUNK_SIZE", "1024"))
+        self.stream_timeout: float = float(os.getenv("STREAM_TIMEOUT", "60.0"))
+        self.verify_ssl: bool = os.getenv("VERIFY_SSL", "true").lower() == "true"
 
 
 class SentimentConfig:
