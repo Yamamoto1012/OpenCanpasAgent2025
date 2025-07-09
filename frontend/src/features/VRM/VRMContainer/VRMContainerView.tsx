@@ -1,6 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { AnimatePresence } from "framer-motion";
 import type { FC, RefObject } from "react";
+import type { AudioStreamingState } from "../../../store/chatAtoms";
 import { ThinkingIndicator } from "../../ThinkingIndicator/ThinkingIndicator";
 import { VRMWrapper } from "../VRMWrapper/VRMWrapper";
 import type { VRMWrapperHandle } from "../VRMWrapper/VRMWrapper";
@@ -29,6 +30,11 @@ export type VRMContainerViewProps = {
 	 * ミュート状態
 	 */
 	isMuted: boolean;
+
+	/**
+	 * 音声ストリーミング状態
+	 */
+	audioStreamingState: AudioStreamingState;
 
 	/**
 	 * 思考状態が変化した際に呼び出されるハンドラ
@@ -80,6 +86,7 @@ export const VRMContainerView: FC<VRMContainerViewProps> = ({
 	vrmWrapperRef,
 	isThinking,
 	isMuted,
+	audioStreamingState,
 	onThinkingStateChange,
 }) => {
 	// 画面サイズを動的に検出（簡易版）
@@ -105,6 +112,7 @@ export const VRMContainerView: FC<VRMContainerViewProps> = ({
 					<VRMWrapper
 						categoryDepth={categoryDepth}
 						isMuted={isMuted}
+						audioStreamingState={audioStreamingState}
 						ref={vrmWrapperRef}
 						onThinkingStateChange={onThinkingStateChange}
 					/>

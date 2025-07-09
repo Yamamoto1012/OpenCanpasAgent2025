@@ -11,7 +11,7 @@ type ActionPromptProps = {
 
 /**
  * ActionPromptコンポーネント
- *
+
  * @param categoryTitle - カテゴリのタイトル
  * @param onSearch - 検索ボタンが押された時のコール爆
  * @param onAskQuestion - 質問処理のフローを実行するためのコールバック

@@ -1,4 +1,5 @@
 import { isMutedAtom, isThinkingAtom } from "@/store/appStateAtoms";
+import { audioStreamingStateAtom } from "@/store/chatAtoms";
 import { useAtom } from "jotai";
 import type { FC } from "react";
 import type { RefObject } from "react";
@@ -30,6 +31,7 @@ export const VRMContainer: FC<VRMContainerProps> = ({
 	// グローバル状態へのアクセス
 	const [isThinking, setIsThinking] = useAtom(isThinkingAtom);
 	const [isMuted] = useAtom(isMutedAtom);
+	const [audioStreamingState] = useAtom(audioStreamingStateAtom);
 
 	return (
 		<VRMContainerView
@@ -37,6 +39,7 @@ export const VRMContainer: FC<VRMContainerProps> = ({
 			vrmWrapperRef={vrmWrapperRef}
 			isThinking={isThinking}
 			isMuted={isMuted}
+			audioStreamingState={audioStreamingState}
 			onThinkingStateChange={setIsThinking}
 		/>
 	);
