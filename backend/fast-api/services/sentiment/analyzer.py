@@ -19,7 +19,7 @@ except ImportError:
     SPACY_AVAILABLE = False
     print("spacy/ginzaが利用できません。感情分析機能は無効化されます")
 
-from config import settings, logger
+from config import settings, sentiment_config, logger
 
 
 class SentimentCategory(str, Enum):
@@ -45,15 +45,11 @@ class SentimentAnalyzer:
         """ハイブリッド分析器を作成"""
         from .hybrid_analyzer import HybridSentimentAnalyzer
         
-        # 環境変数から設定を読み込み
-        confidence_threshold = float(os.getenv('SENTIMENT_CONFIDENCE_THRESHOLD', '0.7'))
-        enable_onnx = os.getenv('ENABLE_ONNX_SENTIMENT', 'true').lower() == 'true'
-        onnx_model_path = os.getenv('ONNX_MODEL_PATH')
-        
+        # 設定から読み込み
         return HybridSentimentAnalyzer(
-            confidence_threshold=confidence_threshold,
-            enable_onnx=enable_onnx,
-            onnx_model_path=onnx_model_path
+            confidence_threshold=sentiment_config.confidence_threshold,
+            enable_onnx=sentiment_config.enable_onnx,
+            onnx_model_path=sentiment_config.onnx_model_path
         )
     
     def analyze(self, text: str) -> Tuple[float, SentimentCategory]:
