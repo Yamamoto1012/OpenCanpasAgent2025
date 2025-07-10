@@ -87,6 +87,8 @@ export async function generateTextStream(
 		const reader = response.body?.getReader();
 		const decoder = new TextDecoder();
 		let fullText = "";
+		let buffer = ""; // 不完全な行を保持するバッファ
+		const processedChunkIds = new Set<string>(); // 処理済みチャンクIDを記録
 
 		if (!reader) {
 			throw new Error("Response body is not readable");
@@ -96,20 +98,80 @@ export async function generateTextStream(
 			const { done, value } = await reader.read();
 
 			if (done) {
+				// 最後にバッファに残っているデータを処理
+				if (buffer.trim()) {
+					try {
+						const data: StreamChunk = JSON.parse(buffer);
+
+						// 重複チェック
+						if (data.id && processedChunkIds.has(data.id)) {
+							console.log(`Skipping duplicate chunk: ${data.id}`);
+						} else {
+							if (data.id) processedChunkIds.add(data.id);
+
+							if (data.type === "content" && data.content) {
+								fullText += data.content;
+								onChunk?.(data);
+							} else if (data.type === "done") {
+								onChunk?.(data);
+							}
+						}
+					} catch (e) {
+						console.error(
+							"Failed to parse final buffer:",
+							e,
+							"Buffer was:",
+							buffer,
+						);
+					}
+				}
 				break;
 			}
 
+			// 新しいチャンクをバッファに追加
 			const chunk = decoder.decode(value, { stream: true });
-			const lines = chunk.split("\n");
+			buffer += chunk;
+
+			// 改行で分割して処理
+			const lines = buffer.split("\n");
+
+			// 最後の要素は不完全な可能性があるので、バッファに残す
+			buffer = lines.pop() || "";
 
 			for (const line of lines) {
 				if (line.trim()) {
 					try {
 						const data: StreamChunk = JSON.parse(line);
 
-						if (data.type === "content" && data.content) {
-							fullText += data.content;
+						// デバッグログ
+						console.log(
+							`Received chunk: type=${data.type}, id=${data.id}, content="${data.content?.substring(0, 50) || ""}"...`,
+						);
 
+						// チャンクIDとコンテンツの組み合わせで重複チェック
+						const chunkKey = `${data.id}_${data.content || ""}`;
+						if (
+							data.type === "content" &&
+							data.content &&
+							processedChunkIds.has(chunkKey)
+						) {
+							console.log(
+								`Skipping duplicate chunk: ${data.id} with content: "${data.content.substring(0, 30)}..."`,
+							);
+							continue;
+						}
+
+						if (data.type === "content" && data.content) {
+							processedChunkIds.add(chunkKey);
+
+							// コンテンツの重複チェック（同じ内容が連続して来た場合）
+							const lastContent = fullText.slice(-data.content.length);
+							if (lastContent === data.content && data.content.length > 10) {
+								console.warn("Duplicate content detected:", data.content);
+								continue;
+							}
+
+							fullText += data.content;
 							onChunk?.(data);
 						} else if (data.type === "error") {
 							throw new Error(data.content || "Stream error");
