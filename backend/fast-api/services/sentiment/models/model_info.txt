@@ -1,0 +1,5 @@
+model_name: kit-nlp/bert-base-japanese-sentiment-irony
+max_length: 128
+num_labels: 2
+label_names: {0: 'ポジティブ', 1: 'ネガティブ'}
+created_by: convert_to_onnx.py
