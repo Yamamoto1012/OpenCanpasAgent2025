@@ -15,11 +15,6 @@ type QueryRequest = {
 	stream?: boolean;
 };
 
-type QueryResponse = {
-	answer: string;
-	metadata?: Record<string, unknown>;
-};
-
 // ストリーミングレスポンスの型定義
 type StreamChunk = {
 	id: string;
@@ -105,7 +100,7 @@ export async function generateTextStream(
 
 						// 重複チェック
 						if (data.id && processedChunkIds.has(data.id)) {
-							console.log(`Skipping duplicate chunk: ${data.id}`);
+							// ignore duplicate chunk
 						} else {
 							if (data.id) processedChunkIds.add(data.id);
 
@@ -116,13 +111,8 @@ export async function generateTextStream(
 								onChunk?.(data);
 							}
 						}
-					} catch (e) {
-						console.error(
-							"Failed to parse final buffer:",
-							e,
-							"Buffer was:",
-							buffer,
-						);
+					} catch {
+						// ignore parse errors for final buffer
 					}
 				}
 				break;
@@ -144,9 +134,6 @@ export async function generateTextStream(
 						const data: StreamChunk = JSON.parse(line);
 
 						// デバッグログ
-						console.log(
-							`Received chunk: type=${data.type}, id=${data.id}, content="${data.content?.substring(0, 50) || ""}"...`,
-						);
 
 						// チャンクIDとコンテンツの組み合わせで重複チェック
 						const chunkKey = `${data.id}_${data.content || ""}`;
@@ -155,9 +142,6 @@ export async function generateTextStream(
 							data.content &&
 							processedChunkIds.has(chunkKey)
 						) {
-							console.log(
-								`Skipping duplicate chunk: ${data.id} with content: "${data.content.substring(0, 30)}..."`,
-							);
 							continue;
 						}
 
@@ -167,7 +151,6 @@ export async function generateTextStream(
 							// コンテンツの重複チェック（同じ内容が連続して来た場合）
 							const lastContent = fullText.slice(-data.content.length);
 							if (lastContent === data.content && data.content.length > 10) {
-								console.warn("Duplicate content detected:", data.content);
 								continue;
 							}
 
@@ -178,13 +161,8 @@ export async function generateTextStream(
 						} else if (data.type === "done") {
 							onChunk?.(data);
 						}
-					} catch (e) {
-						console.error(
-							"Failed to parse stream chunk:",
-							e,
-							"Line was:",
-							line,
-						);
+					} catch {
+						// ignore parse errors when parsing stream chunk
 					}
 				}
 			}
@@ -195,7 +173,6 @@ export async function generateTextStream(
 		if (error instanceof Error && error.name === "AbortError") {
 			throw error;
 		}
-		console.error("Stream error:", error);
 		throw new Error("Failed to generate response");
 	}
 }
@@ -218,17 +195,17 @@ export const generateText = async (
 	endpoint = "/query",
 	language?: SupportedLanguage,
 ): Promise<string> => {
-	// 音声モードは非ストリーミング
+	// 音声モードはストリーミング対応
 	if (endpoint === "/voice_mode_answer") {
 		const payload: QueryRequest = {
 			query,
 			context,
 			language: language || "ja",
-			stream: false,
+			stream: true,
 		};
 
 		try {
-			const response = await fetch(`${API_BASE_URL}/api/llm${endpoint}`, {
+			const response = await fetch(`${API_BASE_URL}/llm${endpoint}`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -242,9 +219,6 @@ export const generateText = async (
 					retries > 0 &&
 					(response.status === 503 || response.status === 504)
 				) {
-					console.warn(
-						`API一時利用不可 (${response.status})、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
-					);
 					await sleep(RETRY_DELAY);
 					return generateText(
 						query,
@@ -258,13 +232,71 @@ export const generateText = async (
 				throw new Error(`API error: ${response.status}`);
 			}
 
-			const data: QueryResponse = await response.json();
-			return data.answer;
-		} catch (error) {
-			if (retries > 0 && error instanceof TypeError) {
-				console.warn(
-					`ネットワークエラー、${RETRY_DELAY / 1000}秒後に再試行します...残り${retries}回`,
-				);
+			// ストリーミングレスポンスの処理
+			const reader = response.body?.getReader();
+			if (!reader) {
+				throw new Error("Response body is not readable");
+			}
+
+			const decoder = new TextDecoder();
+			let fullText = "";
+			let buffer = ""; // 不完全なラインを保持するバッファ
+
+			try {
+				while (true) {
+					const { done, value } = await reader.read();
+					if (done) {
+						// 残りのバッファを処理
+						if (buffer.trim()) {
+							if (buffer.startsWith("data:")) {
+								try {
+									const jsonData = buffer.substring(5).trim();
+									const data = JSON.parse(jsonData);
+
+									if (data.type === "content" && data.content) {
+										fullText += data.content;
+									}
+								} catch {
+									// ignore parse errors in final buffer
+								}
+							}
+						}
+						break;
+					}
+
+					const chunk = decoder.decode(value, { stream: true });
+					buffer += chunk;
+
+					// 改行で分割して処理
+					const lines = buffer.split("\n");
+					// 最後の要素は不完全な可能性があるので、バッファに残す
+					buffer = lines.pop() || "";
+
+					for (const line of lines) {
+						const trimmedLine = line.trim();
+						if (trimmedLine?.startsWith("data:")) {
+							try {
+								const jsonData = trimmedLine.substring(5).trim();
+								const data = JSON.parse(jsonData);
+
+								if (data.type === "content" && data.content) {
+									fullText += data.content;
+								} else if (data.type === "error") {
+									throw new Error(data.content || "Server streaming error");
+								}
+							} catch {
+								// ignore parse errors in streaming data
+							}
+						}
+					}
+				}
+			} finally {
+				reader.releaseLock();
+			}
+
+			return fullText;
+		} catch (e) {
+			if (retries > 0 && e instanceof TypeError) {
 				await sleep(RETRY_DELAY);
 				return generateText(
 					query,
@@ -275,8 +307,7 @@ export const generateText = async (
 					language,
 				);
 			}
-			console.error("Error generating text:", error);
-			throw error;
+			throw e;
 		}
 	}
 

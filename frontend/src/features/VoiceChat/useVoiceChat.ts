@@ -51,8 +51,6 @@ export const useVoiceChat = () => {
 
 		if (!SpeechRecognitionConstructor) return;
 
-		console.log("useVoiceChat effect: isListening =", isListening);
-
 		if (isListening) {
 			// 既存インスタンスがあればabortしてnull
 			if (recognitionRef.current) {
@@ -73,11 +71,11 @@ export const useVoiceChat = () => {
 			recognition.onresult = (event: WebSpeechRecognitionEvent) => {
 				const result = event.results[event.results.length - 1];
 				const transcriptText = result[0].transcript;
+
 				setTranscript(transcriptText);
 			};
 
 			recognition.onerror = (event: WebSpeechRecognitionErrorEvent) => {
-				console.error("Speech recognition error", event.error);
 				recognitionRef.current = null;
 				if (isListening && event.error !== "aborted") {
 					initiateStopListening();
@@ -87,6 +85,8 @@ export const useVoiceChat = () => {
 			recognition.onend = () => {
 				recognitionRef.current = null;
 			};
+
+			recognition.onstart = () => {};
 
 			recognitionRef.current = recognition;
 			try {
@@ -98,9 +98,9 @@ export const useVoiceChat = () => {
 		} else {
 			if (recognitionRef.current) {
 				try {
-					recognitionRef.current.abort();
+					recognitionRef.current.stop();
 				} catch {
-					// abort処理でエラーが発生しても続行
+					// stop処理でエラーが発生しても続行
 				}
 				recognitionRef.current = null;
 			}
@@ -109,7 +109,7 @@ export const useVoiceChat = () => {
 		return () => {
 			if (recognitionRef.current) {
 				try {
-					recognitionRef.current.abort();
+					recognitionRef.current.stop();
 				} catch {
 					// cleanup処理でエラーが発生しても続行
 				}
@@ -120,12 +120,10 @@ export const useVoiceChat = () => {
 	}, [isListening, setTranscript, initiateStopListening, stopTTS]);
 
 	const startListening = async () => {
-		console.log("startListening called");
 		initiateStartListening();
 	};
 
 	const stopListening = () => {
-		console.log("stopListening called");
 		initiateStopListening();
 	};
 

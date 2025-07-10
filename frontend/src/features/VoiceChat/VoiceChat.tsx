@@ -12,7 +12,7 @@ import {
 	vrmIsThinkingAtom,
 } from "@/store/voiceChatAtoms";
 import { useAtom, useSetAtom } from "jotai";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatView } from "./VoiceChatView";
 import { useVoiceChat } from "./useVoiceChat";
@@ -119,9 +119,11 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 				generateAIResponse(transcript);
 			}, 1000);
 
-			return () => clearTimeout(processingTimer);
-			// biome-ignore lint/style/noUselessElse: <explanation>
-		} else if (isListening) {
+			return () => {
+				clearTimeout(processingTimer);
+			};
+		}
+		if (isListening) {
 			// 録音中の状態
 			setProcessingState("recording");
 
@@ -139,35 +141,55 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 		addUserMessage,
 	]);
 
-	// AIの応答を生成する関数（APIとの通信部分）
-	const generateAIResponse = async (userInput: string) => {
-		try {
-			// 応答を保存
-			const payloadQuery = buildPrompt(userInput, currentLanguage);
-			const response = await generateText(
-				payloadQuery,
-				undefined,
-				undefined,
-				3,
-				"/voice_mode_answer",
-				currentLanguage,
-			);
+	// AIの応答を生成する関数(APIとの通信部分)
+	const generateAIResponse = useCallback(
+		async (userInput: string) => {
+			try {
+				// プロンプトの構築
+				const payloadQuery = buildPrompt(userInput, currentLanguage);
 
-			addAiMessage(response);
+				const response = await generateText(
+					payloadQuery,
+					undefined,
+					undefined,
+					3,
+					"/voice_mode_answer",
+					currentLanguage,
+				);
 
-			// 応答状態に変更
-			setProcessingState("responding");
+				if (!response) {
+					throw new Error("Empty response");
+				}
 
-			// TTSで音声再生
-			await speak(response);
-			setProcessingState("initial");
-		} catch (error) {
-			console.error("AI応答生成エラー:", error);
-			setProcessingState("initial");
+				addAiMessage(response);
 
-			setVrmThinkingState(false);
-		}
-	};
+				// 応答状態に変更
+
+				setProcessingState("responding");
+
+				// TTSで音声再生
+
+				await speak(response);
+
+				setProcessingState("initial");
+			} catch {
+				// エラーメッセージをユーザーに表示
+				addAiMessage(
+					"申し訳ございません。応答の生成中にエラーが発生しました。",
+				);
+
+				setProcessingState("initial");
+				setVrmThinkingState(false);
+			}
+		},
+		[
+			currentLanguage,
+			addAiMessage,
+			setProcessingState,
+			setVrmThinkingState,
+			speak,
+		],
+	);
 
 	// 音声認識の開始ハンドラー
 	const handleStartListening = () => {

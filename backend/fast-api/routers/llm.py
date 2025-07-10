@@ -245,10 +245,10 @@ async def process_query(request: QueryRequest):
         logger.error(f"Error processing response: {str(e)}")
         raise HTTPException(status_code=500, detail="Error processing response")
 
-@router.post("/voice_mode_answer", response_model=QueryResponse)
+@router.post("/voice_mode_answer")
 async def process_voice_mode_answer(request: QueryRequest):
     """
-    音声モード用の処理（非ストリーミングのみ）
+    音声モード用の処理
     """
     try:
         inputs = {
@@ -256,13 +256,31 @@ async def process_voice_mode_answer(request: QueryRequest):
             "language": request.language or "ja"
         }
         
-        answer = await call_dify_workflow_blocking(
-            settings.dify_voice_workflow_id or settings.dify_workflow_id,
-            inputs,
-            settings.llm_timeout
-        )
-        
-        return QueryResponse(answer=answer)
+        # ストリーミングが有効な場合はストリーミングレスポンスを返す
+        if request.stream:
+            return StreamingResponse(
+                stream_dify_response(
+                    settings.dify_voice_workflow_id or settings.dify_workflow_id,
+                    inputs
+                ),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Methods": "*"
+                }
+            )
+        else:
+            # 非ストリーミングの場合は従来通り
+            answer = await call_dify_workflow_blocking(
+                settings.dify_voice_workflow_id or settings.dify_workflow_id,
+                inputs,
+                settings.llm_timeout
+            )
+            
+            return QueryResponse(answer=answer)
         
     except httpx.RequestError as e:
         logger.error(f"API request failed: {str(e)}")
