@@ -31,6 +31,14 @@ coverage/
 .next/
 .turbo/
 
+# 大きなファイル（GitHubの制限を超えるファイル）
+*.onnx
+*.bin
+*.model
+*.weights
+*.h5
+*.pkl
+*.joblib
 
 # サブディレクトリの.gitignoreを参照
 !frontend/.gitignore
