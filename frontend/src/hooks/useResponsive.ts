@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
  * ブレークポイントの定義
  */
 const BREAKPOINTS = {
-	mobile: 768,
+	mobile: 834,
 	tablet: 1024,
 } as const;
 
