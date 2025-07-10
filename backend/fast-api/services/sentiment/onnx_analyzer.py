@@ -135,7 +135,7 @@ class ONNXSentimentAnalyzer:
             logger.error(f"トークナイザーの初期化に失敗: {e}")
             # フォールバック: 事前学習済みモデルから直接読み込み
             try:
-                tokenizer = AutoTokenizer.from_pretrained("daigo/bert-base-japanese-sentiment")
+                tokenizer = AutoTokenizer.from_pretrained("kit-nlp/bert-base-japanese-sentiment-irony")
                 logger.info("フォールバック: 事前学習済みトークナイザーを使用")
                 return tokenizer
             except Exception as fallback_error:
