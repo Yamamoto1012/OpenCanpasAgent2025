@@ -57,6 +57,10 @@ async def stream_dify_response(
         "user": "api-user"
     }
     
+    # ストリーミングモードを追跡
+    is_streaming_mode = True
+    has_sent_content = False
+    
     try:
         async with httpx.AsyncClient(
             timeout=settings.stream_timeout,
@@ -101,6 +105,7 @@ async def stream_dify_response(
                                 # ストリーミングテキストチャンク
                                 text = data.get("data", {}).get("text", "")
                                 if text:
+                                    has_sent_content = True
                                     yield json.dumps({
                                         "id": data.get("task_id", ""),
                                         "type": "content",
@@ -109,22 +114,31 @@ async def stream_dify_response(
                                     }) + "\n"
                             
                             elif data.get("event") == "node_finished":
-                                # LLMノードの出力を取得
-                                outputs = data.get("data", {}).get("outputs", {})
-                                if outputs.get("response"):
-                                    yield json.dumps({
-                                        "id": data.get("task_id", ""),
-                                        "type": "content",
-                                        "content": outputs["response"],
-                                        "timestamp": datetime.now().isoformat()
-                                    }) + "\n"
+                                # ストリーミングモードでtext_chunkが送信されている場合は、
+                                # node_finishedのレスポンスは送信しない
+                                if not has_sent_content:
+                                    outputs = data.get("data", {}).get("outputs", {})
+                                    if outputs.get("response"):
+                                        yield json.dumps({
+                                            "id": data.get("task_id", ""),
+                                            "type": "content",
+                                            "content": outputs["response"],
+                                            "timestamp": datetime.now().isoformat()
+                                        }) + "\n"
+                                else:
+                                    # ストリーミング済みの場合は、デバッグログのみ
+                                    logger.debug(f"Node finished (content already streamed): {data.get('data', {}).get('node_id')}")
                             
                             elif data.get("event") == "workflow_finished":
                                 yield json.dumps({
                                     "id": data.get("task_id", ""),
                                     "type": "done",
                                     "content": "",
-                                    "metadata": data.get("data", {}).get("outputs", {}),
+                                    "metadata": {
+                                        # outputsからresponseを除外してメタデータとして送信
+                                        k: v for k, v in data.get("data", {}).get("outputs", {}).items()
+                                        if k != "response"
+                                    },
                                     "timestamp": datetime.now().isoformat()
                                 }) + "\n"
                                 

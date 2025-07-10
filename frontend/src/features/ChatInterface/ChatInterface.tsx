@@ -61,7 +61,7 @@ export const ChatInterface = forwardRef<
 	React.PropsWithChildren<ChatInterfaceProps>
 >((props, ref) => {
 	const { isMobile } = useResponsive();
-	const [messages] = useAtom(messagesAtom);
+	const [messages, setMessages] = useAtom(messagesAtom);
 	const [currentLanguage] = useAtom(currentLanguageAtom);
 	const [audioStreamingState] = useAtom(audioStreamingStateAtom);
 	const [input, setInput] = useState("");
@@ -76,6 +76,13 @@ export const ChatInterface = forwardRef<
 	const stopAudioStreaming = useSetAtom(stopAudioStreamingAtom);
 	const updateAudioStreamingState = useSetAtom(updateAudioStreamingStateAtom);
 	const { t } = useTranslation("chat");
+
+	// タイプライター風表示のためのバッファとアニメーション制御
+	const streamBuffer = useRef("");
+	const isAnimating = useRef(false);
+	const lastMessageId = useRef<number | null>(null);
+	// 重複検出用の変数
+	const currentDisplayText = useRef("");
 
 	// ストリーミングTTS関連フック
 	const streamingTTS = useStreamingTTS({
@@ -100,6 +107,31 @@ export const ChatInterface = forwardRef<
 	// 音声再生の排他制御用フラグ
 	const isAnyAudioPlayingRef = useRef<boolean>(false);
 	const currentAudioTypeRef = useRef<"streaming" | "traditional" | null>(null);
+
+	// 1文字ずつテキストを更新するアニメーションループ
+	const animateText = useCallback(() => {
+		if (!isAnimating.current || streamBuffer.current.length === 0) {
+			isAnimating.current = false;
+			return;
+		}
+
+		const char = streamBuffer.current.substring(0, 1);
+		streamBuffer.current = streamBuffer.current.substring(1);
+		currentDisplayText.current += char;
+
+		setMessages((prev) =>
+			prev.map((msg) =>
+				msg.id === lastMessageId.current
+					? { ...msg, text: currentDisplayText.current }
+					: msg,
+			),
+		);
+
+		// アニメーション速度
+		setTimeout(() => {
+			requestAnimationFrame(animateText);
+		}, 30);
+	}, [setMessages]);
 
 	// 音声停止処理を統一する関数
 	const stopAllAudio = useCallback(() => {
@@ -212,6 +244,10 @@ export const ChatInterface = forwardRef<
 			abortRef.current?.abort();
 			stopAllAudio();
 			setIsLoading(false);
+			// タイプライターアニメーションも停止
+			isAnimating.current = false;
+			streamBuffer.current = "";
+			currentDisplayText.current = "";
 		},
 	}));
 
@@ -227,7 +263,7 @@ export const ChatInterface = forwardRef<
 		setInput(e.target.value);
 	};
 
-	// メッセージ送信処理（ストリーミング音声対応）
+	// メッセージ送信処理（タイプライター風表示対応）
 	const handleSend = async () => {
 		const trimmed = input.trim();
 		if (!trimmed) return;
@@ -258,6 +294,11 @@ export const ChatInterface = forwardRef<
 
 		// AIメッセージのIDを事前に生成
 		const aiMessageId = createId();
+		lastMessageId.current = aiMessageId; // メッセージIDを保存
+
+		// 表示テキストと重複検出変数をリセット
+		currentDisplayText.current = "";
+		streamBuffer.current = "";
 
 		// 既存メッセージとの重複チェック
 		const existingMessage = messages.find((m) => m.id === aiMessageId);
@@ -283,7 +324,7 @@ export const ChatInterface = forwardRef<
 		try {
 			const payloadQuery = buildPrompt(trimmed, currentLanguage);
 			let accumulatedText = "";
-			let lastProcessedLength = 0; // 重複防止用の追跡変数
+			let lastProcessedForTTS = 0;
 			const processedSentences = new Set<string>();
 
 			// 改善された文検出器を初期化
@@ -299,66 +340,116 @@ export const ChatInterface = forwardRef<
 				controller.signal,
 				(chunk) => {
 					if (chunk.type === "content" && chunk.content) {
-						// 重複チェック
-						const previousText = accumulatedText;
-						accumulatedText += chunk.content;
+						// 既に受信したテキスト全体を含むチャンクの場合はスキップ
+						if (
+							accumulatedText.length > 0 &&
+							chunk.content.includes(accumulatedText)
+						) {
+							console.warn(
+								`完全なテキストを含むチャンクを検出してスキップ: "${chunk.content.substring(0, 50)}..."`,
+							);
+							return;
+						}
 
-						// テキストが実際に変更された場合のみ更新
-						if (accumulatedText !== previousText) {
-							// ストリーミング中のメッセージを更新
-							updateMessage({
-								id: aiMessageId,
-								updates: {
-									text: accumulatedText,
-									isStreaming: true,
-								},
-							});
+						// 現在の累積テキストの末尾と新しいチャンクの内容を比較
+						if (accumulatedText.endsWith(chunk.content)) {
+							console.log(
+								`既に追加済みのコンテンツをスキップ: "${chunk.content.substring(0, 30)}..."`,
+							);
+							return;
+						}
 
-							// 新しく追加されたテキストのみを処理
-							const newText = accumulatedText.substring(lastProcessedLength);
-							if (newText) {
-								const detectionResult = sentenceDetector.addChunk(newText);
+						let newContent = chunk.content;
 
-								// 完成した文を音声キューに追加
-								for (const sentence of detectionResult.completeSentences) {
-									const trimmedSentence = sentence.trim();
-									if (
-										trimmedSentence &&
-										!processedSentences.has(trimmedSentence)
-									) {
-										processedSentences.add(trimmedSentence);
-										streamingTTS.addToQueue(trimmedSentence);
-										updateAudioStreamingState({
-											queuedMessageIds: [
-												...audioStreamingState.queuedMessageIds,
-												aiMessageId,
-											],
-										});
-									}
+						// チャンクレベルでの重複検出（部分的な重複）
+						if (accumulatedText.length > 10 && newContent.length > 0) {
+							// 累積テキストの末尾と新しいコンテンツの先頭で重複をチェック
+							const checkLength = Math.min(
+								accumulatedText.length,
+								newContent.length,
+								50,
+							);
+							for (let i = checkLength; i > 0; i--) {
+								const endOfAccumulated = accumulatedText.slice(-i);
+								if (newContent.startsWith(endOfAccumulated)) {
+									console.log(`部分的な重複を検出: "${endOfAccumulated}"`);
+									newContent = newContent.substring(i);
+									break;
 								}
-
-								// 先読み音声生成（文の70%完成時点）
-								if (
-									detectionResult.shouldStartPrefetch &&
-									detectionResult.remainingText.trim()
-								) {
-									console.log(
-										`先読み音声生成準備: "${detectionResult.remainingText}" (完成度: ${Math.round(detectionResult.completeness * 100)}%)`,
-									);
-									// 将来の実装: 部分的な文の音声生成を予約
-								}
-
-								lastProcessedLength = accumulatedText.length;
 							}
 						}
-					} else if (chunk.type === "done") {
-						// 重複テキストの検出と除去（タスクドキュメント対応）
-						const uniqueText = accumulatedText.replace(/(.{50,})\1/g, "$1");
-						if (uniqueText !== accumulatedText) {
-							accumulatedText = uniqueText;
+
+						// 空のコンテンツはスキップ
+						if (!newContent) {
+							return;
 						}
 
-						// 残りのテキストを処理
+						accumulatedText += newContent;
+
+						// タイプライターアニメーション用のバッファに追加
+						streamBuffer.current += newContent;
+						if (!isAnimating.current) {
+							isAnimating.current = true;
+							animateText();
+						}
+
+						// 音声生成用の処理（TTSのための文検出）
+						const textForTTS = accumulatedText.substring(lastProcessedForTTS);
+						if (textForTTS) {
+							const detectionResult = sentenceDetector.addChunk(textForTTS);
+
+							// 完成した文を音声キューに追加
+							for (const sentence of detectionResult.completeSentences) {
+								const trimmedSentence = sentence.trim();
+								if (
+									trimmedSentence &&
+									!processedSentences.has(trimmedSentence)
+								) {
+									processedSentences.add(trimmedSentence);
+									streamingTTS.addToQueue(trimmedSentence);
+									updateAudioStreamingState({
+										queuedMessageIds: [
+											...audioStreamingState.queuedMessageIds,
+											aiMessageId,
+										],
+									});
+								}
+							}
+
+							lastProcessedForTTS = accumulatedText.length;
+						}
+					} else if (chunk.type === "done") {
+						// 重複チェック（文章全体が2回繰り返されている場合）
+						const halfLength = Math.floor(accumulatedText.length / 2);
+						if (accumulatedText.length % 2 === 0 && halfLength > 10) {
+							const firstHalf = accumulatedText.substring(0, halfLength);
+							const secondHalf = accumulatedText.substring(halfLength);
+							if (firstHalf === secondHalf) {
+								accumulatedText = firstHalf;
+
+								// バッファの内容も調整
+								const currentBufferLength = streamBuffer.current.length;
+								const currentDisplayLength = currentDisplayText.current.length;
+								const totalLength = currentDisplayLength + currentBufferLength;
+
+								if (totalLength > halfLength) {
+									// 表示済みとバッファの合計が半分を超えている場合
+									const excess = totalLength - halfLength;
+									if (excess >= currentBufferLength) {
+										// バッファを完全にクリア
+										streamBuffer.current = "";
+									} else {
+										// バッファから超過分を削除
+										streamBuffer.current = streamBuffer.current.substring(
+											0,
+											currentBufferLength - excess,
+										);
+									}
+								}
+							}
+						}
+
+						// 残りのテキストを音声処理
 						const finalSentences = sentenceDetector.finalize();
 						for (const sentence of finalSentences) {
 							const trimmedSentence = sentence.trim();
@@ -368,15 +459,24 @@ export const ChatInterface = forwardRef<
 							}
 						}
 
-						// メッセージを完了状態に更新（ストリーミング音声使用のため、speakTextは明示的にundefinedに設定）
-						updateMessage({
-							id: aiMessageId,
-							updates: {
-								text: accumulatedText,
-								isStreaming: false,
-								speakText: undefined, // ストリーミング音声使用時は従来のTTSを無効化
-							},
-						});
+						// アニメーション完了を待ってからメッセージを完了状態に更新
+						const waitForAnimation = () => {
+							if (isAnimating.current || streamBuffer.current.length > 0) {
+								setTimeout(waitForAnimation, 100);
+								return;
+							}
+
+							// メッセージを完了状態に更新
+							updateMessage({
+								id: aiMessageId,
+								updates: {
+									isStreaming: false,
+									speakText: undefined,
+								},
+							});
+						};
+
+						waitForAnimation();
 
 						setIsLoading(false);
 						// 感情分析を実行
@@ -386,7 +486,6 @@ export const ChatInterface = forwardRef<
 						isGeneratingRef.current = false;
 
 						// AudioMutexManager を使った改善されたフォールバック処理
-						// ストリーミング音声が開始されない場合のみ従来のTTSを使用
 						let fallbackExecuted = false;
 						const audioMutex = AudioMutexManager.getInstance();
 
@@ -401,7 +500,6 @@ export const ChatInterface = forwardRef<
 								hasQueue: currentState.queue.length > 0,
 							};
 
-							// AudioMutexManagerでフォールバック実行可否を判定
 							if (
 								audioMutex.shouldAllowFallback(streamingState) &&
 								accumulatedText.trim()
@@ -411,7 +509,6 @@ export const ChatInterface = forwardRef<
 									"ストリーミング音声が開始されませんでした。従来のTTSを使用します。",
 								);
 
-								// AudioMutexManagerの排他制御を使用してフォールバック音声を再生
 								audioMutex
 									.playAudio("traditional", "fallback", async () => {
 										await speak(accumulatedText);
@@ -440,6 +537,9 @@ export const ChatInterface = forwardRef<
 		} catch (err) {
 			// エラー時はすべての音声を停止
 			stopAllAudio();
+			isAnimating.current = false;
+			streamBuffer.current = "";
+			currentDisplayText.current = "";
 
 			if (err instanceof Error && err.name === "AbortError") {
 				updateMessage({
@@ -483,6 +583,10 @@ export const ChatInterface = forwardRef<
 	// チャットリセット処理
 	const handleReset = () => {
 		resetChat();
+		// バッファとカウンターもリセット
+		streamBuffer.current = "";
+		currentDisplayText.current = "";
+		isAnimating.current = false;
 	};
 
 	// 音声録音のトグル
@@ -516,6 +620,9 @@ export const ChatInterface = forwardRef<
 			abortRef.current?.abort();
 			stopAllAudio();
 			setIsLoading(false);
+			isAnimating.current = false;
+			streamBuffer.current = "";
+			currentDisplayText.current = "";
 		},
 	};
 
