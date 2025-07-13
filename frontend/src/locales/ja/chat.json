@@ -18,5 +18,13 @@
 	"startConversation": "メッセージを送信して会話を始めましょう",
 	"schoolLife": "学校生活",
 	"recommendedFaculties": "おすすめの学部学科",
-	"employmentRecord": "就職実績"
+	"employmentRecord": "就職実績",
+	"aiName": "AI沢みのり",
+	"messageCount": "{{count}}件のメッセージ",
+	"readyToTalk": "お話しの準備ができました",
+	"aiThinking": "考えています...",
+	"askUniversityQuestion": "大学について質問してください",
+	"askAnything": "何でもお気軽にお聞きください。",
+	"questionsConsultations": "質問・相談お待ちしています。",
+	"thinking": "考えています..."
 }

@@ -104,7 +104,7 @@ export const ControlButtonsView: FC<ControlButtonsViewProps> = ({
 					<IconButton
 						icon={Info}
 						onClick={onToggleInfo}
-						aria-label="情報を表示"
+						aria-label={t("showInfo")}
 						className="h-11 w-11 md:h-12 md:w-12"
 					/>
 				</div> */}
