@@ -40,7 +40,7 @@ def create_application() -> FastAPI:
     app.include_router(health.router, prefix="", tags=["health"])
     app.include_router(speech.router, prefix="", tags=["speech"])
     app.include_router(dictionary.router, prefix="", tags=["dictionary"])
-    app.include_router(llm.router, prefix="/llm", tags=["llm"])
+    app.include_router(llm.router, prefix="/api/llm", tags=["llm"])
     app.include_router(sentiment.router, prefix="", tags=["sentiment"])
     
     logger.info("AivisSpeech API サーバーを初期化しました")

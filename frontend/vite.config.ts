@@ -11,6 +11,15 @@ export default defineConfig({
 		tailwindcss(),
 		TanStackRouterVite({ target: "react", autoCodeSplitting: true }),
 	],
+	server: {
+		proxy: {
+			// CORS対策
+			"/api": {
+				target: "http://localhost:8000",
+				changeOrigin: true,
+			},
+		},
+	},
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
