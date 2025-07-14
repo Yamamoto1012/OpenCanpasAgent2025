@@ -1,5 +1,5 @@
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { buildPrompt, generateText } from "@/services/llmService";
+import { buildPrompt } from "@/services/llmService";
 import { currentLanguageAtom } from "@/store/languageAtoms";
 import {
 	addAiMessageAtom,
@@ -146,22 +146,12 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 		async (userInput: string) => {
 			try {
 				// プロンプトの構築
-				const payloadQuery = buildPrompt(userInput, currentLanguage);
+				const payloadQuery = buildPrompt(userInput);
+				console.log(payloadQuery);
 
-				const response = await generateText(
-					payloadQuery,
-					undefined,
-					undefined,
-					3,
-					"/voice_mode_answer",
-					currentLanguage,
-				);
+				const fullResponse = "";
 
-				if (!response) {
-					throw new Error("Empty response");
-				}
-
-				addAiMessage(response);
+				addAiMessage(fullResponse);
 
 				// 応答状態に変更
 
@@ -169,10 +159,11 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 
 				// TTSで音声再生
 
-				await speak(response);
+				await speak(fullResponse);
 
 				setProcessingState("initial");
-			} catch {
+			} catch (error) {
+				console.error("VoiceChat generateAIResponse error:", error);
 				// エラーメッセージをユーザーに表示
 				addAiMessage(
 					"申し訳ございません。応答の生成中にエラーが発生しました。",
@@ -182,13 +173,7 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 				setVrmThinkingState(false);
 			}
 		},
-		[
-			currentLanguage,
-			addAiMessage,
-			setProcessingState,
-			setVrmThinkingState,
-			speak,
-		],
+		[addAiMessage, setProcessingState, setVrmThinkingState, speak],
 	);
 
 	// 音声認識の開始ハンドラー
