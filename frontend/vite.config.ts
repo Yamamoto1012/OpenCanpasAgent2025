@@ -18,6 +18,30 @@ export default defineConfig({
 				target: "http://localhost:8000",
 				changeOrigin: true,
 			},
+			"/tts": {
+				target: "http://localhost:8000",
+				changeOrigin: true,
+			},
+			"/speakers": {
+				target: "http://localhost:8000",
+				changeOrigin: true,
+			},
+			"/audio_query": {
+				target: "http://localhost:8000",
+				changeOrigin: true,
+			},
+			"/synthesis": {
+				target: "http://localhost:8000",
+				changeOrigin: true,
+			},
+			"/sentiment": {
+				target: "http://localhost:8000",
+				changeOrigin: true,
+			},
+			"/user_dict": {
+				target: "http://localhost:8000",
+				changeOrigin: true,
+			},
 		},
 	},
 	resolve: {

@@ -1,5 +1,5 @@
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { buildPrompt } from "@/services/llmService";
+import { buildPrompt, generateText } from "@/services/llmService";
 import {
 	addAiMessageAtom,
 	addUserMessageAtom,
@@ -147,16 +147,20 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 				const payloadQuery = buildPrompt(userInput);
 				console.log(payloadQuery);
 
-				const fullResponse = "";
+				const fullResponse = await generateText(
+					payloadQuery,
+					undefined, // conversationId
+					undefined, // signal
+					"/api/llm/query", // エンドポイント
+					"ja", // 日本語
+				);
 
 				addAiMessage(fullResponse);
 
 				// 応答状態に変更
-
 				setProcessingState("responding");
 
 				// TTSで音声再生
-
 				await speak(fullResponse);
 
 				setProcessingState("initial");
