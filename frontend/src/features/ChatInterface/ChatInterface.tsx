@@ -14,7 +14,6 @@ import {
 import { useTranslation } from "react-i18next";
 
 import {
-	type Message,
 	addMessageAtom,
 	addMessageWithIdAtom,
 	messagesAtom,
@@ -173,7 +172,7 @@ export const ChatInterface = forwardRef<
 		streamingTTS.clearQueue();
 
 		try {
-			const payloadQuery = buildPrompt(trimmed, currentLanguage);
+			const payloadQuery = buildPrompt(trimmed);
 			let accumulatedText = "";
 
 			await generateTextStream(
@@ -229,6 +228,8 @@ export const ChatInterface = forwardRef<
 						}, 2000);
 					}
 				},
+				"/api/llm/query",
+				currentLanguage,
 			);
 		} catch (err) {
 			stopAllAudio();

@@ -135,20 +135,13 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 			return;
 		}
 		if (isQuestion && query) {
-			const payloadQuery = buildPrompt(query, currentLanguage);
+			const payloadQuery = buildPrompt(query);
 			generateText(
 				payloadQuery,
-				category
-					? {
-							category: category.title
-								? tCategory(category.title)
-								: category.title,
-						}
-					: undefined,
-				undefined,
-				undefined,
-				"/query",
-				currentLanguage,
+				undefined, // conversationId
+				undefined, // signal
+				"/query", // endpoint
+				currentLanguage, // language
 			)
 				.then((res) => {
 					setDetailText(res || t("noAnswer"));
@@ -157,36 +150,20 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 				})
 				.finally(() => setLoading(false));
 		}
-	}, [
-		query,
-		category,
-		isQuestion,
-		guideMessage,
-		speak,
-		currentLanguage,
-		t,
-		tCategory,
-	]);
+	}, [query, category, isQuestion, guideMessage, speak, currentLanguage, t]);
 
 	// 新しい質問を送信する処理
 	const handleSendQuestion = async () => {
 		if (inputValue.trim()) {
 			setLoading(true);
 			const newQuestion = inputValue.trim();
-			const payloadQuery = buildPrompt(newQuestion, currentLanguage);
+			const payloadQuery = buildPrompt(newQuestion);
 			const res = await generateText(
 				payloadQuery,
-				category
-					? {
-							category: category.title
-								? tCategory(category.title)
-								: category.title,
-						}
-					: undefined,
-				undefined,
-				undefined,
-				"/query",
-				currentLanguage,
+				undefined, // conversationId
+				undefined, // signal
+				"/query", // endpoint
+				currentLanguage, // language
 			);
 			setDetailText(res || t("noAnswer"));
 			setResponseText(guideMessage);

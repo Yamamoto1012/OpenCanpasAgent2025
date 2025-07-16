@@ -1,6 +1,5 @@
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { buildPrompt } from "@/services/llmService";
-import { currentLanguageAtom } from "@/store/languageAtoms";
 import {
 	addAiMessageAtom,
 	addUserMessageAtom,
@@ -32,7 +31,6 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	const [processingState] = useAtom(processingStateAtom);
 	const [chatHistory] = useAtom(chatHistoryAtom);
 	const [vrmIsThinking] = useAtom(vrmIsThinkingAtom);
-	const [currentLanguage] = useAtom(currentLanguageAtom);
 
 	// Atomを更新するためのセッター関数
 	const setProcessingState = useSetAtom(setProcessingStateAtom);

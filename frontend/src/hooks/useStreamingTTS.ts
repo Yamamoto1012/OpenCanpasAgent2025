@@ -165,10 +165,7 @@ export const useStreamingTTS = (
 	 * 音声生成を実行する
 	 */
 	const generateAudio = useCallback(
-		async (
-			item: AudioQueueItem,
-			controller: AbortController,
-		): Promise<AudioQueueItem> => {
+		async (item: AudioQueueItem): Promise<AudioQueueItem> => {
 			try {
 				const ttsRequest: TTSRequest = {
 					text: item.text,
@@ -311,16 +308,12 @@ export const useStreamingTTS = (
 				),
 			}));
 
-			generateAudio(itemToGenerate, controller).then((processedItem) => {
-				setState((prev) => ({
-					...prev,
-					queue: prev.queue.map((item) =>
+			generateAudio(itemToGenerate).then((processedItem) => {
+				updateState({
+					queue: state.queue.map((item) =>
 						item.id === processedItem.id ? processedItem : item,
 					),
-					isGenerating: prev.queue.some(
-						(q) => q.isGenerating && q.id !== processedItem.id,
-					),
-				}));
+				});
 			});
 		}
 	}, [state.queue, generateAudio, updateState]);
