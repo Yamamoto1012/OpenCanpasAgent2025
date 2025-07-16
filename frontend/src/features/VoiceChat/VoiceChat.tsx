@@ -60,8 +60,8 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 		}
 		setLastSpokenTime(Date.now());
 		silenceTimeoutRef.current = setInterval(() => {
-			if (lastSpokenTime && Date.now() - lastSpokenTime > 1500) {
-				// 1.5秒無音なら自動停止
+			if (lastSpokenTime && Date.now() - lastSpokenTime > 3000) {
+				// 3秒無音なら自動停止
 				stopListening();
 			}
 		}, 300);
