@@ -2,6 +2,7 @@ import { showBottomNavigationAtom } from "@/store/navigationAtoms";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { ActionPrompt } from "../ActionPromt/ActionPromt";
 import { CategoryNavigator } from "../CategoryNavigator/CategoryNavigator";
 import type { Category } from "../CategoryNavigator/components/CategoryCard";
@@ -86,6 +87,7 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 	vrmWrapperRef,
 }) => {
 	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
+	const { t } = useTranslation("category");
 
 	return (
 		<div
@@ -157,7 +159,11 @@ export const CategorySectionView: FC<CategorySectionViewProps> = ({
 						transition={{ duration: 0.3 }}
 					>
 						<ActionPrompt
-							categoryTitle={selectedCategory?.title ?? "カテゴリーを選択"}
+							categoryTitle={
+								selectedCategory?.title
+									? t(selectedCategory.title)
+									: t("selectCategory")
+							}
 							onSearch={onSearch}
 							onAskQuestion={onAskQuestion}
 						/>

@@ -186,7 +186,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 					ref={inputRef}
 					value={inputValue}
 					onChange={onInputChange}
-					placeholder="質問を入力してください"
+					placeholder={t("enterQuestion")}
 					className="flex-1 bg-white border-gray-200"
 					onKeyDown={(e) => {
 						if (e.nativeEvent.isComposing) return;
@@ -216,7 +216,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 					onClick={onBack}
 					className="text-gray-500 hover:text-gray-700 rounded-full px-4"
 				>
-					最初に戻る
+					{t("backToStart")}
 				</Button>
 			</motion.div>
 		</div>

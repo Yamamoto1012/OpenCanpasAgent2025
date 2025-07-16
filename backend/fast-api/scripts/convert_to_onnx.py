@@ -98,7 +98,7 @@ def convert_model_to_onnx(
                 'attention_mask': {0: 'batch_size'},
                 'logits': {0: 'batch_size'}
             },
-            opset_version=11,
+            opset_version=17,
             export_params=True,
             do_constant_folding=True
         )
@@ -227,7 +227,7 @@ def main():
     parser.add_argument(
         "--model_name",
         type=str,
-        default="daigo/bert-base-japanese-sentiment",
+        default="kit-nlp/bert-base-japanese-sentiment-irony",
         help="Hugging Faceモデル名"
     )
     parser.add_argument(

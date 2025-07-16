@@ -102,6 +102,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	const { speak } = useTextToSpeech({ vrmWrapperRef });
 	const prevGuideMessageRef = useRef<string>("");
 	const { t } = useTranslation("search");
+	const { t: tCategory } = useTranslation("category");
 
 	// LLMの返答
 	const [responseText, setResponseText] = useState<string>("");
@@ -111,60 +112,66 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 	// AIの返答
 	const guideMessage = isQuestion
 		? t("infoForQuery", { query })
-		: t("infoForCategory", { categoryTitle: category?.title || "" });
+		: t("infoForCategory", {
+				categoryTitle: category?.title ? tCategory(category.title) : "",
+			});
 
 	// 初回表示時やquery変更時にテンプレ回答 or LLMへ問い合わせ
 	useEffect(() => {
 		if (!category && !query) return;
 		setLoading(true);
 
-		const guideChanged = prevGuideMessageRef.current !== guideMessage;
-		prevGuideMessageRef.current = guideMessage;
+		const currentGuideMessage = isQuestion
+			? t("infoForQuery", { query })
+			: t("infoForCategory", {
+					categoryTitle: category?.title ? tCategory(category.title) : "",
+				});
+
+		const guideChanged = prevGuideMessageRef.current !== currentGuideMessage;
+		prevGuideMessageRef.current = currentGuideMessage;
 
 		if (!isQuestion && category?.id) {
 			// テンプレ回答を表示
 			const template =
 				getTemplateAnswer(category) || "このカテゴリの概要情報は準備中です。";
 			setDetailText(template);
-			setResponseText(guideMessage);
-			if (guideChanged) speak(guideMessage);
+			setResponseText(currentGuideMessage);
+			if (guideChanged) speak(currentGuideMessage);
 			setLoading(false);
 			return;
 		}
 		if (isQuestion && query) {
-			const payloadQuery = buildPrompt(query, currentLanguage);
+			const payloadQuery = buildPrompt(query);
 			generateText(
 				payloadQuery,
-				category ? { category: category.title } : undefined,
-				undefined,
-				undefined,
-				"/query",
-				currentLanguage,
+				undefined, // conversationId
+				undefined, // signal
+				"/api/llm/query", // endpoint
+				currentLanguage, // language
 			)
 				.then((res) => {
-					setDetailText(res || "回答が取得できませんでした。");
-					setResponseText(guideMessage);
-					if (guideChanged) speak(guideMessage);
+					setDetailText(res || t("noAnswer"));
+					setResponseText(currentGuideMessage);
+					if (guideChanged) speak(currentGuideMessage);
 				})
 				.finally(() => setLoading(false));
 		}
-	}, [query, category, isQuestion, guideMessage, speak, currentLanguage]);
+	}, [query, category, isQuestion, speak, currentLanguage, t, tCategory]);
 
 	// 新しい質問を送信する処理
 	const handleSendQuestion = async () => {
 		if (inputValue.trim()) {
 			setLoading(true);
 			const newQuestion = inputValue.trim();
-			const payloadQuery = buildPrompt(newQuestion, currentLanguage);
+			const payloadQuery = buildPrompt(newQuestion);
 			const res = await generateText(
 				payloadQuery,
-				category ? { category: category.title } : undefined,
-				undefined,
-				undefined,
-				"/query",
-				currentLanguage,
+				undefined, // conversationId
+				undefined, // signal
+				"/api/llm/query", // endpoint
+				currentLanguage, // language
 			);
-			setDetailText(res || "回答が取得できませんでした。");
+			setDetailText(res || t("noAnswer"));
 			setResponseText(guideMessage);
 			setInputValue("");
 			if (onNewQuestion) onNewQuestion(newQuestion);
@@ -178,12 +185,12 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 
 	const title = isQuestion
 		? `「${query}」の回答`
-		: `「${category?.title || ""}」の検索結果`;
+		: `「${category?.title ? tCategory(category.title) : ""}」の検索結果`;
 
 	return (
 		<SearchResultsView
 			title={title}
-			responseText={loading ? "回答を取得中です..." : responseText}
+			responseText={loading ? t("retrievingAnswer") : responseText}
 			detailText={detailText}
 			inputValue={inputValue}
 			onInputChange={handleInputChange}

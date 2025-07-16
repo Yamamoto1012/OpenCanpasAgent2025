@@ -18,5 +18,13 @@
 	"startConversation": "Send a message to start the conversation",
 	"schoolLife": "School Life",
 	"recommendedFaculties": "Recommended Faculties",
-	"employmentRecord": "Employment Record"
+	"employmentRecord": "Employment Record",
+	"aiName": "KIT-VRM Assistant",
+	"messageCount": "{{count}} messages",
+	"readyToTalk": "Ready to talk",
+	"aiThinking": "Thinking...",
+	"askUniversityQuestion": "Ask me about the university",
+	"askAnything": "Feel free to ask me anything.",
+	"questionsConsultations": "Questions and consultations are welcome.",
+	"thinking": "Thinking..."
 }

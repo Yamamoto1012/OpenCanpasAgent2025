@@ -55,14 +55,13 @@ export const SimpleMobileChat: React.FC = () => {
 			abortRef.current = new AbortController();
 
 			try {
-				const payloadQuery = buildPrompt(userMessage, currentLanguage);
+				const payloadQuery = buildPrompt(userMessage);
 				const response = await generateText(
 					payloadQuery,
-					{}, // 空のcontextオブジェクト
-					abortRef.current.signal,
-					undefined,
-					"/query",
-					currentLanguage,
+					undefined, // conversationId
+					abortRef.current.signal, // signal
+					"/api/llm/query", // endpoint
+					currentLanguage, // language
 				);
 
 				if (!abortRef.current.signal.aborted) {

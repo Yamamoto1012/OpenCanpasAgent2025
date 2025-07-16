@@ -1,6 +1,5 @@
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { buildPrompt, generateText } from "@/services/llmService";
-import { currentLanguageAtom } from "@/store/languageAtoms";
 import {
 	addAiMessageAtom,
 	addUserMessageAtom,
@@ -12,7 +11,7 @@ import {
 	vrmIsThinkingAtom,
 } from "@/store/voiceChatAtoms";
 import { useAtom, useSetAtom } from "jotai";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { VRMWrapperHandle } from "../VRM/VRMWrapper/VRMWrapper";
 import { VoiceChatView } from "./VoiceChatView";
 import { useVoiceChat } from "./useVoiceChat";
@@ -32,7 +31,6 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 	const [processingState] = useAtom(processingStateAtom);
 	const [chatHistory] = useAtom(chatHistoryAtom);
 	const [vrmIsThinking] = useAtom(vrmIsThinkingAtom);
-	const [currentLanguage] = useAtom(currentLanguageAtom);
 
 	// Atomを更新するためのセッター関数
 	const setProcessingState = useSetAtom(setProcessingStateAtom);
@@ -62,8 +60,8 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 		}
 		setLastSpokenTime(Date.now());
 		silenceTimeoutRef.current = setInterval(() => {
-			if (lastSpokenTime && Date.now() - lastSpokenTime > 1500) {
-				// 1.5秒無音なら自動停止
+			if (lastSpokenTime && Date.now() - lastSpokenTime > 3000) {
+				// 3秒無音なら自動停止
 				stopListening();
 			}
 		}, 300);
@@ -119,9 +117,11 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 				generateAIResponse(transcript);
 			}, 1000);
 
-			return () => clearTimeout(processingTimer);
-			// biome-ignore lint/style/noUselessElse: <explanation>
-		} else if (isListening) {
+			return () => {
+				clearTimeout(processingTimer);
+			};
+		}
+		if (isListening) {
 			// 録音中の状態
 			setProcessingState("recording");
 
@@ -139,35 +139,44 @@ export const VoiceChat = ({ onClose, vrmWrapperRef }: VoiceChatProps) => {
 		addUserMessage,
 	]);
 
-	// AIの応答を生成する関数（APIとの通信部分）
-	const generateAIResponse = async (userInput: string) => {
-		try {
-			// 応答を保存
-			const payloadQuery = buildPrompt(userInput, currentLanguage);
-			const response = await generateText(
-				payloadQuery,
-				undefined,
-				undefined,
-				3,
-				"/voice_mode_answer",
-				currentLanguage,
-			);
+	// AIの応答を生成する関数(APIとの通信部分)
+	const generateAIResponse = useCallback(
+		async (userInput: string) => {
+			try {
+				// プロンプトの構築
+				const payloadQuery = buildPrompt(userInput);
+				console.log(payloadQuery);
 
-			addAiMessage(response);
+				const fullResponse = await generateText(
+					payloadQuery,
+					undefined, // conversationId
+					undefined, // signal
+					"/api/llm/query", // エンドポイント
+					"ja", // 日本語
+				);
 
-			// 応答状態に変更
-			setProcessingState("responding");
+				addAiMessage(fullResponse);
 
-			// TTSで音声再生
-			await speak(response);
-			setProcessingState("initial");
-		} catch (error) {
-			console.error("AI応答生成エラー:", error);
-			setProcessingState("initial");
+				// 応答状態に変更
+				setProcessingState("responding");
 
-			setVrmThinkingState(false);
-		}
-	};
+				// TTSで音声再生
+				await speak(fullResponse);
+
+				setProcessingState("initial");
+			} catch (error) {
+				console.error("VoiceChat generateAIResponse error:", error);
+				// エラーメッセージをユーザーに表示
+				addAiMessage(
+					"申し訳ございません。応答の生成中にエラーが発生しました。",
+				);
+
+				setProcessingState("initial");
+				setVrmThinkingState(false);
+			}
+		},
+		[addAiMessage, setProcessingState, setVrmThinkingState, speak],
+	);
 
 	// 音声認識の開始ハンドラー
 	const handleStartListening = () => {

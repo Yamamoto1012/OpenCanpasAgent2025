@@ -15,7 +15,6 @@ import { useAudioContext } from "./features/VRM/hooks/useAudioContext";
 import { VoiceChatDialog } from "./features/VoiceChat/VoiceChatDialog";
 import { useCategorySelection } from "./hooks/useCategorySelection";
 import { showVoiceChatAtom } from "./store/appStateAtoms";
-import { addMessageAtom } from "./store/chatAtoms";
 import { currentLanguageAtom } from "./store/languageAtoms";
 import {
 	currentScreenAtom,
@@ -29,7 +28,6 @@ export default function App() {
 	const [showVoiceChat] = useAtom(showVoiceChatAtom);
 	const [showBottomNavigation] = useAtom(showBottomNavigationAtom);
 	const [currentLanguage] = useAtom(currentLanguageAtom);
-	const addMessage = useSetAtom(addMessageAtom);
 	const setCurrentScreen = useSetAtom(currentScreenAtom);
 	const { i18n } = useTranslation();
 
@@ -63,11 +61,6 @@ export default function App() {
 	} = actions;
 
 	const handleAskQuestion = (question: string) => {
-		addMessage({
-			id: Date.now(),
-			text: question,
-			isUser: true,
-		});
 		originalHandleAskQuestion(question);
 	};
 

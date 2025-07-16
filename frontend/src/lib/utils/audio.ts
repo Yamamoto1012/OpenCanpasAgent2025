@@ -61,7 +61,7 @@ export const requestTTS = async (
 		throw new Error(`${t("validationError")}: ${errors.join(", ")}`);
 	}
 
-	const response = await fetch("http://localhost:8000/tts", {
+	const response = await fetch("/tts", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
