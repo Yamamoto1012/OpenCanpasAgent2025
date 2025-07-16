@@ -121,16 +121,22 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 		if (!category && !query) return;
 		setLoading(true);
 
-		const guideChanged = prevGuideMessageRef.current !== guideMessage;
-		prevGuideMessageRef.current = guideMessage;
+		const currentGuideMessage = isQuestion
+			? t("infoForQuery", { query })
+			: t("infoForCategory", {
+					categoryTitle: category?.title ? tCategory(category.title) : "",
+				});
+
+		const guideChanged = prevGuideMessageRef.current !== currentGuideMessage;
+		prevGuideMessageRef.current = currentGuideMessage;
 
 		if (!isQuestion && category?.id) {
 			// テンプレ回答を表示
 			const template =
 				getTemplateAnswer(category) || "このカテゴリの概要情報は準備中です。";
 			setDetailText(template);
-			setResponseText(guideMessage);
-			if (guideChanged) speak(guideMessage);
+			setResponseText(currentGuideMessage);
+			if (guideChanged) speak(currentGuideMessage);
 			setLoading(false);
 			return;
 		}
@@ -140,17 +146,17 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 				payloadQuery,
 				undefined, // conversationId
 				undefined, // signal
-				"/query", // endpoint
+				"/api/llm/query", // endpoint
 				currentLanguage, // language
 			)
 				.then((res) => {
 					setDetailText(res || t("noAnswer"));
-					setResponseText(guideMessage);
-					if (guideChanged) speak(guideMessage);
+					setResponseText(currentGuideMessage);
+					if (guideChanged) speak(currentGuideMessage);
 				})
 				.finally(() => setLoading(false));
 		}
-	}, [query, category, isQuestion, guideMessage, speak, currentLanguage, t]);
+	}, [query, category, isQuestion, speak, currentLanguage, t, tCategory]);
 
 	// 新しい質問を送信する処理
 	const handleSendQuestion = async () => {
@@ -162,7 +168,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 				payloadQuery,
 				undefined, // conversationId
 				undefined, // signal
-				"/query", // endpoint
+				"/api/llm/query", // endpoint
 				currentLanguage, // language
 			);
 			setDetailText(res || t("noAnswer"));
