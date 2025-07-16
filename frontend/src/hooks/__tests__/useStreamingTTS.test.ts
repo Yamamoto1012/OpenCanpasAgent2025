@@ -53,7 +53,6 @@ describe("useStreamingTTS", () => {
 			currentQueueItem: null,
 			queue: [],
 			error: null,
-			isStreamingStarted: false,
 		});
 		expect(result.current.isReady).toBe(true);
 	});
@@ -137,6 +136,7 @@ describe("useStreamingTTS", () => {
 
 		act(() => {
 			result.current.addChunk("りんご,バナナ，オレンジ");
+			result.current.finalize();
 		});
 
 		expect(result.current.state.queue.length).toBeGreaterThan(0);
@@ -153,9 +153,9 @@ describe("useStreamingTTS", () => {
 
 		// maxQueueSize=3なので、最新の3つのアイテムのみ保持される
 		expect(result.current.state.queue).toHaveLength(3);
-		expect(result.current.state.queue[0].text).toBe("メッセージ3");
-		expect(result.current.state.queue[1].text).toBe("メッセージ4");
-		expect(result.current.state.queue[2].text).toBe("メッセージ5");
+		expect(result.current.state.queue[0].text).toBe("メッセージ3。");
+		expect(result.current.state.queue[1].text).toBe("メッセージ4。");
+		expect(result.current.state.queue[2].text).toBe("メッセージ5。");
 	});
 
 	it("カスタム分割パターンが機能する", () => {
@@ -165,6 +165,7 @@ describe("useStreamingTTS", () => {
 
 		act(() => {
 			result.current.addChunk("りんご,バナナ，オレンジ");
+			result.current.finalize();
 		});
 
 		expect(result.current.state.queue).toHaveLength(3);
