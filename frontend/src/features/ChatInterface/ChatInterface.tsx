@@ -353,9 +353,16 @@ export const ChatInterface = forwardRef<
 	};
 
 	const desktopProps = {
-		...commonProps,
+		messages,
+		inputValue: input,
+		isThinking: isLoading,
+		isRecording,
+		onInputChange: handleInputChange,
+		onKeyDown: handleKeyDown,
+		onSend: handleSend,
 		onSelect: handleSelect,
 		onReset: handleReset,
+		onToggleRecording: handleToggleRecording,
 		onStop: () => {
 			abortRef.current?.abort();
 			stopAllAudio();
@@ -364,6 +371,7 @@ export const ChatInterface = forwardRef<
 			streamBuffer.current = "";
 			currentDisplayText.current = "";
 		},
+		messagesEndRef,
 	};
 
 	return isMobile ? (
