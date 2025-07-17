@@ -11,6 +11,7 @@ export type ChatInterfaceViewProps = {
 	inputValue: string;
 	isThinking: boolean;
 	isRecording: boolean;
+	isStreamingMode: boolean;
 	onInputChange: React.ChangeEventHandler<HTMLTextAreaElement>;
 	onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>;
 	onSend: () => void;
@@ -18,6 +19,7 @@ export type ChatInterfaceViewProps = {
 	onReset: () => void;
 	onToggleRecording: () => void;
 	onStop: () => void;
+	onToggleStreamingMode: () => void;
 	messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
 
@@ -41,6 +43,7 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 	inputValue,
 	isThinking,
 	isRecording,
+	isStreamingMode,
 	onInputChange,
 	onKeyDown,
 	onSend,
@@ -48,6 +51,7 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 	onReset,
 	onToggleRecording,
 	onStop,
+	onToggleStreamingMode,
 	messagesEndRef,
 }) => {
 	return (
@@ -64,7 +68,11 @@ export const ChatInterfaceView: React.FC<ChatInterfaceViewProps> = ({
 			shadow-none md:shadow-xl
 		"
 		>
-			<ChatHeader onReset={onReset} />
+			<ChatHeader
+				onReset={onReset}
+				isStreamingMode={isStreamingMode}
+				onToggleStreamingMode={onToggleStreamingMode}
+			/>
 			<ChatMessages
 				messages={messages}
 				isThinking={isThinking}
